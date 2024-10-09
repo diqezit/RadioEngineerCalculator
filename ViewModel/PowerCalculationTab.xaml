@@ -1,0 +1,187 @@
+﻿<UserControl x:Class="RadioEngineerCalculator.ViewModel.PowerCalculationTab"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:infos="clr-namespace:RadioEngineerCalculator.Infos"
+             mc:Ignorable="d" 
+             d:DesignHeight="600" d:DesignWidth="800">
+    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+        <StackPanel Margin="20">
+            <TextBlock Text="Расчет мощности" HorizontalAlignment="Center" VerticalAlignment="Center"
+                           FontSize="18" FontWeight="Bold"  Margin="0,0,0,30"/>
+
+            <GroupBox Header="Мощность по току и сопротивлению" BorderBrush="{StaticResource DividerBrush}" BorderThickness="1" Margin="0,0,0,20">
+                <StackPanel Margin="10">
+                    <Label Content="Ток (I)" Style="{StaticResource ModernLabel}"/>
+                    <Grid Margin="0,0,0,10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBox x:Name="txtCurrent" Style="{StaticResource ModernTextBox}">
+                            <TextBox.ToolTip>
+                                <ToolTip Content="{x:Static infos:Tooltips.PowerCalculationTab_CurrentTooltip}"/>
+                            </TextBox.ToolTip>
+                        </TextBox>
+                        <ComboBox x:Name="cmbCurrentUnit" Grid.Column="1" Width="70" SelectedIndex="0" Style="{StaticResource ModernComboBox}" Margin="5,0,0,0"
+                                  ItemsSource="{Binding CurrentUnits}">
+                            <ComboBox.ToolTip>
+                                <ToolTip Content="{x:Static infos:Tooltips.PowerCalculationTab_CurrentUnitTooltip}"/>
+                            </ComboBox.ToolTip>
+                        </ComboBox>
+                    </Grid>
+                    <Label Content="Сопротивление (R)" Style="{StaticResource ModernLabel}"/>
+                    <Grid Margin="0,0,0,10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBox x:Name="txtResistance" Style="{StaticResource ModernTextBox}">
+                            <TextBox.ToolTip>
+                                <ToolTip Content="{x:Static infos:Tooltips.PowerCalculationTab_ResistanceTooltip}"/>
+                            </TextBox.ToolTip>
+                        </TextBox>
+                        <ComboBox x:Name="cmbResistanceUnit" Grid.Column="1" Width="70" SelectedIndex="0" Style="{StaticResource ModernComboBox}" Margin="5,0,0,0"
+                                  ItemsSource="{Binding ResistanceUnits}">
+                            <ComboBox.ToolTip>
+                                <ToolTip Content="{x:Static infos:Tooltips.PowerCalculationTab_ResistanceUnitTooltip}"/>
+                            </ComboBox.ToolTip>
+                        </ComboBox>
+                    </Grid>
+                    <Button Content="Рассчитать мощность" Click="CalculatePower" Style="{StaticResource ModernButton}"/>
+                    <TextBlock x:Name="txtPowerResult" Margin="0,10,0,0" FontWeight="Bold"/>
+                </StackPanel>
+            </GroupBox>
+
+            <GroupBox Header="Мощность по напряжению и току" BorderBrush="{StaticResource DividerBrush}" BorderThickness="1" Margin="0,0,0,20">
+                <StackPanel Margin="10">
+                    <Label Content="Напряжение (V)" Style="{StaticResource ModernLabel}"/>
+                    <Grid Margin="0,0,0,10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBox x:Name="txtVoltage" Style="{StaticResource ModernTextBox}">
+                            <TextBox.ToolTip>
+                                <ToolTip Content="{x:Static infos:Tooltips.PowerCalculationTab_VoltageTooltip}"/>
+                            </TextBox.ToolTip>
+                        </TextBox>
+                        <ComboBox x:Name="cmbVoltageUnit" Grid.Column="1" Width="70" SelectedIndex="0" Style="{StaticResource ModernComboBox}" Margin="5,0,0,0"
+                                  ItemsSource="{Binding VoltageUnits}">
+                            <ComboBox.ToolTip>
+                                <ToolTip Content="{x:Static infos:Tooltips.PowerCalculationTab_VoltageUnitTooltip}"/>
+                            </ComboBox.ToolTip>
+                        </ComboBox>
+                    </Grid>
+                    <Label Content="Ток (I)" Style="{StaticResource ModernLabel}"/>
+                    <Grid Margin="0,0,0,10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBox x:Name="txtCurrentVI" Style="{StaticResource ModernTextBox}">
+                            <TextBox.ToolTip>
+                                <ToolTip Content="{x:Static infos:Tooltips.PowerCalculationTab_CurrentVITooltip}"/>
+                            </TextBox.ToolTip>
+                        </TextBox>
+                        <ComboBox x:Name="cmbCurrentUnitVI" Grid.Column="1" Width="70" SelectedIndex="0" Style="{StaticResource ModernComboBox}" Margin="5,0,0,0"
+                                  ItemsSource="{Binding CurrentUnits}">
+                            <ComboBox.ToolTip>
+                                <ToolTip Content="{x:Static infos:Tooltips.PowerCalculationTab_CurrentVIUnitTooltip}"/>
+                            </ComboBox.ToolTip>
+                        </ComboBox>
+                    </Grid>
+                    <Button Content="Рассчитать мощность" Click="CalculatePowerVI" Style="{StaticResource ModernButton}"/>
+                    <TextBlock x:Name="txtPowerResultVI" Margin="0,10,0,0" FontWeight="Bold"/>
+                </StackPanel>
+            </GroupBox>
+
+            <GroupBox Header="Расчет коэффициента мощности" BorderBrush="{StaticResource DividerBrush}" BorderThickness="1" Margin="0,0,0,20">
+                <StackPanel Margin="10">
+                    <Label Content="Полная мощность (S)" Style="{StaticResource ModernLabel}"/>
+                    <Grid Margin="0,0,0,10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBox x:Name="txtApparentPower" Style="{StaticResource ModernTextBox}">
+                            <TextBox.ToolTip>
+                                <ToolTip Content="{x:Static infos:Tooltips.PowerCalculationTab_ApparentPowerTooltip}"/>
+                            </TextBox.ToolTip>
+                        </TextBox>
+                        <ComboBox x:Name="cmbApparentPowerUnit" Grid.Column="1" Width="70" SelectedIndex="0" Style="{StaticResource ModernComboBox}" Margin="5,0,0,0"
+                                  ItemsSource="{Binding ApparentPowerUnits}">
+                            <ComboBox.ToolTip>
+                                <ToolTip Content="{x:Static infos:Tooltips.PowerCalculationTab_ApparentPowerUnitTooltip}"/>
+                            </ComboBox.ToolTip>
+                        </ComboBox>
+                    </Grid>
+                    <Label Content="Активная мощность (P)" Style="{StaticResource ModernLabel}"/>
+                    <Grid Margin="0,0,0,10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBox x:Name="txtRealPower" Style="{StaticResource ModernTextBox}">
+                            <TextBox.ToolTip>
+                                <ToolTip Content="{x:Static infos:Tooltips.PowerCalculationTab_RealPowerTooltip}"/>
+                            </TextBox.ToolTip>
+                        </TextBox>
+                        <ComboBox x:Name="cmbRealPowerUnit" Grid.Column="1" Width="70" SelectedIndex="0" Style="{StaticResource ModernComboBox}" Margin="5,0,0,0"
+                                  ItemsSource="{Binding RealPowerUnits}">
+                            <ComboBox.ToolTip>
+                                <ToolTip Content="{x:Static infos:Tooltips.PowerCalculationTab_RealPowerUnitTooltip}"/>
+                            </ComboBox.ToolTip>
+                        </ComboBox>
+                    </Grid>
+                    <Button Content="Рассчитать коэффициент мощности" Click="CalculatePowerFactor" Style="{StaticResource ModernButton}"/>
+                    <TextBlock x:Name="txtPowerFactorResult" Margin="0,10,0,0" FontWeight="Bold"/>
+                </StackPanel>
+            </GroupBox>
+
+            <GroupBox Header="Расчет реактивной мощности" BorderBrush="{StaticResource DividerBrush}" BorderThickness="1" Margin="0,0,0,20">
+                <StackPanel Margin="10">
+                    <Label Content="Полная мощность (S)" Style="{StaticResource ModernLabel}"/>
+                    <Grid Margin="0,0,0,10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBox x:Name="txtApparentPowerReactive" Style="{StaticResource ModernTextBox}">
+                            <TextBox.ToolTip>
+                                <ToolTip Content="{x:Static infos:Tooltips.PowerCalculationTab_ApparentPowerReactiveTooltip}"/>
+                            </TextBox.ToolTip>
+                        </TextBox>
+                        <ComboBox x:Name="cmbApparentPowerUnitReactive" Grid.Column="1" Width="70" SelectedIndex="0" Style="{StaticResource ModernComboBox}" Margin="5,0,0,0"
+                                  ItemsSource="{Binding ApparentPowerUnits}">
+                            <ComboBox.ToolTip>
+                                <ToolTip Content="{x:Static infos:Tooltips.PowerCalculationTab_ApparentPowerReactiveUnitTooltip}"/>
+                            </ComboBox.ToolTip>
+                        </ComboBox>
+                    </Grid>
+                    <Label Content="Активная мощность (P)" Style="{StaticResource ModernLabel}"/>
+                    <Grid Margin="0,0,0,10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBox x:Name="txtRealPowerReactive" Style="{StaticResource ModernTextBox}">
+                            <TextBox.ToolTip>
+                                <ToolTip Content="{x:Static infos:Tooltips.PowerCalculationTab_RealPowerReactiveTooltip}"/>
+                            </TextBox.ToolTip>
+                        </TextBox>
+                        <ComboBox x:Name="cmbRealPowerUnitReactive" Grid.Column="1" Width="70" SelectedIndex="0" Style="{StaticResource ModernComboBox}" Margin="5,0,0,0"
+                                  ItemsSource="{Binding RealPowerUnits}">
+                            <ComboBox.ToolTip>
+                                <ToolTip Content="{x:Static infos:Tooltips.PowerCalculationTab_RealPowerReactiveUnitTooltip}"/>
+                            </ComboBox.ToolTip>
+                        </ComboBox>
+                    </Grid>
+                    <Button Content="Рассчитать реактивную мощность" Click="CalculateReactivePower" Style="{StaticResource ModernButton}"/>
+                    <TextBlock x:Name="txtReactivePowerResult" Margin="0,10,0,0" FontWeight="Bold"/>
+                </StackPanel>
+            </GroupBox>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

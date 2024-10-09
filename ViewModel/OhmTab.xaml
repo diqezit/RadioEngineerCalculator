@@ -1,0 +1,52 @@
+﻿<UserControl x:Class="RadioEngineerCalculator.ViewModel.OhmTab"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             mc:Ignorable="d" 
+             d:DesignHeight="300" d:DesignWidth="400">
+    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+        <Grid Margin="10">
+            <StackPanel>
+                <TextBlock Text="Закон Ома" HorizontalAlignment="Center" VerticalAlignment="Center" 
+                           FontSize="18" FontWeight="Bold" Margin="0,10,0,20"/>
+                <GroupBox Header="Расчет по закону Ома" BorderBrush="{StaticResource DividerBrush}" BorderThickness="1" Margin="0,0,0,10">
+                    <StackPanel Margin="10">
+                        <Label Content="Сопротивление (R)" Style="{StaticResource ModernLabel}"/>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBox x:Name="txtResistance" Style="{StaticResource ModernTextBox}"/>
+                            <ComboBox x:Name="cmbResistanceUnit" Grid.Column="1" Width="60" SelectedIndex="0" Style="{StaticResource ModernComboBox}"
+                                      ItemsSource="{Binding ResistanceUnits}"/>
+                        </Grid>
+                        <Label Content="Ток (I)" Style="{StaticResource ModernLabel}"/>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBox x:Name="txtCurrent" Style="{StaticResource ModernTextBox}"/>
+                            <ComboBox x:Name="cmbCurrentUnit" Grid.Column="1" Width="60" SelectedIndex="0" Style="{StaticResource ModernComboBox}"
+                                      ItemsSource="{Binding CurrentUnits}"/>
+                        </Grid>
+                        <Label Content="Напряжение (V)" Style="{StaticResource ModernLabel}"/>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBox x:Name="txtVoltage" Style="{StaticResource ModernTextBox}"/>
+                            <ComboBox x:Name="cmbVoltageUnit" Grid.Column="1" Width="60" SelectedIndex="0" Style="{StaticResource ModernComboBox}"
+                                      ItemsSource="{Binding VoltageUnits}"/>
+                        </Grid>
+                        <Button Content="Рассчитать" Click="CalculateOhm" Style="{StaticResource ModernButton}" Margin="0,10,0,0"/>
+                        <TextBlock x:Name="txtResult" Margin="0,10,0,0" FontWeight="Bold"/>
+                    </StackPanel>
+                </GroupBox>
+            </StackPanel>
+        </Grid>
+    </ScrollViewer>
+</UserControl>

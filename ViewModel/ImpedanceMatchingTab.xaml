@@ -1,0 +1,59 @@
+﻿<UserControl x:Class="RadioEngineerCalculator.ViewModel.ImpedanceMatchingTab"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:infos="clr-namespace:RadioEngineerCalculator.Infos"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800">
+    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+        <Grid Margin="10">
+            <StackPanel>
+                <TextBlock Text="Расчет согласования импедансов" HorizontalAlignment="Center" VerticalAlignment="Center" 
+                           FontSize="18" FontWeight="Bold" Margin="0,10,0,20"/>
+                <GroupBox Header="Расчет согласования импедансов" BorderBrush="{StaticResource DividerBrush}" BorderThickness="1">
+                    <StackPanel Margin="10">
+                        <Label Content="Импеданс источника" Style="{StaticResource ModernLabel}"/>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBox x:Name="SourceImpedanceTextBox" Style="{StaticResource ModernTextBox}">
+                                <TextBox.ToolTip>
+                                    <ToolTip Content="{x:Static infos:Tooltips.ImpedanceMatchingTab_SourceImpedanceTooltip}"/>
+                                </TextBox.ToolTip>
+                            </TextBox>
+                            <ComboBox x:Name="SourceImpedanceUnitComboBox" Grid.Column="1" Width="60" SelectedIndex="0" Style="{StaticResource ModernComboBox}"
+                                      ItemsSource="{Binding SourceImpedanceUnits}">
+                                <ComboBox.ToolTip>
+                                    <ToolTip Content="{x:Static infos:Tooltips.ImpedanceMatchingTab_SourceImpedanceUnitTooltip}"/>
+                                </ComboBox.ToolTip>
+                            </ComboBox>
+                        </Grid>
+                        <Label Content="Импеданс нагрузки" Style="{StaticResource ModernLabel}" Margin="0,10,0,0"/>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBox x:Name="LoadImpedanceTextBox" Style="{StaticResource ModernTextBox}">
+                                <TextBox.ToolTip>
+                                    <ToolTip Content="{x:Static infos:Tooltips.ImpedanceMatchingTab_LoadImpedanceTooltip}"/>
+                                </TextBox.ToolTip>
+                            </TextBox>
+                            <ComboBox x:Name="LoadImpedanceUnitComboBox" Grid.Column="1" Width="60" SelectedIndex="0" Style="{StaticResource ModernComboBox}"
+                                      ItemsSource="{Binding LoadImpedanceUnits}">
+                                <ComboBox.ToolTip>
+                                    <ToolTip Content="{x:Static infos:Tooltips.ImpedanceMatchingTab_LoadImpedanceUnitTooltip}"/>
+                                </ComboBox.ToolTip>
+                            </ComboBox>
+                        </Grid>
+                        <Button Content="Рассчитать" Click="CalculateImpedanceMatching" Style="{StaticResource ModernButton}" Margin="0,20,0,0"/>
+                        <TextBlock x:Name="ResultTextBlock" Margin="0,10,0,0" FontWeight="Bold"/>
+                    </StackPanel>
+                </GroupBox>
+            </StackPanel>
+        </Grid>
+    </ScrollViewer>
+</UserControl>

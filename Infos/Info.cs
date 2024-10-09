@@ -1,0 +1,41 @@
+﻿using RadioEngineerCalculator.Services;
+using static RadioEngineerCalculator.Services.FiltersCalculationService;
+
+namespace RadioEngineerCalculator.Infos
+{
+    public static class Info
+    {
+        public static string LowPassFilterDescription => "Фильтр нижних частот ослабляет частоты выше частоты среза.";
+
+        public static string HighPassFilterDescription => "Фильтр верхних частот ослабляет частоты ниже частоты среза.";
+
+        public static string BandPassFilterDescription => "Полосовой фильтр пропускает определенный диапазон частот.";
+
+        public static string BandStopFilterDescription => "Режекторный фильтр ослабляет определенный диапазон частот.";
+
+        public static string RCFilterDescription => "RC-фильтр использует резистор и конденсатор для фильтрации сигналов.";
+
+        public static string RLFilterDescription => "RL-фильтр использует резистор и индуктивность для фильтрации сигналов.";
+
+        public static string QuartzFilterDescription => "Кварцевый фильтр использует кварцевый кристалл для высокоточной фильтрации частот.";
+
+        public static string GetAdditionalInfo(FilterType filterType, double cutoffFrequency, double bandwidth)
+        {
+            switch (filterType)
+            {
+                case FilterType.LowPass:
+                    return "Пропускает частоты ниже частоты среза";
+                case FilterType.HighPass:
+                    return "Пропускает частоты выше частоты среза";
+                case FilterType.BandPass:
+                case FilterType.PassiveBandPass:
+                    return $"Пропускает частоты между {UnitC.Form.Frequency(cutoffFrequency - bandwidth / 2)} и {UnitC.Form.Frequency(cutoffFrequency + bandwidth / 2)}";
+                case FilterType.BandStop:
+                case FilterType.PassiveBandStop:
+                    return $"Ослабляет частоты между {UnitC.Form.Frequency(cutoffFrequency - bandwidth / 2)} и {UnitC.Form.Frequency(cutoffFrequency + bandwidth / 2)}";
+                default:
+                    return "Дополнительная информация недоступна для этого типа фильтра";
+            }
+        }
+    }
+}
