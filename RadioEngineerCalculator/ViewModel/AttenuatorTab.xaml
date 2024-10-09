@@ -1,0 +1,59 @@
+﻿<UserControl x:Class="RadioEngineerCalculator.ViewModel.AttenuatorTab"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:infos="clr-namespace:RadioEngineerCalculator.Infos"
+             mc:Ignorable="d" 
+             d:DesignHeight="300" d:DesignWidth="400">
+    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+        <Grid Margin="10">
+            <StackPanel>
+                <TextBlock Text="Расчеты аттенюаторов" HorizontalAlignment="Center" VerticalAlignment="Center" 
+                           FontSize="18" FontWeight="Bold" Margin="0,10,0,20"/>
+                <GroupBox Header="Расчет затухания" BorderBrush="{StaticResource DividerBrush}" BorderThickness="1">
+                    <StackPanel Margin="10">
+                        <Label Content="Входное напряжение" Style="{StaticResource ModernLabel}"/>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBox x:Name="InputVoltageTextBox" Style="{StaticResource ModernTextBox}">
+                                <TextBox.ToolTip>
+                                    <ToolTip Content="{x:Static infos:Tooltips.AttenuatorTab_InputVoltageTooltip}"/>
+                                </TextBox.ToolTip>
+                            </TextBox>
+                            <ComboBox x:Name="InputVoltageUnitComboBox" Grid.Column="1" Width="60" SelectedIndex="0" Style="{StaticResource ModernComboBox}"
+                                      ItemsSource="{Binding InputVoltageUnits}">
+                                <ComboBox.ToolTip>
+                                    <ToolTip Content="{x:Static infos:Tooltips.AttenuatorTab_InputVoltageUnitTooltip}"/>
+                                </ComboBox.ToolTip>
+                            </ComboBox>
+                        </Grid>
+                        <Label Content="Выходное напряжение" Style="{StaticResource ModernLabel}"/>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBox x:Name="OutputVoltageTextBox" Style="{StaticResource ModernTextBox}">
+                                <TextBox.ToolTip>
+                                    <ToolTip Content="{x:Static infos:Tooltips.AttenuatorTab_OutputVoltageTooltip}"/>
+                                </TextBox.ToolTip>
+                            </TextBox>
+                            <ComboBox x:Name="OutputVoltageUnitComboBox" Grid.Column="1" Width="60" SelectedIndex="0" Style="{StaticResource ModernComboBox}"
+                                      ItemsSource="{Binding OutputVoltageUnits}">
+                                <ComboBox.ToolTip>
+                                    <ToolTip Content="{x:Static infos:Tooltips.AttenuatorTab_OutputVoltageUnitTooltip}"/>
+                                </ComboBox.ToolTip>
+                            </ComboBox>
+                        </Grid>
+                        <Button Content="Рассчитать затухание" Click="CalculateAttenuator" Style="{StaticResource ModernButton}" Margin="0,10,0,0"/>
+                        <TextBlock x:Name="ResultTextBlock" Margin="0,10,0,0" FontWeight="Bold"/>
+                    </StackPanel>
+                </GroupBox>
+            </StackPanel>
+        </Grid>
+    </ScrollViewer>
+</UserControl>
