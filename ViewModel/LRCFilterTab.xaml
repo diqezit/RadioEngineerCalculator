@@ -190,8 +190,7 @@
 
                         <!-- График фильтра -->
                         <GroupBox Header="График среза фильтра" BorderBrush="{StaticResource DividerBrush}" BorderThickness="1" Margin="0,20,0,0">
-                            <oxy:PlotView x:Name="FilterResponsePlot"
-                  Model="{Binding FilterResponseModel}"/>
+                            <oxy:PlotView x:Name="FilterResponsePlot" Model="{Binding FilterResponseModel}" Width="Auto" Height="300" Margin="10"/>
                         </GroupBox>
                     </StackPanel>
                 </GroupBox>

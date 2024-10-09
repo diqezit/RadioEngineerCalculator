@@ -22,6 +22,7 @@ namespace RadioEngineerCalculator.ViewModel
         private FilterType selectedFilterType;
         private readonly CalculationService _calculationService;
         private readonly FiltersCalculationService _filtersCalculationService;
+
         private PlotModel _filterResponseModel;
         private Graph _graph;
 
@@ -41,11 +42,12 @@ namespace RadioEngineerCalculator.ViewModel
             FilterTypes = new ObservableCollection<string>(Enum.GetNames(typeof(FilterType)));
             _calculationService = new CalculationService();
 
-            // Инициализация _filterResponseModel перед _graph
-            _filterResponseModel = new PlotModel { Title = "Характеристика фильтра" };
+            // Инициализация _filterResponseModel и _graph
+            _filterResponseModel = new PlotModel { Title = "Амплитудно-частотная характеристика" };
             _filtersCalculationService = new FiltersCalculationService();
             _graph = new Graph(_filterResponseModel, _filtersCalculationService);
 
+            // Привязка модели к элементу управления графиком
             FilterResponsePlot.Model = _filterResponseModel;
             DataContext = this;
 
@@ -363,6 +365,7 @@ namespace RadioEngineerCalculator.ViewModel
 
             _filterResponseModel.Series.Clear();
             _filterResponseModel.InvalidatePlot(true);
+            FilterResponsePlot.InvalidatePlot(true);
 
             // Скрыть график, если результатов нет
             if (_filterResponseModel.Series.Count == 0)
