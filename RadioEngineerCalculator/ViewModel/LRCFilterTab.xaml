@@ -44,18 +44,18 @@
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
                             <TextBox x:Name="txtCapacitance" 
-         Text="{Binding Capacitance, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
+         Text="{Binding Capacitance, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, TargetNullValue=''}" 
          Style="{StaticResource ModernTextBox}" TextChanged="OnParameterChanged">
                                 <TextBox.ToolTip>
                                     <ToolTip Content="{x:Static infos:Tooltips.LCFilterTab_CapacitanceTooltip}"/>
                                 </TextBox.ToolTip>
                             </TextBox>
                             <ComboBox x:Name="cmbCapacitanceUnit" 
-                                      Grid.Column="1" 
-                                      Width="60" 
-                                      SelectedItem="{Binding SelectedCapacitanceUnit, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
-                                      Style="{StaticResource ModernComboBox}"
-                                      ItemsSource="{Binding CapacitanceUnits}">
+          Grid.Column="1" 
+          Width="60" 
+          SelectedItem="{Binding SelectedCapacitanceUnit, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, TargetNullValue=''}" 
+          Style="{StaticResource ModernComboBox}"
+          ItemsSource="{Binding CapacitanceUnits}">
                                 <ComboBox.ToolTip>
                                     <ToolTip Content="{x:Static infos:Tooltips.LCFilterTab_CapacitanceUnitTooltip}"/>
                                 </ComboBox.ToolTip>

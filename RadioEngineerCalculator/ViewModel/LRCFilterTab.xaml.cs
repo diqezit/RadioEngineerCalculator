@@ -166,12 +166,33 @@ namespace RadioEngineerCalculator.ViewModel
             cmbFrequencyUnit.SelectionChanged += OnUnitChanged;
             cmbFilterType.SelectionChanged += OnFilterTypeChanged;
             InitializeComboBoxes();
+
+            // Инициализация значений по умолчанию
+            Capacitance = 0;
+            Inductance = 0;
+            Resistance = 0;
+            Frequency = 0;
+            PassbandRipple = 0;
+            StopbandAttenuation = 0;
+            StopbandFrequency = 0;
+            FilterOrderResult = string.Empty;
+            SelectedCapacitanceUnit = CapacitanceUnits.FirstOrDefault();
+            SelectedFilterType = FilterTypes.FirstOrDefault();
+            SelectedFrequencyUnit = FrequencyUnits.FirstOrDefault();
+            SelectedInductanceUnit = InductanceUnits.FirstOrDefault();
+            SelectedResistanceUnit = ResistanceUnits.FirstOrDefault();
+            SelectedStopbandFrequencyUnit = FrequencyUnits.FirstOrDefault();
         }
 
         private void OnParameterChanged(object sender, TextChangedEventArgs e)
         {
             if (sender is TextBox textBox)
             {
+                if (string.IsNullOrWhiteSpace(textBox.Text))
+                {
+                    return;
+                }
+
                 if (double.TryParse(textBox.Text, out double value))
                 {
                     switch (textBox.Name)
@@ -352,6 +373,7 @@ namespace RadioEngineerCalculator.ViewModel
                 cmbFrequencyUnit.SelectedItem == null ||
                 cmbStopbandFrequencyUnit.SelectedItem == null)
             {
+                MessageBox.Show(ErrorMessages.InvalidInputValues, "Input Error", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return false;
             }
 
