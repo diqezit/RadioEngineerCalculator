@@ -10,6 +10,12 @@ namespace RadioEngineerCalculator.Services
         {
             bool isValid = true;
 
+            if (inputValues == null)
+            {
+                MessageBox.Show(ErrorMessages.InvalidInputValues, "Input Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return false;
+            }
+
             // Проверка на положительные значения
             if (!AreValuesPositive(inputValues.Frequency, inputValues.PassbandRipple, inputValues.StopbandAttenuation, inputValues.StopbandFrequency))
             {
@@ -18,7 +24,7 @@ namespace RadioEngineerCalculator.Services
             }
 
             // Проверка компонентных значений
-            if (!ValidateComponentValues(inputValues))  // Вызов исправлен, теперь метод существует
+            if (!ValidateComponentValues(inputValues))
             {
                 isValid = false;
             }
@@ -40,6 +46,12 @@ namespace RadioEngineerCalculator.Services
             if (inputValues.StopbandAttenuation < 0)
             {
                 MessageBox.Show(ErrorMessages.InvalidStopbandAttenuationValue, "Input Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                isValid = false;
+            }
+
+            if (string.IsNullOrEmpty(inputValues.StopbandFrequencyUnit))
+            {
+                MessageBox.Show(ErrorMessages.InvalidStopbandFrequencyUnit, "Input Error", MessageBoxButton.OK, MessageBoxImage.Warning);
                 isValid = false;
             }
 

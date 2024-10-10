@@ -16,9 +16,10 @@
         public static string InvalidComponentValue => "Компоненты фильтра и частота должны иметь положительные значения.";
         public static string InvalidPassbandRippleValue => "Неверное значение неравномерности АЧХ в полосе пропускания.";
         public static string InvalidStopbandAttenuationValue => "Неверное значение затухания в полосе заграждения.";
-        public static string InvalidStopbandFrequencyValue => "Неверное значение частоты полосы заграждения.";
+        public static string InvalidStopbandFrequencyUnit => "Неверное значение частоты полосы заграждения.";
         public static string MissingInputValues => "Пожалуйста, заполните все необходимые поля";
         public static string EAC => "Ошибка калькуляции.";
+        public static string InvalidNumericInput => "Неправильной числовой ввод.";
         public static string FrequencyTooLow => "Частота очень мала.";
 
 

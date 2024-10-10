@@ -38,12 +38,13 @@ namespace RadioEngineerCalculator.ViewModel
         private double _passbandRipple;
         private double _stopbandAttenuation;
         private double _stopbandFrequency;
-
+        private string _filterOrderResult;
         private string _selectedCapacitanceUnit;
         private string _selectedFilterType;
         private string _selectedFrequencyUnit;
         private string _selectedInductanceUnit;
         private string _selectedResistanceUnit;
+        private string _selectedStopbandFrequencyUnit;
 
         public string SelectedCapacitanceUnit
         {
@@ -93,6 +94,42 @@ namespace RadioEngineerCalculator.ViewModel
             set => SetProperty(ref _stopbandFrequency, value);
         }
 
+        public double Capacitance
+        {
+            get => _capacitance;
+            set => SetProperty(ref _capacitance, value);
+        }
+
+        public double Inductance
+        {
+            get => _inductance;
+            set => SetProperty(ref _inductance, value);
+        }
+
+        public double Frequency
+        {
+            get => _frequency;
+            set => SetProperty(ref _frequency, value);
+        }
+
+        public double Resistance
+        {
+            get => _resistance;
+            set => SetProperty(ref _resistance, value);
+        }
+
+        public string FilterOrderResult
+        {
+            get => _filterOrderResult;
+            set => SetProperty(ref _filterOrderResult, value);
+        }
+
+        public string SelectedStopbandFrequencyUnit
+        {
+            get => _selectedStopbandFrequencyUnit;
+            set => SetProperty(ref _selectedStopbandFrequencyUnit, value);
+        }
+
         private bool SetProperty<T>(ref T field, T value, [CallerMemberName] string propertyName = null)
         {
             if (EqualityComparer<T>.Default.Equals(field, value)) return false;
@@ -135,20 +172,31 @@ namespace RadioEngineerCalculator.ViewModel
         {
             if (sender is TextBox textBox)
             {
-                switch (textBox.Name)
+                if (double.TryParse(textBox.Text, out double value))
                 {
-                    case "txtCapacitance":
-                        AutoCalculateParameters(CalculationType.Capacitance);
-                        break;
-                    case "txtInductance":
-                        AutoCalculateParameters(CalculationType.Inductance);
-                        break;
-                    case "txtResistance":
-                        AutoCalculateParameters(CalculationType.Resistance);
-                        break;
-                    case "txtFrequency":
-                        AutoCalculateParameters(CalculationType.Frequency);
-                        break;
+                    switch (textBox.Name)
+                    {
+                        case "txtCapacitance":
+                            if (value > 0) AutoCalculateParameters(CalculationType.Capacitance);
+                            else MessageBox.Show(ErrorMessages.InvalidCapacitanceInput, "Input Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                            break;
+                        case "txtInductance":
+                            if (value > 0) AutoCalculateParameters(CalculationType.Inductance);
+                            else MessageBox.Show(ErrorMessages.InvalidInductanceInput, "Input Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                            break;
+                        case "txtResistance":
+                            if (value > 0) AutoCalculateParameters(CalculationType.Resistance);
+                            else MessageBox.Show(ErrorMessages.InvalidResistanceInput, "Input Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                            break;
+                        case "txtFrequency":
+                            if (value > 0) AutoCalculateParameters(CalculationType.Frequency);
+                            else MessageBox.Show(ErrorMessages.InvalidFrequencyInput, "Input Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                            break;
+                    }
+                }
+                else
+                {
+                    MessageBox.Show(ErrorMessages.InvalidNumericInput, "Input Error", MessageBoxButton.OK, MessageBoxImage.Warning);
                 }
             }
         }
@@ -161,11 +209,12 @@ namespace RadioEngineerCalculator.ViewModel
             Frequency
         }
 
-
-
         private void OnUnitChanged(object sender, SelectionChangedEventArgs e)
         {
-            AutoCalculateParameters();
+            if (cmbFilterType.SelectedItem != null)
+            {
+                AutoCalculateParameters();
+            }
         }
 
         private void AutoCalculateParameters(CalculationType calcType = CalculationType.Frequency)
@@ -295,15 +344,23 @@ namespace RadioEngineerCalculator.ViewModel
         {
             inputValues = new FilterInputValues();
 
-            if (!double.TryParse(txtFrequency.Text, out _frequency) ||
-                !double.TryParse(txtPassbandRipple.Text, out _passbandRipple) ||
-                !double.TryParse(txtStopbandAttenuation.Text, out _stopbandAttenuation) ||
-                !double.TryParse(txtStopbandFrequency.Text, out _stopbandFrequency) ||
+            if (string.IsNullOrWhiteSpace(txtFrequency.Text) ||
+                string.IsNullOrWhiteSpace(txtPassbandRipple.Text) ||
+                string.IsNullOrWhiteSpace(txtStopbandAttenuation.Text) ||
+                string.IsNullOrWhiteSpace(txtStopbandFrequency.Text) ||
                 cmbFilterType.SelectedItem == null ||
                 cmbFrequencyUnit.SelectedItem == null ||
                 cmbStopbandFrequencyUnit.SelectedItem == null)
             {
-                MessageBox.Show(ErrorMessages.InvalidInputValues, "Input Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return false;
+            }
+
+            if (!double.TryParse(txtFrequency.Text, out _frequency) ||
+                !double.TryParse(txtPassbandRipple.Text, out _passbandRipple) ||
+                !double.TryParse(txtStopbandAttenuation.Text, out _stopbandAttenuation) ||
+                !double.TryParse(txtStopbandFrequency.Text, out _stopbandFrequency))
+            {
+                MessageBox.Show(ErrorMessages.InvalidNumericInput, "Input Error", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return false;
             }
 
@@ -314,13 +371,6 @@ namespace RadioEngineerCalculator.ViewModel
                 return false;
             }
 
-            // Дополнительная проверка валидности значений
-            if (!InputValidator.ValidateInputValues(inputValues))
-            {
-                return false; // Если валидация не прошла, выходим из метода
-            }
-
-            // Установка значений в inputValues
             inputValues.Frequency = _frequency;
             inputValues.FilterType = filterType;
             inputValues.FrequencyUnit = cmbFrequencyUnit.SelectedItem.ToString();
@@ -329,7 +379,6 @@ namespace RadioEngineerCalculator.ViewModel
             inputValues.StopbandFrequency = _stopbandFrequency;
             inputValues.StopbandFrequencyUnit = cmbStopbandFrequencyUnit.SelectedItem.ToString();
 
-            // Валидация компонентных значений
             if (!TryParseComponentValues(filterType, out _capacitance, out _inductance, out _resistance))
             {
                 return false;
@@ -342,7 +391,6 @@ namespace RadioEngineerCalculator.ViewModel
             inputValues.InductanceUnit = cmbInductanceUnit.SelectedItem?.ToString() ?? "H";
             inputValues.ResistanceUnit = cmbResistanceUnit.SelectedItem?.ToString() ?? "Ω";
 
-            // Валидация inputValues
             return InputValidator.ValidateInputValues(inputValues);
         }
 
@@ -353,19 +401,19 @@ namespace RadioEngineerCalculator.ViewModel
 
             bool isValid = true;
 
-            if (filterType != FilterType.RL && (!double.TryParse(txtCapacitance.Text, out capacitance) || cmbCapacitanceUnit.SelectedItem == null || capacitance <= 0))
+            if (filterType != FilterType.RL && (!double.TryParse(txtCapacitance.Text, out capacitance) || capacitance <= 0))
             {
                 MessageBox.Show(ErrorMessages.InvalidCapacitanceInput, "Input Error", MessageBoxButton.OK, MessageBoxImage.Warning);
                 isValid = false;
             }
 
-            if (filterType != FilterType.RC && (!double.TryParse(txtInductance.Text, out inductance) || cmbInductanceUnit.SelectedItem == null || inductance <= 0))
+            if (filterType != FilterType.RC && (!double.TryParse(txtInductance.Text, out inductance) || inductance <= 0))
             {
                 MessageBox.Show(ErrorMessages.InvalidInductanceInput, "Input Error", MessageBoxButton.OK, MessageBoxImage.Warning);
                 isValid = false;
             }
 
-            if (filterType != FilterType.Quartz && (!double.TryParse(txtResistance.Text, out resistance) || cmbResistanceUnit.SelectedItem == null || resistance <= 0))
+            if (filterType != FilterType.Quartz && (!double.TryParse(txtResistance.Text, out resistance) || resistance <= 0))
             {
                 MessageBox.Show(ErrorMessages.InvalidResistanceInput, "Input Error", MessageBoxButton.OK, MessageBoxImage.Warning);
                 isValid = false;

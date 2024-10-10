@@ -206,16 +206,19 @@ namespace RadioEngineerCalculator.Services
         {
             InputValidator.ValidateInputValues(inputValues);
 
+            var cutoffFrequency = CalculateFilterCutoffFrequency(inputValues.FilterType, inputValues.Resistance, inputValues.Inductance, inputValues.Capacitance);
+            var qualityFactor = CalculateQualityFactor(inputValues);
+
             var results = new FilterResults
             {
                 FilterType = inputValues.FilterType,
-                CutoffFrequency = CalculateFilterCutoffFrequency(inputValues.FilterType, inputValues.Resistance, inputValues.Inductance, inputValues.Capacitance),
-                QualityFactor = CalculateQualityFactor(inputValues),
-                Bandwidth = CalculateBandwidth(CalculateFilterCutoffFrequency(inputValues.FilterType, inputValues.Resistance, inputValues.Inductance, inputValues.Capacitance), CalculateQualityFactor(inputValues)),
+                CutoffFrequency = cutoffFrequency,
+                QualityFactor = qualityFactor,
+                Bandwidth = CalculateBandwidth(cutoffFrequency, qualityFactor),
                 Impedance = CalculateFilterImpedance(inputValues.FilterType, inputValues.Resistance, inputValues.Inductance, inputValues.Capacitance, inputValues.Frequency).Magnitude,
-                PhaseShift = CalculateFilterPhaseResponse(inputValues.FilterType, inputValues.Frequency, CalculateFilterCutoffFrequency(inputValues.FilterType, inputValues.Resistance, inputValues.Inductance, inputValues.Capacitance), CalculateBandwidth(CalculateFilterCutoffFrequency(inputValues.FilterType, inputValues.Resistance, inputValues.Inductance, inputValues.Capacitance), CalculateQualityFactor(inputValues))),
-                GroupDelay = CalculateGroupDelay(inputValues.FilterType, inputValues.Frequency, CalculateFilterCutoffFrequency(inputValues.FilterType, inputValues.Resistance, inputValues.Inductance, inputValues.Capacitance), CalculateBandwidth(CalculateFilterCutoffFrequency(inputValues.FilterType, inputValues.Resistance, inputValues.Inductance, inputValues.Capacitance), CalculateQualityFactor(inputValues))),
-                Attenuation = CalculateFilterAttenuation(inputValues.FilterType, inputValues.Frequency, CalculateFilterCutoffFrequency(inputValues.FilterType, inputValues.Resistance, inputValues.Inductance, inputValues.Capacitance), CalculateBandwidth(CalculateFilterCutoffFrequency(inputValues.FilterType, inputValues.Resistance, inputValues.Inductance, inputValues.Capacitance), CalculateQualityFactor(inputValues))),
+                PhaseShift = CalculateFilterPhaseResponse(inputValues.FilterType, inputValues.Frequency, cutoffFrequency, CalculateBandwidth(cutoffFrequency, qualityFactor)),
+                GroupDelay = CalculateGroupDelay(inputValues.FilterType, inputValues.Frequency, cutoffFrequency, CalculateBandwidth(cutoffFrequency, qualityFactor)),
+                Attenuation = CalculateFilterAttenuation(inputValues.FilterType, inputValues.Frequency, cutoffFrequency, CalculateBandwidth(cutoffFrequency, qualityFactor)),
                 FilterOrder = CalculateFilterOrder(inputValues.FilterType, inputValues.PassbandRipple, inputValues.StopbandAttenuation, inputValues.PassbandFrequency, inputValues.StopbandFrequency)
             };
 
@@ -231,6 +234,9 @@ namespace RadioEngineerCalculator.Services
                 case FilterType.HighPass:
                 case FilterType.BandPass:
                 case FilterType.BandStop:
+                case FilterType.Quartz:
+                case FilterType.Pi:
+                case FilterType.Trap:
                     return 1 / (2 * Math.PI * Math.Sqrt(inputValues.Inductance * inputValues.Capacitance));
                 case FilterType.RC:
                     return 1 / (2 * Math.PI * inputValues.Resistance * inputValues.Capacitance);

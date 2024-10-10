@@ -44,8 +44,8 @@
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
                             <TextBox x:Name="txtCapacitance" 
-                                     Text="{Binding Capacitance, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
-                                     Style="{StaticResource ModernTextBox}" TextChanged="OnParameterChanged">
+         Text="{Binding Capacitance, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
+         Style="{StaticResource ModernTextBox}" TextChanged="OnParameterChanged">
                                 <TextBox.ToolTip>
                                     <ToolTip Content="{x:Static infos:Tooltips.LCFilterTab_CapacitanceTooltip}"/>
                                 </TextBox.ToolTip>
@@ -70,8 +70,8 @@
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
                             <TextBox x:Name="txtInductance" 
-                                     Text="{Binding Inductance, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
-                                     Style="{StaticResource ModernTextBox}" TextChanged="OnParameterChanged">
+         Text="{Binding Inductance, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
+         Style="{StaticResource ModernTextBox}" TextChanged="OnParameterChanged">
                                 <TextBox.ToolTip>
                                     <ToolTip Content="{x:Static infos:Tooltips.LCFilterTab_InductanceTooltip}"/>
                                 </TextBox.ToolTip>
@@ -96,8 +96,8 @@
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
                             <TextBox x:Name="txtResistance" 
-                                     Text="{Binding Resistance, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
-                                     Style="{StaticResource ModernTextBox}" TextChanged="OnParameterChanged">
+         Text="{Binding Resistance, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
+         Style="{StaticResource ModernTextBox}" TextChanged="OnParameterChanged">
                                 <TextBox.ToolTip>
                                     <ToolTip Content="{x:Static infos:Tooltips.LCFilterTab_ResistanceTooltip}"/>
                                 </TextBox.ToolTip>
@@ -215,9 +215,9 @@
                         </Grid>
 
                         <TextBlock x:Name="txtFilterOrderResult" 
-                           Text="{Binding FilterOrderResult}" 
-                           Margin="0,10,0,0" 
-                           FontWeight="Bold"/>
+           Text="{Binding FilterOrderResult}" 
+           Margin="0,10,0,0" 
+           FontWeight="Bold"/>
 
                         <!-- График фильтра -->
                         <GroupBox Header="График среза фильтра" BorderBrush="{StaticResource DividerBrush}" BorderThickness="1" Margin="0,20,0,0">
