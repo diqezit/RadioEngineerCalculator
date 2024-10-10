@@ -49,27 +49,5 @@ namespace RadioEngineerCalculator.Services
             }
             return new ObservableCollection<string>();
         }
-
-        public static Dictionary<int, string> FilterTypes = new Dictionary<int, string>
-        {
-          { 0, "Low Pass" },
-          { 1, "High Pass" },
-          { 2, "Band Pass" },
-          { 3, "Band Stop" }
-        };
-
-
-        public static Dictionary<int, string> ComponentTypeLabels { get; } = new Dictionary<int, string>
-        {
-            { 0, "Capacitance" },
-            { 1, "Inductance" },
-            { 2, "Resistor" },
-            { 3, "Transistor" },
-            { 4, "Diode" },
-            { 5, "Transformer" },
-            { 6, "Operational Amplifier" },
-            { 7, "Voltage Regulator" },
-            { 8, "Microcontroller" }
-        };
     }
 }

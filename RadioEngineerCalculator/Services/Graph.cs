@@ -19,57 +19,27 @@ namespace RadioEngineerCalculator.Services
 
         public void UpdateFilterResponsePlot(FilterResults results)
         {
-            _plotModel.Series.Clear(); // Очищаем серию графиков
-            _plotModel.Axes.Clear();   // Очищаем оси графиков
+            _plotModel.Series.Clear();
+            _plotModel.Axes.Clear();
 
-            // Добавляем ось для частоты
-            var frequencyAxis = new LogarithmicAxis
-            {
-                Position = AxisPosition.Bottom,
-                Title = "Частота (Гц)",
-                Minimum = results.CutoffFrequency / 100, // Минимальная частота
-                Maximum = results.CutoffFrequency * 100  // Максимальная частота
-            };
-
-            // Добавляем ось для амплитуды
-            var magnitudeAxis = new LinearAxis
-            {
-                Position = AxisPosition.Left,
-                Title = "Амплитуда (дБ)",
-                Minimum = -60,  // Минимум для амплитуды
-                Maximum = 10    // Максимум для амплитуды
-            };
-
-            // Добавляем ось для фазы
-            var phaseAxis = new LinearAxis
-            {
-                Position = AxisPosition.Right,
-                Title = "Фаза (градусы)",
-                Key = "PhaseAxis", // Ключ для оси фазы
-                Minimum = -180,    // Минимум для фазы
-                Maximum = 180      // Максимум для фазы
-            };
-
-            _plotModel.Axes.Add(frequencyAxis);
-            _plotModel.Axes.Add(magnitudeAxis);
-            _plotModel.Axes.Add(phaseAxis);
+            AddAxes();
 
             var magnitudeSeries = new LineSeries
             {
                 Title = "Амплитудно-частотная характеристика",
-                Color = OxyColors.Blue // Цвет линии амплитуды
+                Color = OxyColors.Blue
             };
 
             var phaseSeries = new LineSeries
             {
                 Title = "Фазо-частотная характеристика",
-                Color = OxyColors.Red, // Цвет линии фазы
-                YAxisKey = "PhaseAxis"  // Привязываем к оси фазы
+                Color = OxyColors.Red,
+                YAxisKey = "PhaseAxis"
             };
 
-            const int pointCount = 1000; // Количество точек
-            double minFreq = results.CutoffFrequency / 100; // Минимальная частота
-            double maxFreq = results.CutoffFrequency * 100; // Максимальная частота
+            const int pointCount = 1000;
+            double minFreq = results.CutoffFrequency / 100;
+            double maxFreq = results.CutoffFrequency * 100;
 
             for (int i = 0; i < pointCount; i++)
             {
@@ -77,14 +47,14 @@ namespace RadioEngineerCalculator.Services
                 double magnitude = _filtersCalculationService.CalculateFilterMagnitudeResponse(results.FilterType, freq, results.CutoffFrequency, results.Bandwidth);
                 double phase = _filtersCalculationService.CalculateFilterPhaseResponse(results.FilterType, freq, results.CutoffFrequency, results.Bandwidth);
 
-                magnitudeSeries.Points.Add(new DataPoint(freq, magnitude)); // Добавляем точку амплитуды
-                phaseSeries.Points.Add(new DataPoint(freq, phase));       // Добавляем точку фазы
+                magnitudeSeries.Points.Add(new DataPoint(freq, 20 * Math.Log10(magnitude)));
+                phaseSeries.Points.Add(new DataPoint(freq, phase * 180 / Math.PI));
             }
 
-            _plotModel.Series.Add(magnitudeSeries); // Добавляем серию амплитуды на график
-            _plotModel.Series.Add(phaseSeries);     // Добавляем серию фазы на график
+            _plotModel.Series.Add(magnitudeSeries);
+            _plotModel.Series.Add(phaseSeries);
 
-            _plotModel.InvalidatePlot(true); // Обновляем график
+            _plotModel.InvalidatePlot(true);
         }
 
         private void AddAxes()

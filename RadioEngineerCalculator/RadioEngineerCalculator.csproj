@@ -72,6 +72,7 @@
     <Reference Include="ReachFramework" />
     <Reference Include="System" />
     <Reference Include="System.Data" />
+    <Reference Include="System.Numerics" />
     <Reference Include="System.Printing" />
     <Reference Include="System.Xaml" />
     <Reference Include="System.Xml" />
@@ -87,6 +88,7 @@
     <Compile Include="Infos\ErrorMSG.cs" />
     <Compile Include="Infos\Info.cs" />
     <Compile Include="Infos\Tooltips.cs" />
+    <Compile Include="Infos\Validation.cs" />
     <Compile Include="Services\ComboBoxService.cs" />
     <Compile Include="Services\FiltersCalculationService.cs" />
     <Compile Include="Services\Graph.cs" />
