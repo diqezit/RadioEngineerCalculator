@@ -100,6 +100,11 @@
         public const string ModulationTab_PhaseDeviationTooltip = "Введите девиацию фазы в радианах (rad) или других единицах.";
         public const string ModulationTab_PhaseDeviationUnitTooltip = "Выберите единицу измерения для девиации фазы.";
 
+        // ResonantCircuitTab Tooltips
+        public const string ResonantCircuitTab_InductanceTooltip = "Введите индуктивность (L).";
+        public const string ResonantCircuitTab_InductanceUnitTooltip = "Выберите единицу измерения для индуктивности.";
+        public const string ResonantCircuitTab_CapacitanceTooltip = "Введите емкость (C).";
+        public const string ResonantCircuitTab_CapacitanceUnitTooltip = "Выберите единицу измерения для емкости.";
 
         // OhmTab Tooltips
         public const string OhmTab_ResistanceTooltip = "Введите сопротивление (R) в омах (Ω), килоомах (kΩ) или мегаомах (MΩ).";

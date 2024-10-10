@@ -107,6 +107,9 @@
     <Compile Include="ViewModel\ImpedanceMatchingTab.xaml.cs">
       <DependentUpon>ImpedanceMatchingTab.xaml</DependentUpon>
     </Compile>
+    <Compile Include="ViewModel\LC_OscСalc.xaml.cs">
+      <DependentUpon>LC_OscСalc.xaml</DependentUpon>
+    </Compile>
     <Compile Include="ViewModel\LRCFilterTab.xaml.cs">
       <DependentUpon>LRCFilterTab.xaml</DependentUpon>
     </Compile>
@@ -188,6 +191,10 @@
       <SubType>Code</SubType>
     </Compile>
     <Page Include="ViewModel\ImpedanceMatchingTab.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="ViewModel\LC_OscСalc.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

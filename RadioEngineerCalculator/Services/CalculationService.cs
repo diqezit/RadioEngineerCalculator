@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Numerics;
 
 namespace RadioEngineerCalculator.Services
 {
@@ -77,8 +78,6 @@ namespace RadioEngineerCalculator.Services
         public double CalculateGain(double powerIn, double powerOut)
             => 10 * Math.Log10(powerOut / powerIn);
 
-        public double CalculateResonanceFrequency(double inductance, double capacitance)
-            => 1 / (2 * Math.PI * Math.Sqrt(inductance * capacitance));
 
         public double CalculateWavelength(double frequency)
             => SpeedOfLight / frequency;
@@ -217,7 +216,7 @@ namespace RadioEngineerCalculator.Services
         public double CalculateAntennaEffectiveArea(double gain, double wavelength)
             => (gain * Math.Pow(wavelength, 2)) / (4 * Math.PI);
 
-        #endregion
+        #endregion 
 
         #region Расчеты для цифровой обработки сигналов
 
@@ -227,7 +226,7 @@ namespace RadioEngineerCalculator.Services
         public double CalculateQuantizationNoise(int bitsPerSample)
             => Math.Pow(2, -bitsPerSample) / Math.Sqrt(12);
 
-        #endregion
+        #endregion 
 
         #region Расчеты для смесителей (Mixers)
 
@@ -269,6 +268,72 @@ namespace RadioEngineerCalculator.Services
             double y = 1.0 - (((((a5 * t + a4) * t) + a3) * t + a2) * t + a1) * t * Math.Exp(-x * x);
 
             return sign * y;
+        }
+
+        #endregion
+
+        #region Расчеты для колебательных контуров (Oscillators)
+
+        // Расчет резонансной частоты с улучшенной валидацией
+        public double CalculateResonanceFrequency(double inductance, double capacitance)
+        {
+            if (inductance <= 0 || capacitance <= 0)
+                throw new ArgumentException("Индуктивность и ёмкость должны быть положительными.");
+            return 1 / (2 * Math.PI * Math.Sqrt(inductance * capacitance));
+        }
+
+        // Добавление более явной обработки ошибок для импеданса
+        public Complex CalculateSeriesImpedance(double resistance, double inductance, double capacitance, double frequency)
+        {
+            if (resistance < 0 || inductance <= 0 || capacitance <= 0 || frequency <= 0)
+                throw new ArgumentException("Все параметры должны быть больше нуля.");
+
+            var inductiveReactance = 2 * Math.PI * frequency * inductance;
+            var capacitiveReactance = 1 / (2 * Math.PI * frequency * capacitance);
+
+            return new Complex(resistance, inductiveReactance - capacitiveReactance);
+        }
+
+
+        // Расчет импеданса для параллельного контура (резистор, индуктивность, емкость)
+        public Complex CalculateParallelImpedance(double resistance, double inductance, double capacitance, double frequency)
+        {
+            if (resistance <= 0 || inductance <= 0 || capacitance <= 0 || frequency <= 0)
+                throw new ArgumentException("Parameters must be greater than zero.");
+
+            // Индуктивное и емкостное сопротивление
+            var inductiveReactance = 2 * Math.PI * frequency * inductance;  // X_L = ωL
+            var capacitiveReactance = 1 / (2 * Math.PI * frequency * capacitance);  // X_C = 1 / (ωC)
+
+            // Преобразуем в комплексные числа для импеданса
+            Complex Z_R = new Complex(resistance, 0);  // Сопротивление
+            Complex Z_L = new Complex(0, inductiveReactance);  // Индуктивное сопротивление (чисто мнимая часть)
+            Complex Z_C = new Complex(0, -capacitiveReactance);  // Емкостное сопротивление (чисто мнимая часть)
+
+            // Полный импеданс для параллельного контура: Z_parallel = 1 / (1/Z_R + 1/Z_L + 1/Z_C)
+            return 1 / (1 / Z_R + 1 / Z_L + 1 / Z_C);
+        }
+
+        // Расчет добротности для последовательного контура
+        public double CalculateSeriesQFactor(double inductance, double resistance, double frequency)
+        {
+            if (inductance <= 0 || resistance <= 0 || frequency <= 0)
+                throw new ArgumentException("Parameters must be greater than zero.");
+
+            // Добротность Q = ωL / R
+            var inductiveReactance = 2 * Math.PI * frequency * inductance;  // X_L = ωL
+            return inductiveReactance / resistance;
+        }
+
+        // Расчет добротности для параллельного контура
+        public double CalculateParallelQFactor(double inductance, double resistance, double frequency)
+        {
+            if (inductance <= 0 || resistance <= 0 || frequency <= 0)
+                throw new ArgumentException("Parameters must be greater than zero.");
+
+            // Добротность Q = R / ωL
+            var inductiveReactance = 2 * Math.PI * frequency * inductance;  // X_L = ωL
+            return resistance / inductiveReactance;
         }
 
         #endregion
