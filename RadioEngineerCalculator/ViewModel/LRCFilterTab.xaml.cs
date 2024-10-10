@@ -1,4 +1,5 @@
-﻿using OxyPlot;
+﻿#region Using Directives
+using OxyPlot;
 using OxyPlot.Series;
 using RadioEngineerCalculator.Infos;
 using RadioEngineerCalculator.Services;
@@ -11,22 +12,21 @@ using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Controls;
 using static RadioEngineerCalculator.Services.FiltersCalculationService;
-
+#endregion
 
 namespace RadioEngineerCalculator.ViewModel
 {
     public partial class LRCFilterTab : UserControl, INotifyPropertyChanged
     {
-        public ObservableCollection<string> CapacitanceUnits { get; }
-        public ObservableCollection<string> InductanceUnits { get; }
-        public ObservableCollection<string> ResistanceUnits { get; }
-        public ObservableCollection<string> FrequencyUnits { get; }
-        public ObservableCollection<string> FilterTypes { get; }
+        #region Properties
+        public ObservableCollection<string> CapacitanceUnits { get; set; }
+        public ObservableCollection<string> InductanceUnits { get; set; }
+        public ObservableCollection<string> ResistanceUnits { get; set; }
+        public ObservableCollection<string> FrequencyUnits { get; set; }
+        public ObservableCollection<string> FilterTypes { get; set; }
 
-
-        private FilterType selectedFilterType;
-        private readonly CalculationService _calculationService;
-        private readonly FiltersCalculationService _filtersCalculationService;
+        private CalculationService _calculationService;
+        private FiltersCalculationService _filtersCalculationService;
 
         private PlotModel _filterResponseModel;
         private Graph _graph;
@@ -45,7 +45,9 @@ namespace RadioEngineerCalculator.ViewModel
         private string _selectedInductanceUnit;
         private string _selectedResistanceUnit;
         private string _selectedStopbandFrequencyUnit;
+        #endregion
 
+        #region Public Properties
         public string SelectedCapacitanceUnit
         {
             get => _selectedCapacitanceUnit;
@@ -129,45 +131,41 @@ namespace RadioEngineerCalculator.ViewModel
             get => _selectedStopbandFrequencyUnit;
             set => SetProperty(ref _selectedStopbandFrequencyUnit, value);
         }
+        #endregion
 
-        private bool SetProperty<T>(ref T field, T value, [CallerMemberName] string propertyName = null)
-        {
-            if (EqualityComparer<T>.Default.Equals(field, value)) return false;
-            field = value;
-            OnPropertyChanged(propertyName);
-            return true;
-        }
-
-
+        #region Constructor
         public LRCFilterTab()
         {
             InitializeComponent();
+            InitializeCollections();
+            InitializeServices();
+            InitializeDefaultValues();
+            InitializeEventHandlers();
+            DataContext = this;
+        }
+        #endregion
+
+        #region Методы инициализации
+        private void InitializeCollections()
+        {
             CapacitanceUnits = new ObservableCollection<string>(ComboBoxService.GetUnits("Capacitance"));
             InductanceUnits = new ObservableCollection<string>(ComboBoxService.GetUnits("Inductance"));
             ResistanceUnits = new ObservableCollection<string>(ComboBoxService.GetUnits("Resistance"));
             FrequencyUnits = new ObservableCollection<string>(ComboBoxService.GetUnits("Frequency"));
             FilterTypes = new ObservableCollection<string>(Enum.GetNames(typeof(FilterType)));
+        }
 
+        private void InitializeServices()
+        {
             _calculationService = new CalculationService();
             _filtersCalculationService = new FiltersCalculationService();
             _filterResponseModel = new PlotModel { Title = "Амплитудно-частотная характеристика" };
             _graph = new Graph(_filterResponseModel, _filtersCalculationService);
-
             FilterResponsePlot.Model = _filterResponseModel;
-            DataContext = this;
+        }
 
-            txtCapacitance.TextChanged += OnParameterChanged;
-            txtInductance.TextChanged += OnParameterChanged;
-            txtResistance.TextChanged += OnParameterChanged;
-            txtFrequency.TextChanged += OnParameterChanged;
-            cmbCapacitanceUnit.SelectionChanged += OnUnitChanged;
-            cmbInductanceUnit.SelectionChanged += OnUnitChanged;
-            cmbResistanceUnit.SelectionChanged += OnUnitChanged;
-            cmbFrequencyUnit.SelectionChanged += OnUnitChanged;
-            cmbFilterType.SelectionChanged += OnFilterTypeChanged;
-            InitializeComboBoxes();
-
-            // Инициализация значений по умолчанию
+        private void InitializeDefaultValues()
+        {
             Capacitance = 0;
             Inductance = 0;
             Resistance = 0;
@@ -182,6 +180,32 @@ namespace RadioEngineerCalculator.ViewModel
             SelectedInductanceUnit = InductanceUnits.FirstOrDefault();
             SelectedResistanceUnit = ResistanceUnits.FirstOrDefault();
             SelectedStopbandFrequencyUnit = FrequencyUnits.FirstOrDefault();
+        }
+
+        private void InitializeEventHandlers()
+        {
+            // Добавьте эту проверку перед подпиской на события
+            if (IsInDesignMode())
+            {
+                return;
+            }
+
+            txtCapacitance.TextChanged += OnParameterChanged;
+            txtInductance.TextChanged += OnParameterChanged;
+            txtResistance.TextChanged += OnParameterChanged;
+            txtFrequency.TextChanged += OnParameterChanged;
+            cmbCapacitanceUnit.SelectionChanged += OnUnitChanged;
+            cmbInductanceUnit.SelectionChanged += OnUnitChanged;
+            cmbResistanceUnit.SelectionChanged += OnUnitChanged;
+            cmbFrequencyUnit.SelectionChanged += OnUnitChanged;
+            cmbFilterType.SelectionChanged += OnFilterTypeChanged;
+        }
+        #endregion
+
+        #region Обработчики событий
+        private bool IsInDesignMode()
+        {
+            return DesignerProperties.GetIsInDesignMode(this);
         }
 
         private void OnParameterChanged(object sender, TextChangedEventArgs e)
@@ -222,20 +246,41 @@ namespace RadioEngineerCalculator.ViewModel
             }
         }
 
-        private enum CalculationType
-        {
-            Capacitance,
-            Inductance,
-            Resistance,
-            Frequency
-        }
-
         private void OnUnitChanged(object sender, SelectionChangedEventArgs e)
         {
             if (cmbFilterType.SelectedItem != null)
             {
                 AutoCalculateParameters();
             }
+        }
+
+        private void OnFilterTypeChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (cmbFilterType.SelectedItem != null)
+            {
+                if (Enum.TryParse(cmbFilterType.SelectedItem.ToString(), out FilterType filterType))
+                {
+                    UpdateInputFieldsVisibility(filterType);
+                    ResetInputFields();
+                    ClearResults();
+                    UpdateHelpText(filterType);
+                    UpdateAdditionalInputFields(filterType);
+                }
+                else
+                {
+                    MessageBox.Show(ErrorMessages.InvalidFilterType, "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
+        }
+        #endregion
+
+        #region Методы вычисления
+        private enum CalculationType
+        {
+            Capacitance,
+            Inductance,
+            Resistance,
+            Frequency
         }
 
         private void AutoCalculateParameters(CalculationType calcType = CalculationType.Frequency)
@@ -304,23 +349,6 @@ namespace RadioEngineerCalculator.ViewModel
             UpdateFilterResponsePlot(results);
         }
 
-
-
-        private void InitializeComboBoxes()
-        {
-            cmbFilterType.SelectedIndex = 0;
-            cmbFrequencyUnit.SelectedIndex = 0;
-            cmbCapacitanceUnit.SelectedIndex = 0;
-            cmbInductanceUnit.SelectedIndex = 0;
-            cmbResistanceUnit.SelectedIndex = 0;
-        }
-
-        private void CalculateFilterParameters(object sender, RoutedEventArgs e)
-        {
-            AutoCalculateParameters();
-        }
-
-
         private void UpdateFilterResponsePlot(FilterResults results)
         {
             _filterResponseModel.Series.Clear();
@@ -360,143 +388,148 @@ namespace RadioEngineerCalculator.ViewModel
                     return (0, 0);
             }
         }
+        #endregion
 
+        #region Методы валидации и парсинга
         private bool TryGetInputValues(out FilterInputValues inputValues)
         {
             inputValues = new FilterInputValues();
 
-            if (string.IsNullOrWhiteSpace(txtFrequency.Text) ||
-                string.IsNullOrWhiteSpace(txtPassbandRipple.Text) ||
-                string.IsNullOrWhiteSpace(txtStopbandAttenuation.Text) ||
-                string.IsNullOrWhiteSpace(txtStopbandFrequency.Text) ||
-                cmbFilterType.SelectedItem == null ||
-                cmbFrequencyUnit.SelectedItem == null ||
-                cmbStopbandFrequencyUnit.SelectedItem == null)
-            {
-                MessageBox.Show(ErrorMessages.InvalidInputValues, "Input Error", MessageBoxButton.OK, MessageBoxImage.Warning);
-                return false;
-            }
-
-            if (!double.TryParse(txtFrequency.Text, out _frequency) ||
-                !double.TryParse(txtPassbandRipple.Text, out _passbandRipple) ||
-                !double.TryParse(txtStopbandAttenuation.Text, out _stopbandAttenuation) ||
-                !double.TryParse(txtStopbandFrequency.Text, out _stopbandFrequency))
-            {
-                MessageBox.Show(ErrorMessages.InvalidNumericInput, "Input Error", MessageBoxButton.OK, MessageBoxImage.Warning);
-                return false;
-            }
-
-            var selectedFilterType = cmbFilterType.SelectedItem.ToString();
-            if (!Enum.TryParse(selectedFilterType, out FilterType filterType))
-            {
-                MessageBox.Show(ErrorMessages.InvalidFilterType, "Error", MessageBoxButton.OK, MessageBoxImage.Warning);
-                return false;
-            }
-
-            inputValues.Frequency = _frequency;
-            inputValues.FilterType = filterType;
-            inputValues.FrequencyUnit = cmbFrequencyUnit.SelectedItem.ToString();
-            inputValues.PassbandRipple = _passbandRipple;
-            inputValues.StopbandAttenuation = _stopbandAttenuation;
-            inputValues.StopbandFrequency = _stopbandFrequency;
-            inputValues.StopbandFrequencyUnit = cmbStopbandFrequencyUnit.SelectedItem.ToString();
-
-            if (!TryParseComponentValues(filterType, out _capacitance, out _inductance, out _resistance))
+            if (!ValidateAndParseRequiredFields(inputValues) || !ValidateAndParseComponentValues(inputValues))
             {
                 return false;
             }
 
-            inputValues.Capacitance = _capacitance;
-            inputValues.Inductance = _inductance;
-            inputValues.Resistance = _resistance;
-            inputValues.CapacitanceUnit = cmbCapacitanceUnit.SelectedItem?.ToString() ?? "F";
-            inputValues.InductanceUnit = cmbInductanceUnit.SelectedItem?.ToString() ?? "H";
-            inputValues.ResistanceUnit = cmbResistanceUnit.SelectedItem?.ToString() ?? "Ω";
+            inputValues.FrequencyUnit = GetSelectedItemOrDefault(cmbFrequencyUnit);
+            inputValues.CapacitanceUnit = GetSelectedItemOrDefault(cmbCapacitanceUnit, "F");
+            inputValues.InductanceUnit = GetSelectedItemOrDefault(cmbInductanceUnit, "H");
+            inputValues.ResistanceUnit = GetSelectedItemOrDefault(cmbResistanceUnit, "Ω");
+            inputValues.StopbandFrequencyUnit = GetSelectedItemOrDefault(cmbStopbandFrequencyUnit);
 
             return InputValidator.ValidateInputValues(inputValues);
         }
 
-
-        private bool TryParseComponentValues(FilterType filterType, out double capacitance, out double inductance, out double resistance)
+        private bool ValidateAndParseRequiredFields(FilterInputValues inputValues)
         {
-            capacitance = inductance = resistance = 0;
-
-            bool isValid = true;
-
-            if (filterType != FilterType.RL && (!double.TryParse(txtCapacitance.Text, out capacitance) || capacitance <= 0))
+            if (!ValidateRequiredFields() || !ParseNumericValues(inputValues))
             {
-                MessageBox.Show(ErrorMessages.InvalidCapacitanceInput, "Input Error", MessageBoxButton.OK, MessageBoxImage.Warning);
-                isValid = false;
+                return false;
             }
 
-            if (filterType != FilterType.RC && (!double.TryParse(txtInductance.Text, out inductance) || inductance <= 0))
+            if (!Enum.TryParse(GetSelectedItemOrDefault(cmbFilterType), out FilterType filterType))
             {
-                MessageBox.Show(ErrorMessages.InvalidInductanceInput, "Input Error", MessageBoxButton.OK, MessageBoxImage.Warning);
-                isValid = false;
+                ShowErrorMessage(ErrorMessages.InvalidFilterType);
+                return false;
             }
 
-            if (filterType != FilterType.Quartz && (!double.TryParse(txtResistance.Text, out resistance) || resistance <= 0))
-            {
-                MessageBox.Show(ErrorMessages.InvalidResistanceInput, "Input Error", MessageBoxButton.OK, MessageBoxImage.Warning);
-                isValid = false;
-            }
-
-            return isValid;
+            inputValues.FilterType = filterType;
+            return true;
         }
 
-
-        public static bool AreValuesPositive(params double[] values)
+        private bool ValidateRequiredFields()
         {
-            foreach (var value in values)
+            var requiredFields = new[] { txtFrequency, txtPassbandRipple, txtStopbandAttenuation, txtStopbandFrequency };
+            var requiredComboBoxes = new[] { cmbFilterType, cmbFrequencyUnit, cmbStopbandFrequencyUnit };
+
+            if (requiredFields.Any(field => string.IsNullOrWhiteSpace(field.Text)) ||
+                requiredComboBoxes.Any(comboBox => comboBox.SelectedItem == null))
             {
-                if (value <= 0)
-                    return false;
+                ShowErrorMessage(ErrorMessages.InvalidInputValues);
+                return false;
             }
             return true;
         }
 
-
-
-        private void DisplayResults(FilterResults results)
+        private bool ParseNumericValues(FilterInputValues inputValues)
         {
-            txtCutoffFrequencyResult.Text = $"Частота среза: {UnitC.Form.Frequency(results.CutoffFrequency)}";
-            txtQualityFactorResult.Text = $"Добротность (Q): {results.QualityFactor:F2}";
-            txtBandwidthResult.Text = $"Полоса пропускания: {UnitC.Form.Frequency(results.Bandwidth)}";
-            txtImpedanceResult.Text = $"Импеданс: {UnitC.Form.Resistance(results.Impedance)}";
-            txtPhaseShiftResult.Text = $"Сдвиг фазы: {UnitC.Form.Angle(results.PhaseShift)}";
-            txtGroupDelayResult.Text = $"Групповая задержка: {UnitC.Form.Time(results.GroupDelay)}";
-            txtAttenuationResult.Text = $"Ослабление: {results.Attenuation:F2} дБ";
-            txtFilterOrderResult.Text = $"Порядок фильтра: {results.FilterOrder}";
-            _filterResponseModel.Title = $"Амплитудно-частотная характеристика (Порядок: {results.FilterOrder})";
-
-            txtAdditionalInfo.Text = Info.GetAdditionalInfo(results.FilterType, results.CutoffFrequency, results.Bandwidth);
-
-            if (_filterResponseModel.Series.Count > 0)
+            // Проверка на пустые или некорректные значения
+            if (string.IsNullOrWhiteSpace(txtFrequency.Text) ||
+                string.IsNullOrWhiteSpace(txtPassbandRipple.Text) ||
+                string.IsNullOrWhiteSpace(txtStopbandAttenuation.Text) ||
+                string.IsNullOrWhiteSpace(txtStopbandFrequency.Text))
             {
-                FilterResponsePlot.Visibility = Visibility.Visible;
+                ShowErrorMessage("Одно или несколько полей не заполнены.");
+                return false;
             }
+
+            // Используем уникальные ключи вместо значений из текстовых полей
+            var numericFields = new Dictionary<string, (string text, Action<double> setter)>
+    {
+        { "Frequency", (txtFrequency.Text, value => inputValues.Frequency = value) },
+        { "PassbandRipple", (txtPassbandRipple.Text, value => inputValues.PassbandRipple = value) },
+        { "StopbandAttenuation", (txtStopbandAttenuation.Text, value => inputValues.StopbandAttenuation = value) },
+        { "StopbandFrequency", (txtStopbandFrequency.Text, value => inputValues.StopbandFrequency = value) }
+    };
+
+            foreach (var field in numericFields)
+            {
+                if (!double.TryParse(field.Value.text, out double value))
+                {
+                    ShowErrorMessage($"Некорректное числовое значение для поля {field.Key}");
+                    return false;
+                }
+                field.Value.setter(value);
+            }
+            return true;
         }
 
-
-        private void OnFilterTypeChanged(object sender, SelectionChangedEventArgs e)
+        private bool ValidateAndParseComponentValues(FilterInputValues inputValues)
         {
-            if (cmbFilterType.SelectedItem != null)
+            var componentFields = new Dictionary<FilterType, (TextBox textBox, Action<double> setter)>
+    {
+        { FilterType.RC, (txtCapacitance, value => inputValues.Capacitance = value) },
+        { FilterType.RL, (txtInductance, value => inputValues.Inductance = value) },
+        { FilterType.Quartz, (txtResistance, value => inputValues.Resistance = value) }
+    };
+
+            foreach (var component in componentFields)
             {
-                if (Enum.TryParse(cmbFilterType.SelectedItem.ToString(), out FilterType filterType))
+                // Инициализация переменной value для предотвращения использования неинициализированного значения
+                double value = 0;
+
+                // Если тип фильтра не соответствует ключу, пропускаем текущую итерацию
+                if (inputValues.FilterType != component.Key)
+                    continue;
+
+                if (!double.TryParse(component.Value.textBox.Text, out value) || value <= 0)
                 {
-                    UpdateInputFieldsVisibility(filterType);
-                    ResetInputFields();
-                    ClearResults();
-                    UpdateHelpText(filterType);
-                    UpdateAdditionalInputFields(filterType);
+                    ShowErrorMessage($"Неправильный {component.Key} ввод");
+                    return false;
                 }
-                else
+                component.Value.setter(value);
+            }
+            return true;
+        }
+
+        private string GetSelectedItemOrDefault(ComboBox comboBox, string defaultValue = null)
+        {
+            return comboBox.SelectedItem?.ToString() ?? defaultValue;
+        }
+
+        private void ShowErrorMessage(string message)
+        {
+            MessageBox.Show(message, "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
+        }
+
+        #endregion
+
+        #region UI Update Methods
+
+        private void CalculateFilterParameters(object sender, RoutedEventArgs e)
+        {
+            if (TryGetInputValues(out var inputValues))
+            {
+                try
                 {
-                    MessageBox.Show(ErrorMessages.InvalidFilterType, "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+                    var results = _filtersCalculationService.CalculateFilterResults(inputValues);
+                    UpdateUIWithResults(results);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"{ErrorMessages.EAC}\n{ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 }
             }
         }
-
 
         private void UpdateInputFieldsVisibility(FilterType filterType)
         {
@@ -543,60 +576,6 @@ namespace RadioEngineerCalculator.ViewModel
             cmbStopbandFrequencyUnit.Visibility = showAdditionalFields ? Visibility.Visible : Visibility.Collapsed;
         }
 
-        private void ResetButton_Click(object sender, RoutedEventArgs e)
-        {
-            ResetInputFields();
-            ClearResults();
-        }
-
-
-        private void DisableAllInputFields()
-        {
-            txtCapacitance.IsEnabled = false;
-            cmbCapacitanceUnit.IsEnabled = false;
-            txtInductance.IsEnabled = false;
-            cmbInductanceUnit.IsEnabled = false;
-            txtResistance.IsEnabled = false;
-            cmbResistanceUnit.IsEnabled = false;
-        }
-
-
-        // New method to reset input fields
-        private void ResetInputFields()
-        {
-            txtCapacitance.Text = string.Empty;
-            txtInductance.Text = string.Empty;
-            txtResistance.Text = string.Empty;
-            txtFrequency.Text = string.Empty;
-
-            cmbCapacitanceUnit.SelectedIndex = 0;
-            cmbInductanceUnit.SelectedIndex = 0;
-            cmbResistanceUnit.SelectedIndex = 0;
-            cmbFrequencyUnit.SelectedIndex = 0;
-        }
-
-        private void ClearResults()
-        {
-            txtCutoffFrequencyResult.Text = string.Empty;
-            txtQualityFactorResult.Text = string.Empty;
-            txtBandwidthResult.Text = string.Empty;
-            txtImpedanceResult.Text = string.Empty;
-            txtPhaseShiftResult.Text = string.Empty;
-            txtGroupDelayResult.Text = string.Empty;
-            txtAttenuationResult.Text = string.Empty;
-            txtAdditionalInfo.Text = string.Empty;
-
-            _filterResponseModel.Series.Clear();
-            _filterResponseModel.InvalidatePlot(true);
-            FilterResponsePlot.InvalidatePlot(true);
-
-            // Скрыть график, если результатов нет
-            if (_filterResponseModel.Series.Count == 0)
-            {
-                FilterResponsePlot.Visibility = Visibility.Collapsed; // Скрыть график
-            }
-        }
-
         private void UpdateHelpText(FilterType filterType)
         {
             switch (filterType)
@@ -633,11 +612,70 @@ namespace RadioEngineerCalculator.ViewModel
                     break;
             }
         }
+        #endregion
+
+        #region UI Control Methods
+        private void DisableAllInputFields()
+        {
+            txtCapacitance.IsEnabled = false;
+            cmbCapacitanceUnit.IsEnabled = false;
+            txtInductance.IsEnabled = false;
+            cmbInductanceUnit.IsEnabled = false;
+            txtResistance.IsEnabled = false;
+            cmbResistanceUnit.IsEnabled = false;
+        }
+
+        private void ResetInputFields()
+        {
+            txtCapacitance.Text = string.Empty;
+            txtInductance.Text = string.Empty;
+            txtResistance.Text = string.Empty;
+            txtFrequency.Text = string.Empty;
+
+            cmbCapacitanceUnit.SelectedIndex = 0;
+            cmbInductanceUnit.SelectedIndex = 0;
+            cmbResistanceUnit.SelectedIndex = 0;
+            cmbFrequencyUnit.SelectedIndex = 0;
+        }
+
+        private void ClearResults()
+        {
+            txtCutoffFrequencyResult.Text = string.Empty;
+            txtQualityFactorResult.Text = string.Empty;
+            txtBandwidthResult.Text = string.Empty;
+            txtImpedanceResult.Text = string.Empty;
+            txtPhaseShiftResult.Text = string.Empty;
+            txtGroupDelayResult.Text = string.Empty;
+            txtAttenuationResult.Text = string.Empty;
+            txtAdditionalInfo.Text = string.Empty;
+
+            _filterResponseModel.Series.Clear();
+            _filterResponseModel.InvalidatePlot(true);
+            FilterResponsePlot.InvalidatePlot(true);
+
+            // Скрыть график, если результатов нет
+            if (_filterResponseModel.Series.Count == 0)
+            {
+                FilterResponsePlot.Visibility = Visibility.Collapsed; // Скрыть график
+            }
+        }
+        #endregion
+
+        #region Уведомление об изменении свойств
         public event PropertyChangedEventHandler PropertyChanged;
 
         protected void OnPropertyChanged(string propertyName)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
+
+        private bool SetProperty<T>(ref T field, T value, [CallerMemberName] string propertyName = null)
+        {
+            if (EqualityComparer<T>.Default.Equals(field, value)) return false;
+            field = value;
+            OnPropertyChanged(propertyName);
+            return true;
+        }
+        #endregion
     }
 }

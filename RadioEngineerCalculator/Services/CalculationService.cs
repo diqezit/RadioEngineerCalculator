@@ -286,7 +286,7 @@ namespace RadioEngineerCalculator.Services
         public Complex CalculateSeriesImpedance(double resistance, double inductance, double capacitance, double frequency)
         {
             if (resistance < 0 || inductance <= 0 || capacitance <= 0 || frequency <= 0)
-                throw new ArgumentException("Все параметры должны быть больше нуля.");
+                throw new ArgumentException("Все параметры должны быть положительными, а индуктивность, ёмкость и частота должны быть строго больше нуля.");
 
             var inductiveReactance = 2 * Math.PI * frequency * inductance;
             var capacitiveReactance = 1 / (2 * Math.PI * frequency * capacitance);
@@ -294,12 +294,11 @@ namespace RadioEngineerCalculator.Services
             return new Complex(resistance, inductiveReactance - capacitiveReactance);
         }
 
-
-        // Расчет импеданса для параллельного контура (резистор, индуктивность, емкость)
+        // Расчет индекса паралельного контура
         public Complex CalculateParallelImpedance(double resistance, double inductance, double capacitance, double frequency)
         {
             if (resistance <= 0 || inductance <= 0 || capacitance <= 0 || frequency <= 0)
-                throw new ArgumentException("Parameters must be greater than zero.");
+                throw new ArgumentException("Все параметры должны быть строго больше нуля.");
 
             // Индуктивное и емкостное сопротивление
             var inductiveReactance = 2 * Math.PI * frequency * inductance;  // X_L = ωL

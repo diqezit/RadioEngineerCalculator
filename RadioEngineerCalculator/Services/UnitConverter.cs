@@ -92,13 +92,13 @@ namespace RadioEngineerCalculator.Services
         public static double Convert(double value, string fromUnit, string toUnit, PhysicalQuantity quantity)
         {
             if (!UnitFactors.TryGetValue(quantity, out var factors))
-                throw new ArgumentException($"Invalid quantity: {quantity}");
+                throw new ArgumentException($"Недействительное количество: {quantity}");
 
             if (!factors.TryGetValue(fromUnit, out double fromFactor))
-                throw new ArgumentException($"Invalid 'fromUnit': {fromUnit}");
+                throw new ArgumentException($"Недопустимое значение 'fromUnit': {fromUnit}");
 
             if (!factors.TryGetValue(toUnit, out double toFactor))
-                throw new ArgumentException($"Invalid 'toUnit': {toUnit}");
+                throw new ArgumentException($"Недопустимое значение 'toUnit': {toUnit}");
 
             return value * (fromFactor / toFactor);
         }

@@ -119,5 +119,39 @@ namespace RadioEngineerCalculator.Services
 
             return isValid;
         }
+
+        #region Метод для контуров
+
+        public static bool ValidateResonantCircuitInput(double inductance, double capacitance, double resistance, double frequency)
+        {
+            if (inductance <= 0)
+            {
+                MessageBox.Show(ErrorMessages.InvalidInductanceInput, "Input Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return false;
+            }
+
+            if (capacitance <= 0)
+            {
+                MessageBox.Show(ErrorMessages.InvalidCapacitanceInput, "Input Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return false;
+            }
+
+            if (resistance <= 0)
+            {
+                MessageBox.Show(ErrorMessages.InvalidResistanceInput, "Input Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return false;
+            }
+
+            if (frequency <= 0)
+            {
+                MessageBox.Show(ErrorMessages.InvalidFrequencyInput, "Input Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return false;
+            }
+
+            return true;
+        }
+
+        #endregion
+
     }
 }

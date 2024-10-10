@@ -23,8 +23,7 @@ namespace RadioEngineerCalculator
             MainTabControl.Items.Add(new TabItem { Header = "Калькулятор мощности", Content = new PowerCalculationTab() });
             MainTabControl.Items.Add(new TabItem { Header = "AM, FM, PM", Content = new ModulationTab() });
             MainTabControl.Items.Add(new TabItem { Header = "Закон Ома", Content = new OhmTab() });
-
-
+            MainTabControl.Items.Add(new TabItem { Header = "Колебательный контур", Content = new ResonantCircuitTab() });
         }
     }
 }

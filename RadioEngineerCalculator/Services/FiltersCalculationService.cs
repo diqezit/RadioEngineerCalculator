@@ -1,33 +1,33 @@
-﻿using RadioEngineerCalculator.Infos;
+﻿#region Использование директив
 using System;
 using System.Numerics;
 using static RadioEngineerCalculator.Services.FiltersCalculationService;
-using RadioEngineerCalculator.ViewModel;
+#endregion
 
 namespace RadioEngineerCalculator.Services
 {
     public class FiltersCalculationService
     {
-        #region Enums
+        #region Перечисления
 
         public enum FilterType
         {
-            LowPass,
-            HighPass,
-            BandPass,
-            BandStop,
-            RC,
-            RL,
-            Pi,
-            Trap,
-            Quartz,
-            PassiveBandPass,
-            PassiveBandStop
+            LowPass,    // Низкочастотный фильтр
+            HighPass,   // Высокочастотный фильтр
+            BandPass,   // Полосовой фильтр
+            BandStop,   // Заграждающий фильтр
+            RC,         // RC-фильтр
+            RL,         // RL-фильтр
+            Pi,         // Пи-фильтр
+            Trap,       // Трап-фильтр
+            Quartz,     // Кварцевый фильтр
+            PassiveBandPass,  // Пассивный полосовой фильтр
+            PassiveBandStop   // Пассивный заграждающий фильтр
         }
 
         #endregion
 
-        #region Public Methods
+        #region Публичные методы
 
         public double RecalculateCapacitance(FilterInputValues inputValues)
         {
@@ -46,7 +46,7 @@ namespace RadioEngineerCalculator.Services
                 case FilterType.Quartz:
                     return 1 / (4 * Math.Pow(Math.PI * inputValues.Frequency, 2) * inputValues.Inductance);
                 default:
-                    throw new ArgumentException("Unsupported filter type for capacitance recalculation");
+                    throw new ArgumentException("Неподдерживаемый тип фильтра для пересчета емкости");
             }
         }
 
@@ -67,10 +67,9 @@ namespace RadioEngineerCalculator.Services
                 case FilterType.Quartz:
                     return 1 / (4 * Math.Pow(Math.PI * inputValues.Frequency, 2) * inputValues.Capacitance);
                 default:
-                    throw new ArgumentException("Unsupported filter type for inductance recalculation");
+                    throw new ArgumentException("Неподдерживаемый тип фильтра для пересчета индуктивности");
             }
         }
-
 
         public double RecalculateResistance(FilterInputValues inputValues)
         {
@@ -90,7 +89,7 @@ namespace RadioEngineerCalculator.Services
                 case FilterType.Quartz:
                     return 2 * Math.PI * inputValues.Frequency * inputValues.Inductance / inputValues.QualityFactor;
                 default:
-                    throw new ArgumentException("Unsupported filter type for resistance recalculation");
+                    throw new ArgumentException("Неподдерживаемый тип фильтра для пересчета сопротивления");
             }
         }
 
@@ -113,7 +112,7 @@ namespace RadioEngineerCalculator.Services
                 case FilterType.Trap:
                     return 1 / (2 * Math.PI * Math.Sqrt(inductance * capacitance));
                 default:
-                    throw new ArgumentException("Unsupported filter type");
+                    throw new ArgumentException("Неподдерживаемый тип фильтра");
             }
         }
 
@@ -136,7 +135,7 @@ namespace RadioEngineerCalculator.Services
                 case FilterType.Trap:
                     return Math.Sqrt(inputValues.Inductance / inputValues.Capacitance) / inputValues.Resistance;
                 default:
-                    throw new ArgumentException("Unsupported filter type");
+                    throw new ArgumentException("Неподдерживаемый тип фильтра");
             }
         }
 
@@ -175,7 +174,7 @@ namespace RadioEngineerCalculator.Services
                     impedance = CalculateQuartzImpedance(resistance, inductance, capacitance, omega);
                     break;
                 default:
-                    throw new ArgumentException("Unsupported filter type");
+                    throw new ArgumentException("Неподдерживаемый тип фильтра");
             }
 
             return impedance;
@@ -206,25 +205,23 @@ namespace RadioEngineerCalculator.Services
         {
             InputValidator.ValidateInputValues(inputValues);
 
-            var cutoffFrequency = CalculateFilterCutoffFrequency(inputValues.FilterType, inputValues.Resistance, inputValues.Inductance, inputValues.Capacitance);
+            var cutoffFrequency = CalculateFilterCutoffFrequency(inputValues);
             var qualityFactor = CalculateQualityFactor(inputValues);
+            var bandwidth = CalculateBandwidth(cutoffFrequency, qualityFactor);
 
-            var results = new FilterResults
+            return new FilterResults
             {
                 FilterType = inputValues.FilterType,
                 CutoffFrequency = cutoffFrequency,
                 QualityFactor = qualityFactor,
-                Bandwidth = CalculateBandwidth(cutoffFrequency, qualityFactor),
+                Bandwidth = bandwidth,
                 Impedance = CalculateFilterImpedance(inputValues.FilterType, inputValues.Resistance, inputValues.Inductance, inputValues.Capacitance, inputValues.Frequency).Magnitude,
-                PhaseShift = CalculateFilterPhaseResponse(inputValues.FilterType, inputValues.Frequency, cutoffFrequency, CalculateBandwidth(cutoffFrequency, qualityFactor)),
-                GroupDelay = CalculateGroupDelay(inputValues.FilterType, inputValues.Frequency, cutoffFrequency, CalculateBandwidth(cutoffFrequency, qualityFactor)),
-                Attenuation = CalculateFilterAttenuation(inputValues.FilterType, inputValues.Frequency, cutoffFrequency, CalculateBandwidth(cutoffFrequency, qualityFactor)),
-                FilterOrder = CalculateFilterOrder(inputValues.FilterType, inputValues.PassbandRipple, inputValues.StopbandAttenuation, inputValues.PassbandFrequency, inputValues.StopbandFrequency)
+                PhaseShift = CalculateFilterPhaseResponse(inputValues.FilterType, inputValues.Frequency, cutoffFrequency, bandwidth),
+                GroupDelay = CalculateGroupDelay(inputValues.FilterType, inputValues.Frequency, cutoffFrequency, bandwidth),
+                Attenuation = CalculateFilterAttenuation(inputValues.FilterType, inputValues.Frequency, cutoffFrequency, bandwidth),
+                FilterOrder = CalculateFilterOrder(inputValues.FilterType, inputValues.PassbandRipple, inputValues.StopbandAttenuation, inputValues.Frequency, inputValues.StopbandFrequency)
             };
-
-            return results;
         }
-
 
         public double RecalculateFrequency(FilterInputValues inputValues)
         {
@@ -244,7 +241,7 @@ namespace RadioEngineerCalculator.Services
                     return inputValues.Resistance / (2 * Math.PI * inputValues.Inductance);
                 // ... (добавьте другие случаи по необходимости)
                 default:
-                    throw new ArgumentException("Unsupported filter type for frequency recalculation");
+                    throw new ArgumentException("Неподдерживаемый тип фильтра для пересчета частоты");
             }
         }
 
@@ -267,10 +264,9 @@ namespace RadioEngineerCalculator.Services
                 case FilterType.Trap:
                     return 1 / (2 * Math.PI * Math.Sqrt(inputValues.Inductance * inputValues.Capacitance));
                 default:
-                    throw new ArgumentException("Unsupported filter type");
+                    throw new ArgumentException("Неподдерживаемый тип фильтра");
             }
         }
-
 
         public double CalculateBandwidth(double cutoffFrequency, double qualityFactor)
         {
@@ -290,13 +286,13 @@ namespace RadioEngineerCalculator.Services
                 case FilterType.BandStop:
                     return CalculateBandPassStopOrder(passbandRipple, stopbandAttenuation, normalizedTransition);
                 default:
-                    throw new ArgumentException("Unsupported filter type for order calculation");
+                    throw new ArgumentException("Неподдерживаемый тип фильтра для расчета порядка");
             }
         }
 
         private int CalculateBandPassStopOrder(double passbandRipple, double stopbandAttenuation, double normalizedTransition)
         {
-            // For band-pass and band-stop filters, the order is typically doubled
+            // Для полосовых и заграждающих фильтров порядок обычно удваивается
             return 2 * CalculateLowHighPassOrder(passbandRipple, stopbandAttenuation, normalizedTransition);
         }
 
@@ -329,7 +325,7 @@ namespace RadioEngineerCalculator.Services
                 case FilterType.Quartz:
                     return CalculateQuartzResponse(normalizedFrequency, cutoffFrequency, bandwidth);
                 default:
-                    throw new ArgumentException("Unsupported filter type for magnitude response calculation");
+                    throw new ArgumentException("Неподдерживаемый тип фильтра для расчета амплитудного отклика");
             }
         }
 
@@ -369,7 +365,7 @@ namespace RadioEngineerCalculator.Services
                     q = cutoffFrequency / bandwidth;
                     return -Math.Atan(q * (normalizedFrequency - 1 / normalizedFrequency));
                 default:
-                    throw new ArgumentException("Unsupported filter type for phase response calculation");
+                    throw new ArgumentException("Неподдерживаемый тип фильтра для расчета фазового отклика");
             }
         }
 
@@ -389,7 +385,7 @@ namespace RadioEngineerCalculator.Services
                     q = cutoffFrequency / bandwidth;
                     return -20 * Math.Log10(Math.Abs(q * (normalizedFrequency - 1 / normalizedFrequency)) / Math.Sqrt(1 + Math.Pow(q * (normalizedFrequency - 1 / normalizedFrequency), 2)));
                 default:
-                    throw new ArgumentException("Unsupported filter type for attenuation calculation");
+                    throw new ArgumentException("Неподдерживаемый тип фильтра для расчета затухания");
             }
         }
 
@@ -402,18 +398,18 @@ namespace RadioEngineerCalculator.Services
                     return 1 / (2 * Math.PI * frequency * (1 + Math.Pow(normalizedFrequency, 2)));
                 case FilterType.HighPass:
                     return 1 / (2 * Math.PI * frequency * (1 + Math.Pow(1 / normalizedFrequency, 2)));
-                    case FilterType.BandPass:
+                case FilterType.BandPass:
                 case FilterType.BandStop:
                     double q = cutoffFrequency / bandwidth;
                     return q / (Math.PI * cutoffFrequency * (1 + Math.Pow(q * (normalizedFrequency - 1 / normalizedFrequency), 2)));
                 default:
-                    throw new ArgumentException("Unsupported filter type for group delay calculation");
+                    throw new ArgumentException("Неподдерживаемый тип фильтра для расчета групповой задержки");
             }
         }
 
         #endregion
 
-        #region  Methods
+        #region Приватные методы
 
         public double CalculateLowPassMagnitudeResponse(double frequency, double cutoffFrequency)
         {
@@ -466,7 +462,7 @@ namespace RadioEngineerCalculator.Services
         #endregion
     }
 
-    #region Data Classes
+    #region Классы данных
 
     public class FilterInputValues
     {
@@ -485,7 +481,6 @@ namespace RadioEngineerCalculator.Services
         public string StopbandFrequencyUnit { get; set; }
         public double QualityFactor { get; set; }
         public double PassbandFrequency { get; set; }
-
     }
 
     public class FilterResults
