@@ -18,54 +18,35 @@ namespace RadioEngineerCalculator.Services
 
         public void UpdateFilterResponsePlot(FilterResults results)
         {
-            if (results == null)
+            if (results == null) throw new ArgumentNullException(nameof(results));
+            _plotModel.Series.Clear();
+            _plotModel.Axes.Clear();
+            AddAxes();
+            AddSeries(results);
+            _plotModel.InvalidatePlot(true);
+        }
+
+        private void AddSeries(FilterResults results)
+        {
+            var magnitudeSeries = new LineSeries { Title = "Magnitude", Color = OxyColors.Blue };
+            var phaseSeries = new LineSeries { Title = "Phase", Color = OxyColors.Red, YAxisKey = "PhaseAxis" };
+
+            const int pointCount = 1000;
+            double minFreq = results.CutoffFrequency / 100;
+            double maxFreq = results.CutoffFrequency * 100;
+
+            for (int i = 0; i < pointCount; i++)
             {
-                throw new ArgumentNullException(nameof(results));
+                double freq = minFreq * Math.Pow(maxFreq / minFreq, (double)i / (pointCount - 1));
+                double magnitude = _filtersCalculationService.CalculateFilterMagnitudeResponse(results.FilterType, freq, results.CutoffFrequency, results.Bandwidth);
+                double phase = _filtersCalculationService.CalculateFilterPhaseResponse(results.FilterType, freq, results.CutoffFrequency, results.Bandwidth);
+
+                magnitudeSeries.Points.Add(new DataPoint(freq, 20 * Math.Log10(magnitude)));
+                phaseSeries.Points.Add(new DataPoint(freq, phase * 180 / Math.PI));
             }
 
-            try
-            {
-                _plotModel.Series.Clear();
-                _plotModel.Axes.Clear();
-
-                AddAxes();
-
-                var magnitudeSeries = new LineSeries
-                {
-                    Title = "Амплитудно-частотная характеристика",
-                    Color = OxyColors.Blue
-                };
-
-                var phaseSeries = new LineSeries
-                {
-                    Title = "Фазо-частотная характеристика",
-                    Color = OxyColors.Red,
-                    YAxisKey = "PhaseAxis"
-                };
-
-                const int pointCount = 1000;
-                double minFreq = results.CutoffFrequency / 100;
-                double maxFreq = results.CutoffFrequency * 100;
-
-                for (int i = 0; i < pointCount; i++)
-                {
-                    double freq = minFreq * Math.Pow(maxFreq / minFreq, (double)i / (pointCount - 1));
-                    double magnitude = _filtersCalculationService.CalculateFilterMagnitudeResponse(results.FilterType, freq, results.CutoffFrequency, results.Bandwidth);
-                    double phase = _filtersCalculationService.CalculateFilterPhaseResponse(results.FilterType, freq, results.CutoffFrequency, results.Bandwidth);
-
-                    magnitudeSeries.Points.Add(new DataPoint(freq, 20 * Math.Log10(magnitude)));
-                    phaseSeries.Points.Add(new DataPoint(freq, phase * 180 / Math.PI));
-                }
-
-                _plotModel.Series.Add(magnitudeSeries);
-                _plotModel.Series.Add(phaseSeries);
-
-                _plotModel.InvalidatePlot(true);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Ошибка при обновлении графика: {ex.Message}");
-            }
+            _plotModel.Series.Add(magnitudeSeries);
+            _plotModel.Series.Add(phaseSeries);
         }
 
         private void AddAxes()
@@ -108,4 +89,5 @@ namespace RadioEngineerCalculator.Services
             });
         }
     }
+
 }

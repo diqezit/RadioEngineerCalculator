@@ -1,123 +1,17 @@
-﻿using RadioEngineerCalculator.Infos;
-using System.Windows;
+﻿using System;
 
 namespace RadioEngineerCalculator.Services
 {
-    public class InputValidator
+    public static class Validate
     {
-        // Метод для проверки положительных значений
-        private static bool AreValuesPositive(params double[] values)
+        public static bool InputsAreValid(double capacitance, double inductance, double resistance, double frequency)
         {
-            foreach (var value in values)
-            {
-                if (value <= 0)
-                {
-                    return false;
-                }
-            }
-            return true;
+            return capacitance > 0 && inductance > 0 && resistance > 0 && frequency > 0;
         }
-
-        public static bool ValidateInputValues(FilterInputValues inputValues)
+        public static void EnsurePositive(double value, string paramName)
         {
-            // Проверка на null
-            if (inputValues == null)
-            {
-                MessageBox.Show("Не заданы входные значения", "Ошибка ввода", MessageBoxButton.OK, MessageBoxImage.Warning);
-                return false;
-            }
-
-            // Если частоты и другие поля еще не заданы, пропускаем валидацию
-            if (inputValues.Frequency == 0 && inputValues.PassbandRipple == 0 &&
-                inputValues.StopbandAttenuation == 0 && inputValues.StopbandFrequency == 0)
-            {
-                return true; // Поля еще не были введены
-            }
-
-            // Проверка на ненулевые значения только после того, как все поля введены
-            if (!AreValuesPositive(inputValues.Frequency, inputValues.PassbandRipple,
-                                   inputValues.StopbandAttenuation, inputValues.StopbandFrequency))
-            {
-                MessageBox.Show(ErrorMessages.InvalidInputValues, "Ошибка ввода", MessageBoxButton.OK, MessageBoxImage.Warning);
-                return false;
-            }
-
-            // Проверка на корректность частоты
-            if (inputValues.Frequency <= inputValues.StopbandFrequency)
-            {
-                MessageBox.Show(ErrorMessages.FrequencyTooLow, "Ошибка ввода", MessageBoxButton.OK, MessageBoxImage.Warning);
-                return false;
-            }
-
-            // Проверка на компоненты, если они установлены
-            if (inputValues.Capacitance > 0 || inputValues.Inductance > 0 || inputValues.Resistance > 0)
-            {
-                if (!ValidateComponentValues(inputValues))
-                {
-                    return false;
-                }
-            }
-
-            return true;
+            if (value <= 0)
+                throw new ArgumentException($"{paramName} должен быть больше нуля.");
         }
-
-        // Валидация значений компонентов
-        private static bool ValidateComponentValues(FilterInputValues inputValues)
-        {
-            bool isValid = true;
-
-            if (inputValues.Capacitance < 0)
-            {
-                MessageBox.Show(ErrorMessages.InvalidCapacitanceInput, "Ошибка ввода", MessageBoxButton.OK, MessageBoxImage.Warning);
-                isValid = false;
-            }
-
-            if (inputValues.Inductance < 0)
-            {
-                MessageBox.Show(ErrorMessages.InvalidInductanceInput, "Ошибка ввода", MessageBoxButton.OK, MessageBoxImage.Warning);
-                isValid = false;
-            }
-
-            if (inputValues.Resistance < 0)
-            {
-                MessageBox.Show(ErrorMessages.InvalidResistanceInput, "Ошибка ввода", MessageBoxButton.OK, MessageBoxImage.Warning);
-                isValid = false;
-            }
-
-            return isValid;
-        }
-
-        #region Метод для контуров
-
-        public static bool ValidateResonantCircuitInput(double inductance, double capacitance, double resistance, double frequency)
-        {
-            if (inductance <= 0)
-            {
-                MessageBox.Show(ErrorMessages.InvalidInductanceInput, "Ошибка ввода", MessageBoxButton.OK, MessageBoxImage.Warning);
-                return false;
-            }
-
-            if (capacitance <= 0)
-            {
-                MessageBox.Show(ErrorMessages.InvalidCapacitanceInput, "Ошибка ввода", MessageBoxButton.OK, MessageBoxImage.Warning);
-                return false;
-            }
-
-            if (resistance <= 0)
-            {
-                MessageBox.Show(ErrorMessages.InvalidResistanceInput, "Ошибка ввода", MessageBoxButton.OK, MessageBoxImage.Warning);
-                return false;
-            }
-
-            if (frequency <= 0)
-            {
-                MessageBox.Show(ErrorMessages.InvalidFrequencyInput, "Ошибка ввода", MessageBoxButton.OK, MessageBoxImage.Warning);
-                return false;
-            }
-
-            return true;
-        }
-
-        #endregion
     }
 }

@@ -1,5 +1,6 @@
 ﻿using OxyPlot;
 using OxyPlot.Series;
+using RadioEngineerCalculator.Infos;
 using RadioEngineerCalculator.Services;
 using System;
 using System.Collections.Generic;
@@ -10,8 +11,6 @@ using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using RadioEngineerCalculator.Infos;
-using static RadioEngineerCalculator.Services.FiltersCalculationService;
 
 namespace RadioEngineerCalculator.ViewModel
 {
@@ -28,7 +27,7 @@ namespace RadioEngineerCalculator.ViewModel
 
         public bool CanExecute(object parameter)
         {
-            return _canExecute == null || _canExecute();
+            return _canExecute?.Invoke() ?? true; // Упрощение проверки
         }
 
         public void Execute(object parameter)
@@ -38,10 +37,11 @@ namespace RadioEngineerCalculator.ViewModel
 
         public event EventHandler CanExecuteChanged
         {
-            add { CommandManager.RequerySuggested += value; }
-            remove { CommandManager.RequerySuggested -= value; }
+            add => CommandManager.RequerySuggested += value;
+            remove => CommandManager.RequerySuggested -= value;
         }
     }
+
     public partial class LRCFilterTab : UserControl, INotifyPropertyChanged
     {
         #region Properties
@@ -163,11 +163,6 @@ namespace RadioEngineerCalculator.ViewModel
             Inductance = 1;
             Resistance = 1;
             Frequency = 1000;
-            CapacitanceUnits = new ObservableCollection<string>(ComboBoxService.GetUnits("Capacitance"));
-            InductanceUnits = new ObservableCollection<string>(ComboBoxService.GetUnits("Inductance"));
-            ResistanceUnits = new ObservableCollection<string>(ComboBoxService.GetUnits("Resistance"));
-            FrequencyUnits = new ObservableCollection<string>(ComboBoxService.GetUnits("Frequency"));
-            FilterTypes = new ObservableCollection<string> { "LowPass", "HighPass", "BandPass", "BandStop" };
             SelectedCapacitanceUnit = CapacitanceUnits.FirstOrDefault();
             SelectedFilterType = FilterTypes.FirstOrDefault();
             SelectedFrequencyUnit = FrequencyUnits.FirstOrDefault();
@@ -187,13 +182,14 @@ namespace RadioEngineerCalculator.ViewModel
                    !string.IsNullOrWhiteSpace(SelectedResistanceUnit) &&
                    !string.IsNullOrWhiteSpace(SelectedFrequencyUnit);
         }
+
         private void OnParameterChanged(object sender, TextChangedEventArgs e)
         {
             if (sender is TextBox textBox)
             {
                 if (!double.TryParse(textBox.Text, out _))
                 {
-                    MessageBox.Show(ErrorMessages.CheckInput , "Ошибка ввода", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    MessageBox.Show(ErrorMessages.InvalidInputFormat, "Ошибка ввода", MessageBoxButton.OK, MessageBoxImage.Warning);
                     return;
                 }
             }
@@ -205,7 +201,7 @@ namespace RadioEngineerCalculator.ViewModel
         {
             if (sender is ComboBox comboBox && comboBox.SelectedItem == null)
             {
-                MessageBox.Show(ErrorMessages.CheckComboBox , "Ошибка ввода", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show(ErrorMessages.CheckComboBox, "Ошибка ввода", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
             UpdateFilterParameters();
@@ -224,9 +220,9 @@ namespace RadioEngineerCalculator.ViewModel
         #region Calculation Methods
         private void CalculateFilterParameters()
         {
-            if (Capacitance <= 0 || Inductance <= 0 || Resistance <= 0 || Frequency <= 0)
+            if (!Validate.InputsAreValid(Capacitance, Inductance, Resistance, Frequency))
             {
-                MessageBox.Show("Проверьте ввод данных: все значения должны быть положительными.", "Ошибка ввода", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show(ErrorMessages.InvalidInput, "Ошибка ввода", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
@@ -234,36 +230,35 @@ namespace RadioEngineerCalculator.ViewModel
             {
                 var inputValues = new FilterInputValues
                 {
-                    Capacitance = Capacitance,
-                    Inductance = Inductance,
-                    Resistance = Resistance,
-                    Frequency = Frequency,
-                    CapacitanceUnit = SelectedCapacitanceUnit,
-                    InductanceUnit = SelectedInductanceUnit,
-                    ResistanceUnit = SelectedResistanceUnit,
-                    FrequencyUnit = SelectedFrequencyUnit,
-                    FilterType = (FilterType)Enum.Parse(typeof(FilterType), SelectedFilterType)
+                    Capacitance = UnitC.Convert(Capacitance, SelectedCapacitanceUnit, "F", UnitC.PhysicalQuantity.Capacitance), 
+                    Inductance = UnitC.Convert(Inductance, SelectedInductanceUnit, "H", UnitC.PhysicalQuantity.Inductance),  
+                    Resistance = UnitC.Convert(Resistance, SelectedResistanceUnit, "Ω", UnitC.PhysicalQuantity.Resistance),  
+                    Frequency = UnitC.Convert(Frequency, SelectedFrequencyUnit, "Hz", UnitC.PhysicalQuantity.Frequency),     
                 };
-
-                if (!InputValidator.ValidateInputValues(inputValues))
-                {
-                    throw new Exception("Invalid input values.");
-                }
 
                 var results = _filtersCalculationService.CalculateFilterResults(inputValues);
                 UpdateUIWithResults(results);
             }
+            catch (FormatException ex)
+            {
+                MessageBox.Show($"{ErrorMessages.InvalidFormat}\n{ex.Message}", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+                // Тут можно добавить логирование ошибки
+            }
             catch (Exception ex)
             {
-                MessageBox.Show($"Произошла ошибка при расчете: {ex.Message}", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show($"{ErrorMessages.CalculationError}\n{ex.Message}", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+                // Тут можно добавить логирование ошибки
             }
         }
+
 
         private void UpdateUIWithResults(FilterResults results)
         {
             txtCutoffFrequencyResult.Text = $"Cutoff Frequency: {results.CutoffFrequency:F2} Hz";
             txtQualityFactorResult.Text = $"Quality Factor (Q): {results.QualityFactor:F2}";
-            UpdateFilterResponsePlot(results);
+            // Обновление графика происходит в Graph классе
+            var graph = new Graph(_filterResponseModel, _filtersCalculationService);
+            graph.UpdateFilterResponsePlot(results);
         }
 
         private void UpdateFilterResponsePlot(FilterResults results)

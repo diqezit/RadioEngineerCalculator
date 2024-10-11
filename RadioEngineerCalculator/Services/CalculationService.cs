@@ -11,23 +11,50 @@ namespace RadioEngineerCalculator.Services
 
         #region Основные электрические расчеты
 
-        public double CalculateVoltage(double resistance, double current) => resistance * current;
-        public double CalculateCurrent(double voltage, double resistance) => voltage / resistance;
-        public double CalculateResistance(double voltage, double current) => voltage / current;
-        public double CalculateParallelResistance(double r1, double r2) => 1 / (1 / r1 + 1 / r2);
-        public double CalculateSeriesResistance(double r1, double r2) => r1 + r2;
+        public double CalculateVoltage(double resistance, double current)
+        {
+            Validate.EnsurePositive(resistance, nameof(resistance));
+            Validate.EnsurePositive(current, nameof(current));
+            return resistance * current;
+        }
+
+        public double CalculateCurrent(double voltage, double resistance)
+        {
+            Validate.EnsurePositive(resistance, nameof(resistance));
+            return voltage / resistance;
+        }
+
+        public double CalculateResistance(double voltage, double current)
+        {
+            Validate.EnsurePositive(current, nameof(current));
+            return voltage / current;
+        }
+
+        public double CalculateParallelResistance(double r1, double r2)
+        {
+            Validate.EnsurePositive(r1, nameof(r1));
+            Validate.EnsurePositive(r2, nameof(r2));
+            return 1 / (1 / r1 + 1 / r2);
+        }
+
+        public double CalculateSeriesResistance(double r1, double r2)
+        {
+            Validate.EnsurePositive(r1, nameof(r1));
+            Validate.EnsurePositive(r2, nameof(r2));
+            return r1 + r2;
+        }
 
         public double CalculatePower(double current, double resistance)
         {
-            if (current <= 0 || resistance <= 0)
-                throw new ArgumentException("Current and resistance must be greater than zero.");
+            Validate.EnsurePositive(current, nameof(current));
+            Validate.EnsurePositive(resistance, nameof(resistance));
             return Math.Pow(current, 2) * resistance;
         }
 
         public double CalculatePowerVI(double voltage, double current)
         {
-            if (voltage <= 0 || current <= 0)
-                throw new ArgumentException("Voltage and current must be greater than zero.");
+            Validate.EnsurePositive(voltage, nameof(voltage));
+            Validate.EnsurePositive(current, nameof(current));
             return voltage * current;
         }
 
@@ -36,27 +63,30 @@ namespace RadioEngineerCalculator.Services
         #region Расчеты переменного тока и мощности
 
         public double CalculateCapacitiveReactance(double capacitance, double frequency)
-            => 1 / (2 * Math.PI * frequency * capacitance);
+        {
+            Validate.EnsurePositive(capacitance, nameof(capacitance));
+            Validate.EnsurePositive(frequency, nameof(frequency));
+            return 1 / (2 * Math.PI * frequency * capacitance);
+        }
 
         public double CalculateInductiveReactance(double inductance, double frequency)
-            => 2 * Math.PI * frequency * inductance;
+        {
+            Validate.EnsurePositive(inductance, nameof(inductance));
+            Validate.EnsurePositive(frequency, nameof(frequency));
+            return 2 * Math.PI * frequency * inductance;
+        }
 
         public double CalculateReactance(double value, double frequency, bool isCapacitive)
         {
-            if (isCapacitive)
-            {
-                return CalculateCapacitiveReactance(value, frequency);
-            }
-            else
-            {
-                return CalculateInductiveReactance(value, frequency);
-            }
+            Validate.EnsurePositive(value, nameof(value));
+            Validate.EnsurePositive(frequency, nameof(frequency));
+            return isCapacitive ? CalculateCapacitiveReactance(value, frequency) : CalculateInductiveReactance(value, frequency);
         }
 
         public double CalculatePowerFactor(double realPower, double apparentPower)
         {
-            if (realPower <= 0 || apparentPower <= 0)
-                throw new ArgumentException("Real power and apparent power must be greater than zero.");
+            Validate.EnsurePositive(realPower, nameof(realPower));
+            Validate.EnsurePositive(apparentPower, nameof(apparentPower));
             if (realPower > apparentPower)
                 throw new ArgumentException("Real power cannot be greater than apparent power.");
             return realPower / apparentPower;
@@ -64,8 +94,8 @@ namespace RadioEngineerCalculator.Services
 
         public double CalculateReactivePower(double apparentPower, double realPower)
         {
-            if (apparentPower <= 0 || realPower <= 0)
-                throw new ArgumentException("Apparent power and real power must be greater than zero.");
+            Validate.EnsurePositive(apparentPower, nameof(apparentPower));
+            Validate.EnsurePositive(realPower, nameof(realPower));
             if (realPower > apparentPower)
                 throw new ArgumentException("Real power cannot be greater than apparent power.");
             return Math.Sqrt(Math.Pow(apparentPower, 2) - Math.Pow(realPower, 2));
@@ -76,35 +106,67 @@ namespace RadioEngineerCalculator.Services
         #region Расчеты для радиочастотных цепей
 
         public double CalculateGain(double powerIn, double powerOut)
-            => 10 * Math.Log10(powerOut / powerIn);
-
+        {
+            Validate.EnsurePositive(powerIn, nameof(powerIn));
+            Validate.EnsurePositive(powerOut, nameof(powerOut));
+            return 10 * Math.Log10(powerOut / powerIn);
+        }
 
         public double CalculateWavelength(double frequency)
-            => SpeedOfLight / frequency;
+        {
+            Validate.EnsurePositive(frequency, nameof(frequency));
+            return SpeedOfLight / frequency;
+        }
 
         public double CalculateVSWR(double forwardPower, double reflectedPower)
         {
+            Validate.EnsurePositive(forwardPower, nameof(forwardPower));
+            Validate.EnsurePositive(reflectedPower, nameof(reflectedPower));
             var sqrtRatio = Math.Sqrt(reflectedPower / forwardPower);
             return (1 + sqrtRatio) / (1 - sqrtRatio);
         }
 
         public double CalculateQFactor(double resonantFrequency, double bandwidth)
-            => resonantFrequency / bandwidth;
+        {
+            Validate.EnsurePositive(resonantFrequency, nameof(resonantFrequency));
+            Validate.EnsurePositive(bandwidth, nameof(bandwidth));
+            return resonantFrequency / bandwidth;
+        }
 
         public double CalculateNoiseFigure(double noiseFactor)
-            => 10 * Math.Log10(noiseFactor);
+        {
+            Validate.EnsurePositive(noiseFactor, nameof(noiseFactor));
+            return 10 * Math.Log10(noiseFactor);
+        }
 
         public double CalculateSkinDepth(double frequency, double resistivity, double relativePermeability)
-            => Math.Sqrt(resistivity / (Math.PI * frequency * Mu0 * relativePermeability));
+        {
+            Validate.EnsurePositive(frequency, nameof(frequency));
+            Validate.EnsurePositive(resistivity, nameof(resistivity));
+            Validate.EnsurePositive(relativePermeability, nameof(relativePermeability));
+            return Math.Sqrt(resistivity / (Math.PI * frequency * Mu0 * relativePermeability));
+        }
 
         public double CalculateImpedanceMatching(double sourceImpedance, double loadImpedance)
-            => Math.Sqrt(sourceImpedance * loadImpedance);
+        {
+            Validate.EnsurePositive(sourceImpedance, nameof(sourceImpedance));
+            Validate.EnsurePositive(loadImpedance, nameof(loadImpedance));
+            return Math.Sqrt(sourceImpedance * loadImpedance);
+        }
 
         public double CalculateAttenuator(double inputVoltage, double outputVoltage)
-            => 20 * Math.Log10(inputVoltage / outputVoltage);
+        {
+            Validate.EnsurePositive(inputVoltage, nameof(inputVoltage));
+            Validate.EnsurePositive(outputVoltage, nameof(outputVoltage));
+            return 20 * Math.Log10(inputVoltage / outputVoltage);
+        }
 
         public double CalculateCoaxialCable(double innerDiameter, double outerDiameter)
-            => 138 * Math.Log10(outerDiameter / innerDiameter);
+        {
+            Validate.EnsurePositive(innerDiameter, nameof(innerDiameter));
+            Validate.EnsurePositive(outerDiameter, nameof(outerDiameter));
+            return 138 * Math.Log10(outerDiameter / innerDiameter);
+        }
 
         #endregion
 
@@ -112,13 +174,16 @@ namespace RadioEngineerCalculator.Services
 
         public double CalculateAmplifierEfficiency(double outputPower, double inputDCPower)
         {
-            if (outputPower < 0 || inputDCPower <= 0)
-                throw new ArgumentException("Output power must be non-negative and input DC power must be positive.");
+            Validate.EnsurePositive(outputPower, nameof(outputPower));
+            Validate.EnsurePositive(inputDCPower, nameof(inputDCPower));
             return (outputPower / inputDCPower) * 100;
         }
 
         public double Calculate1dBCompressionPoint(double inputPower, double outputPower, double smallSignalGain)
         {
+            Validate.EnsurePositive(inputPower, nameof(inputPower));
+            Validate.EnsurePositive(outputPower, nameof(outputPower));
+            Validate.EnsurePositive(smallSignalGain, nameof(smallSignalGain));
             if (outputPower <= inputPower + smallSignalGain - 1)
                 throw new ArgumentException("The given output power does not represent a 1dB compression point.");
             return inputPower;
@@ -126,16 +191,26 @@ namespace RadioEngineerCalculator.Services
 
         public double CalculateIP3(double fundamentalPower, double thirdOrderPower)
         {
+            Validate.EnsurePositive(fundamentalPower, nameof(fundamentalPower));
+            Validate.EnsurePositive(thirdOrderPower, nameof(thirdOrderPower));
             if (fundamentalPower <= thirdOrderPower)
                 throw new ArgumentException("Fundamental power must be greater than third-order product power.");
             return fundamentalPower + (fundamentalPower - thirdOrderPower) / 2;
         }
 
         public double CalculateTransconductance(double drainCurrent, double gateVoltage)
-            => drainCurrent / gateVoltage;
+        {
+            Validate.EnsurePositive(drainCurrent, nameof(drainCurrent));
+            Validate.EnsurePositive(gateVoltage, nameof(gateVoltage));
+            return drainCurrent / gateVoltage;
+        }
 
         public double CalculateVoltageGain(double transconductance, double loadResistance)
-            => transconductance * loadResistance;
+        {
+            Validate.EnsurePositive(transconductance, nameof(transconductance));
+            Validate.EnsurePositive(loadResistance, nameof(loadResistance));
+            return transconductance * loadResistance;
+        }
 
         #endregion
 
@@ -174,7 +249,6 @@ namespace RadioEngineerCalculator.Services
             return phaseDeviationRad / carrierPhaseRad;
         }
 
-
         public double CalculateAMBandwidth(double modulationFrequency)
             => 2 * modulationFrequency;
 
@@ -187,13 +261,6 @@ namespace RadioEngineerCalculator.Services
 
         public double CalculateCharacteristicImpedance(double inductancePerUnit, double capacitancePerUnit)
             => Math.Sqrt(inductancePerUnit / capacitancePerUnit);
-
-        // Метод CalculatePropagationConstant закомментирован из-за использования комплексных чисел
-        // public double CalculatePropagationConstant(double resistance, double inductance, double conductance, double capacitance, double frequency)
-        // {
-        //     var omega = 2 * Math.PI * frequency;
-        //     return Math.Sqrt((resistance + 1i * omega * inductance) * (conductance + 1i * omega * capacitance));
-        // }
 
         #endregion
 
@@ -216,7 +283,7 @@ namespace RadioEngineerCalculator.Services
         public double CalculateAntennaEffectiveArea(double gain, double wavelength)
             => (gain * Math.Pow(wavelength, 2)) / (4 * Math.PI);
 
-        #endregion 
+        #endregion
 
         #region Расчеты для цифровой обработки сигналов
 
@@ -226,7 +293,7 @@ namespace RadioEngineerCalculator.Services
         public double CalculateQuantizationNoise(int bitsPerSample)
             => Math.Pow(2, -bitsPerSample) / Math.Sqrt(12);
 
-        #endregion 
+        #endregion
 
         #region Расчеты для смесителей (Mixers)
 
@@ -265,10 +332,21 @@ namespace RadioEngineerCalculator.Services
             x = Math.Abs(x);
 
             double t = 1.0 / (1.0 + p * x);
-            double y = 1.0 - (((((a5 * t + a4) * t) + a3) * t + a2) * t + a1) * t * Math.Exp(-x * x);
+
+            // Упрощенное для чтения выражение
+            double y = 1.0 - (
+                (
+                    (
+                        (
+                            (a5 * t + a4) * t + a3
+                        ) * t + a2
+                    ) * t + a1
+                ) * t * Math.Exp(-x * x)
+            );
 
             return sign * y;
         }
+
 
         #endregion
 
