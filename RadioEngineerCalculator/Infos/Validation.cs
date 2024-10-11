@@ -50,6 +50,11 @@ namespace RadioEngineerCalculator.Services
                 return false;
             }
 
+            if (inputValues.Capacitance <= 0 || inputValues.Inductance <= 0 || inputValues.Resistance <= 0 || inputValues.Frequency <= 0)
+            {
+                return false;
+            }
+
             return true;
         }
 

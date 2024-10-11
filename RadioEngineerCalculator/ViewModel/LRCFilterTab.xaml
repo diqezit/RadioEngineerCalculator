@@ -28,9 +28,10 @@
                         <!-- Тип фильтра -->
                         <Label Content="Тип фильтра" Style="{StaticResource ModernLabel}"/>
                         <ComboBox x:Name="cmbFilterType"
-                                  SelectedItem="{Binding SelectedFilterType, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                  Style="{StaticResource ModernComboBox}"
-                                  ItemsSource="{Binding FilterTypes}">
+          SelectedItem="{Binding SelectedFilterType, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+          Style="{StaticResource ModernComboBox}"
+          ItemsSource="{Binding FilterTypes}"
+          SelectionChanged="OnSelectionChanged">
                             <ComboBox.ToolTip>
                                 <ToolTip Content="{x:Static infos:Tooltips.LCFilterTab_FilterTypeTooltip}"/>
                             </ComboBox.ToolTip>
@@ -152,11 +153,11 @@
 
                 <!-- Окно графика -->
                 <oxy:PlotView x:Name="FilterResponsePlot" 
-              Model="{Binding FilterResponseModel}" 
-              Height="300" 
-              Width="600"
-              HorizontalAlignment="Center"
-              Margin="0,20,0,0"/>
+                              Model="{Binding FilterResponseModel}" 
+                              Height="300" 
+                              Width="600"
+                              HorizontalAlignment="Center"
+                              Margin="0,20,0,0"/>
             </StackPanel>
         </Grid>
     </ScrollViewer>

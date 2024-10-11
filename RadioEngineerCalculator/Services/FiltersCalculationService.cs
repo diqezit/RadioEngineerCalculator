@@ -23,7 +23,6 @@ namespace RadioEngineerCalculator.Services
             var phaseShift = CalculateFilterPhaseResponse(inputValues.FilterType, inputValues.Frequency, cutoffFrequency, bandwidth);
             var groupDelay = CalculateGroupDelay(inputValues.FilterType, inputValues.Frequency, cutoffFrequency, bandwidth);
             var attenuation = CalculateFilterAttenuation(inputValues.FilterType, inputValues.Frequency, cutoffFrequency, bandwidth);
-            var filterOrder = CalculateFilterOrder(inputValues);
 
             return new FilterResults
             {
@@ -34,8 +33,7 @@ namespace RadioEngineerCalculator.Services
                 Impedance = impedance.Magnitude,
                 PhaseShift = phaseShift,
                 GroupDelay = groupDelay,
-                Attenuation = attenuation,
-                FilterOrder = filterOrder
+                Attenuation = attenuation
             };
         }
 
@@ -68,7 +66,7 @@ namespace RadioEngineerCalculator.Services
                     return 1 / (2 * Math.PI * Math.Sqrt(inputValues.Inductance * inputValues.Capacitance));
                 case FilterType.BandPass:
                 case FilterType.BandStop:
-                    return Math.Sqrt(1 / (inputValues.Inductance * inputValues.Capacitance));
+                    return 1 / (2 * Math.PI * Math.Sqrt(inputValues.Inductance * inputValues.Capacitance));
                 default:
                     throw new ArgumentException("Unsupported filter type");
             }
@@ -146,41 +144,6 @@ namespace RadioEngineerCalculator.Services
                 default:
                     throw new ArgumentException("Unsupported filter type");
             }
-        }
-        public (double magnitude, double phase) CalculateLowPassResponse(double freq, FilterResults results)
-        {
-            // Логика расчета для LowPass фильтра
-            return (0, 0); // Замените на реальную логику
-        }
-
-        public (double magnitude, double phase) CalculateHighPassResponse(double freq, FilterResults results)
-        {
-            // Логика расчета для HighPass фильтра
-            return (0, 0); // Замените на реальную логику
-        }
-
-        public (double magnitude, double phase) CalculateBandPassResponse(double freq, FilterResults results)
-        {
-            // Логика расчета для BandPass фильтра
-            return (0, 0); // Замените на реальную логику
-        }
-
-        public (double magnitude, double phase) CalculateBandStopResponse(double freq, FilterResults results)
-        {
-            // Логика расчета для BandStop фильтра
-            return (0, 0); // Замените на реальную логику
-        }
-        private int CalculateFilterOrder(FilterInputValues inputValues)
-        {
-            double normalizedTransition = inputValues.StopbandFrequency / inputValues.Frequency;
-            return CalculateLowHighPassOrder(inputValues.PassbandRipple, inputValues.StopbandAttenuation, normalizedTransition);
-        }
-
-        private int CalculateLowHighPassOrder(double passbandRipple, double stopbandAttenuation, double normalizedTransition)
-        {
-            double a1 = Math.Pow(10, stopbandAttenuation / 10) - 1;
-            double a2 = Math.Pow(10, passbandRipple / 10) - 1;
-            return (int)Math.Ceiling(Math.Log10(Math.Sqrt(a1 / a2)) / (2 * Math.Log10(normalizedTransition)));
         }
     }
 

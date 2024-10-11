@@ -9,13 +9,42 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using static RadioEngineerCalculator.Services.FiltersCalculationService;
 
 namespace RadioEngineerCalculator.ViewModel
 {
+    public class RelayCommand : ICommand
+    {
+        private readonly Action _execute;
+        private readonly Func<bool> _canExecute;
+
+        public RelayCommand(Action execute, Func<bool> canExecute = null)
+        {
+            _execute = execute ?? throw new ArgumentNullException(nameof(execute));
+            _canExecute = canExecute;
+        }
+
+        public bool CanExecute(object parameter)
+        {
+            return _canExecute == null || _canExecute();
+        }
+
+        public void Execute(object parameter)
+        {
+            _execute();
+        }
+
+        public event EventHandler CanExecuteChanged
+        {
+            add { CommandManager.RequerySuggested += value; }
+            remove { CommandManager.RequerySuggested -= value; }
+        }
+    }
     public partial class LRCFilterTab : UserControl, INotifyPropertyChanged
     {
         #region Properties
+        public ICommand CalculateCommand { get; private set; }
         public ObservableCollection<string> CapacitanceUnits { get; set; }
         public ObservableCollection<string> InductanceUnits { get; set; }
         public ObservableCollection<string> ResistanceUnits { get; set; }
@@ -24,10 +53,6 @@ namespace RadioEngineerCalculator.ViewModel
 
         private FiltersCalculationService _filtersCalculationService;
         private PlotModel _filterResponseModel;
-        private double _passbandRipple;
-        private double _stopbandAttenuation;
-        private double _stopbandFrequency;
-        private string _selectedStopbandFrequencyUnit;
         private double _capacitance;
         private double _inductance;
         private double _resistance;
@@ -93,29 +118,7 @@ namespace RadioEngineerCalculator.ViewModel
             get => _resistance;
             set => SetProperty(ref _resistance, value);
         }
-        public double PassbandRipple
-        {
-            get => _passbandRipple;
-            set => SetProperty(ref _passbandRipple, value);
-        }
 
-        public double StopbandAttenuation
-        {
-            get => _stopbandAttenuation;
-            set => SetProperty(ref _stopbandAttenuation, value);
-        }
-
-        public double StopbandFrequency
-        {
-            get => _stopbandFrequency;
-            set => SetProperty(ref _stopbandFrequency, value);
-        }
-
-        public string SelectedStopbandFrequencyUnit
-        {
-            get => _selectedStopbandFrequencyUnit;
-            set => SetProperty(ref _selectedStopbandFrequencyUnit, value);
-        }
         public PlotModel FilterResponseModel
         {
             get => _filterResponseModel;
@@ -132,6 +135,7 @@ namespace RadioEngineerCalculator.ViewModel
             InitializeServices();
             InitializeDefaultValues();
             DataContext = this;
+            CalculateCommand = new RelayCommand(CalculateFilterParameters);
         }
         #endregion
 
@@ -149,20 +153,21 @@ namespace RadioEngineerCalculator.ViewModel
         {
             _filtersCalculationService = new FiltersCalculationService();
             _filterResponseModel = new PlotModel { Title = "Amplitude-Frequency Response" };
-            FilterResponsePlot.Model = _filterResponseModel;
+            FilterResponseModel = _filterResponseModel;
         }
 
         private void InitializeDefaultValues()
         {
-            Capacitance = 0;
-            Inductance = 0;
-            Resistance = 0;
-            Frequency = 0;
+            Capacitance = 1;
+            Inductance = 1;
+            Resistance = 1;
+            Frequency = 1;
             SelectedCapacitanceUnit = CapacitanceUnits.FirstOrDefault();
             SelectedFilterType = FilterTypes.FirstOrDefault();
             SelectedFrequencyUnit = FrequencyUnits.FirstOrDefault();
             SelectedInductanceUnit = InductanceUnits.FirstOrDefault();
             SelectedResistanceUnit = ResistanceUnits.FirstOrDefault();
+
         }
 
         #endregion
@@ -170,19 +175,24 @@ namespace RadioEngineerCalculator.ViewModel
         #region Event Handlers
         private void OnParameterChanged(object sender, TextChangedEventArgs e)
         {
-            if (sender is TextBox textBox && InputValidator.TryParseDouble(textBox.Text, out double value))
-            {
-                if (!InputValidator.ValidatePositiveValue(value, out string errorMessage))
-                {
-                    MessageBox.Show(errorMessage, "Input Error", MessageBoxButton.OK, MessageBoxImage.Warning);
-                    return;
-                }
-
-                CalculateFilterParameters();
-            }
+            UpdateFilterParameters();
         }
 
         private void OnSelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (sender is ComboBox comboBox)
+            {
+                if (comboBox.SelectedItem == null)
+                {
+                    MessageBox.Show("Please select a valid value.", "Input Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
+            }
+
+            UpdateFilterParameters();
+        }
+
+        private void UpdateFilterParameters()
         {
             CalculateFilterParameters();
         }
@@ -192,6 +202,16 @@ namespace RadioEngineerCalculator.ViewModel
         #region Calculation Methods
         private void CalculateFilterParameters()
         {
+            if (string.IsNullOrEmpty(SelectedCapacitanceUnit) ||
+                string.IsNullOrEmpty(SelectedFilterType) ||
+                string.IsNullOrEmpty(SelectedFrequencyUnit) ||
+                string.IsNullOrEmpty(SelectedInductanceUnit) ||
+                string.IsNullOrEmpty(SelectedResistanceUnit))
+            {
+                MessageBox.Show("Please fill in all required fields.", "Input Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
             var inputValues = new FilterInputValues
             {
                 Capacitance = Capacitance,
@@ -202,11 +222,7 @@ namespace RadioEngineerCalculator.ViewModel
                 InductanceUnit = SelectedInductanceUnit,
                 ResistanceUnit = SelectedResistanceUnit,
                 FrequencyUnit = SelectedFrequencyUnit,
-                FilterType = (FilterType)Enum.Parse(typeof(FilterType), SelectedFilterType),
-                PassbandRipple = PassbandRipple,
-                StopbandAttenuation = StopbandAttenuation,
-                StopbandFrequency = StopbandFrequency,
-                StopbandFrequencyUnit = SelectedStopbandFrequencyUnit
+                FilterType = (FilterType)Enum.Parse(typeof(FilterType), SelectedFilterType)
             };
 
             if (!InputValidator.ValidateInputValues(inputValues))
@@ -231,7 +247,6 @@ namespace RadioEngineerCalculator.ViewModel
             txtQualityFactorResult.Text = $"Quality Factor (Q): {results.QualityFactor:F2}";
             UpdateFilterResponsePlot(results);
         }
-
 
         private void UpdateFilterResponsePlot(FilterResults results)
         {
