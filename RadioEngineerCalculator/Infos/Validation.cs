@@ -6,112 +6,87 @@ namespace RadioEngineerCalculator.Services
 {
     public class InputValidator
     {
+
+        private static bool AreValuesPositive(params double[] values)
+        {
+            foreach (var value in values)
+            {
+                if (value <= 0)
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+
         public static bool ValidateInputValues(FilterInputValues inputValues)
         {
-            bool isValid = true;
-
             if (inputValues == null)
             {
                 MessageBox.Show(ErrorMessages.InvalidInputValues, "Input Error", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return false;
             }
 
-            // Проверка на положительные значения
             if (!AreValuesPositive(inputValues.Frequency, inputValues.PassbandRipple, inputValues.StopbandAttenuation, inputValues.StopbandFrequency))
             {
                 MessageBox.Show(ErrorMessages.InvalidInputValues, "Input Error", MessageBoxButton.OK, MessageBoxImage.Warning);
-                isValid = false;
+                return false;
             }
 
-            // Проверка компонентных значений
             if (!ValidateComponentValues(inputValues))
             {
-                isValid = false;
+                return false;
             }
 
-            // Проверка диапазонов частот
             if (inputValues.Frequency <= inputValues.StopbandFrequency)
             {
                 MessageBox.Show(ErrorMessages.FrequencyTooLow, "Input Error", MessageBoxButton.OK, MessageBoxImage.Warning);
-                isValid = false;
-            }
-
-            // Проверка валидности значений добротности и полосы пропускания
-            if (inputValues.PassbandRipple < 0)
-            {
-                MessageBox.Show(ErrorMessages.InvalidPassbandRippleValue, "Input Error", MessageBoxButton.OK, MessageBoxImage.Warning);
-                isValid = false;
-            }
-
-            if (inputValues.StopbandAttenuation < 0)
-            {
-                MessageBox.Show(ErrorMessages.InvalidStopbandAttenuationValue, "Input Error", MessageBoxButton.OK, MessageBoxImage.Warning);
-                isValid = false;
+                return false;
             }
 
             if (string.IsNullOrEmpty(inputValues.StopbandFrequencyUnit))
             {
                 MessageBox.Show(ErrorMessages.InvalidStopbandFrequencyUnit, "Input Error", MessageBoxButton.OK, MessageBoxImage.Warning);
-                isValid = false;
+                return false;
             }
 
-            return isValid;
-        }
-
-        // Метод проверки положительности значений
-        private static bool AreValuesPositive(params double[] values)
-        {
-            foreach (var value in values)
-            {
-                if (value <= 0)
-                    return false;
-            }
             return true;
         }
 
-        // Исправленный метод TryParseComponentValues
-        private static bool TryParseComponentValues(FilterType filterType, double capacitance, double inductance, double resistance)
+        public static bool TryParseDouble(string input, out double result)
         {
-            bool isValid = true;
-
-            if (filterType != FilterType.RL && capacitance <= 0)
-            {
-                MessageBox.Show(ErrorMessages.InvalidCapacitanceInput, "Input Error", MessageBoxButton.OK, MessageBoxImage.Warning);
-                isValid = false;
-            }
-
-            if (filterType != FilterType.RC && inductance <= 0)
-            {
-                MessageBox.Show(ErrorMessages.InvalidInductanceInput, "Input Error", MessageBoxButton.OK, MessageBoxImage.Warning);
-                isValid = false;
-            }
-
-            if (filterType != FilterType.Quartz && resistance <= 0)
-            {
-                MessageBox.Show(ErrorMessages.InvalidResistanceInput, "Input Error", MessageBoxButton.OK, MessageBoxImage.Warning);
-                isValid = false;
-            }
-
-            return isValid;
+            return double.TryParse(input, out result);
         }
+
+        public static bool ValidatePositiveValue(double value, out string errorMessage)
+        {
+            if (value <= 0)
+            {
+                errorMessage = "Value must be positive.";
+                return false;
+            }
+            errorMessage = null;
+            return true;
+        }
+
 
         private static bool ValidateComponentValues(FilterInputValues inputValues)
         {
             bool isValid = true;
 
-            if (inputValues.FilterType != FilterType.RL && inputValues.Capacitance <= 0)
+            if (inputValues.Capacitance <= 0)
             {
                 MessageBox.Show(ErrorMessages.InvalidCapacitanceInput, "Input Error", MessageBoxButton.OK, MessageBoxImage.Warning);
                 isValid = false;
             }
 
-            if (inputValues.FilterType != FilterType.RC && inputValues.Inductance <= 0)
+            if (inputValues.Inductance <= 0)
             {
                 MessageBox.Show(ErrorMessages.InvalidInductanceInput, "Input Error", MessageBoxButton.OK, MessageBoxImage.Warning);
                 isValid = false;
             }
 
-            if (inputValues.FilterType != FilterType.Quartz && inputValues.Resistance <= 0)
+            if (inputValues.Resistance <= 0)
             {
                 MessageBox.Show(ErrorMessages.InvalidResistanceInput, "Input Error", MessageBoxButton.OK, MessageBoxImage.Warning);
                 isValid = false;
@@ -152,6 +127,5 @@ namespace RadioEngineerCalculator.Services
         }
 
         #endregion
-
     }
 }

@@ -1,7 +1,6 @@
 ﻿using OxyPlot;
 using OxyPlot.Axes;
 using OxyPlot.Series;
-using RadioEngineerCalculator.Services;
 using System;
 
 namespace RadioEngineerCalculator.Services

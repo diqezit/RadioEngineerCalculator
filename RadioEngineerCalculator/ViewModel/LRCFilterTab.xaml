@@ -40,22 +40,23 @@
                         <Label Content="Емкость" Style="{StaticResource ModernLabel}" Margin="10,10,0,0"/>
                         <Grid>
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="380*"/>
+                                <ColumnDefinition Width="261*"/>
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
                             <TextBox x:Name="txtCapacitance" 
-         Text="{Binding Capacitance, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, TargetNullValue=''}" 
-         Style="{StaticResource ModernTextBox}" TextChanged="OnParameterChanged">
+                                     Text="{Binding Capacitance, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, TargetNullValue=''}" 
+                                     Style="{StaticResource ModernTextBox}" TextChanged="OnParameterChanged" Grid.ColumnSpan="2" Margin="5,5,5,5">
                                 <TextBox.ToolTip>
                                     <ToolTip Content="{x:Static infos:Tooltips.LCFilterTab_CapacitanceTooltip}"/>
                                 </TextBox.ToolTip>
                             </TextBox>
                             <ComboBox x:Name="cmbCapacitanceUnit" 
-          Grid.Column="1" 
-          Width="60" 
-          SelectedItem="{Binding SelectedCapacitanceUnit, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, TargetNullValue=''}" 
-          Style="{StaticResource ModernComboBox}"
-          ItemsSource="{Binding CapacitanceUnits}">
+                                      Grid.Column="2" 
+                                      Width="60" 
+                                      SelectedItem="{Binding SelectedCapacitanceUnit, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, TargetNullValue=''}" 
+                                      Style="{StaticResource ModernComboBox}"
+                                      ItemsSource="{Binding CapacitanceUnits}" Margin="5,5,5,5">
                                 <ComboBox.ToolTip>
                                     <ToolTip Content="{x:Static infos:Tooltips.LCFilterTab_CapacitanceUnitTooltip}"/>
                                 </ComboBox.ToolTip>
@@ -70,8 +71,8 @@
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
                             <TextBox x:Name="txtInductance" 
-         Text="{Binding Inductance, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
-         Style="{StaticResource ModernTextBox}" TextChanged="OnParameterChanged">
+                                     Text="{Binding Inductance, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
+                                     Style="{StaticResource ModernTextBox}" TextChanged="OnParameterChanged">
                                 <TextBox.ToolTip>
                                     <ToolTip Content="{x:Static infos:Tooltips.LCFilterTab_InductanceTooltip}"/>
                                 </TextBox.ToolTip>
@@ -96,8 +97,8 @@
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
                             <TextBox x:Name="txtResistance" 
-         Text="{Binding Resistance, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
-         Style="{StaticResource ModernTextBox}" TextChanged="OnParameterChanged">
+                                     Text="{Binding Resistance, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
+                                     Style="{StaticResource ModernTextBox}" TextChanged="OnParameterChanged">
                                 <TextBox.ToolTip>
                                     <ToolTip Content="{x:Static infos:Tooltips.LCFilterTab_ResistanceTooltip}"/>
                                 </TextBox.ToolTip>
@@ -130,101 +131,32 @@
                             <ComboBox x:Name="cmbFrequencyUnit" 
                                       Grid.Column="1" 
                                       Width="60" 
-                                      SelectedItem="{Binding SelectedFrequencyUnit, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
-                                      Style="{StaticResource ModernComboBox}"
-                                      ItemsSource="{Binding FrequencyUnits}">
+                                      SelectedItem="{Binding SelectedFrequencyUnit, Mode=TwoWay, 
+                                      UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernComboBox}" ItemsSource="{Binding FrequencyUnits}">
                                 <ComboBox.ToolTip>
                                     <ToolTip Content="{x:Static infos:Tooltips.LCFilterTab_FrequencyUnitTooltip}"/>
                                 </ComboBox.ToolTip>
                             </ComboBox>
                         </Grid>
 
-                        <!-- Кнопка расчета -->
-                        <Button Content="Рассчитать все параметры" 
-                                Click="CalculateFilterParameters" 
+                        <!-- Кнопка рассчитать -->
+                        <Button Content="Рассчитать"
+                                Command="{Binding CalculateCommand}" 
                                 Style="{StaticResource ModernButton}" 
                                 Margin="0,20,0,0"/>
 
-                        <!-- Текст справки -->
-                        <TextBlock x:Name="txtHelpText" 
-                                   Text="Здесь будут отображаться результаты расчетов." 
-                                   FontSize="14" 
-                                   Foreground="Gray" 
-                                   Margin="0,20,0,0"/>
-
-                        <!-- Результаты расчетов -->
-                        <TextBlock Text="Результаты расчетов:" FontWeight="Bold" Margin="0,20,0,10"/>
-                        <TextBlock x:Name="txtCutoffFrequencyResult" 
-           Text="{Binding CutoffFrequencyResult}" 
-           Margin="0,10,0,0" 
-           FontWeight="Bold"/>
-                        <TextBlock x:Name="txtQualityFactorResult" 
-           Text="{Binding QualityFactorResult}" 
-           Margin="0,10,0,0" 
-           FontWeight="Bold"/>
-                        <TextBlock x:Name="txtBandwidthResult" 
-           Text="{Binding BandwidthResult}" 
-           Margin="0,10,0,0" 
-           FontWeight="Bold"/>
-                        <TextBlock x:Name="txtImpedanceResult" 
-           Text="{Binding ImpedanceResult}" 
-           Margin="0,10,0,0" 
-           FontWeight="Bold"/>
-                        <TextBlock x:Name="txtPhaseShiftResult" 
-           Text="{Binding PhaseShiftResult}" 
-           Margin="0,10,0,0" 
-           FontWeight="Bold"/>
-                        <TextBlock x:Name="txtGroupDelayResult" 
-           Text="{Binding GroupDelayResult}" 
-           Margin="0,10,0,0" 
-           FontWeight="Bold"/>
-                        <TextBlock x:Name="txtAttenuationResult" 
-           Text="{Binding AttenuationResult}" 
-           Margin="0,10,0,0" 
-           FontWeight="Bold"/>
-                        <TextBlock x:Name="txtAdditionalInfo" 
-           Text="{Binding AdditionalInfo}" 
-           Margin="0,10,0,0" 
-           FontWeight="Bold"/>
-
-                        <Label Content="Неравномерность в полосе пропускания (дБ)" Style="{StaticResource ModernLabel}" Margin="10,10,0,0"/>
-                        <TextBox x:Name="txtPassbandRipple" 
-                         Text="{Binding PassbandRipple, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
-                         Style="{StaticResource ModernTextBox}"/>
-
-                        <Label Content="Затухание в полосе заграждения (дБ)" Style="{StaticResource ModernLabel}" Margin="10,10,0,0"/>
-                        <TextBox x:Name="txtStopbandAttenuation" 
-                         Text="{Binding StopbandAttenuation, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
-                         Style="{StaticResource ModernTextBox}"/>
-
-                        <Label Content="Частота полосы заграждения" Style="{StaticResource ModernLabel}" Margin="10,10,0,0"/>
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
-                            <TextBox x:Name="txtStopbandFrequency" 
-                             Text="{Binding StopbandFrequency, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
-                             Style="{StaticResource ModernTextBox}"/>
-                            <ComboBox x:Name="cmbStopbandFrequencyUnit" 
-                              Grid.Column="1" 
-                              Width="60" 
-                              SelectedItem="{Binding SelectedStopbandFrequencyUnit, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
-                              Style="{StaticResource ModernComboBox}"
-                              ItemsSource="{Binding FrequencyUnits}"/>
-                        </Grid>
-
-                        <TextBlock x:Name="txtFilterOrderResult" 
-           Text="{Binding FilterOrderResult}" 
-           Margin="0,10,0,0" 
-           FontWeight="Bold"/>
-
-                        <!-- График фильтра -->
-                        <GroupBox Header="График среза фильтра" BorderBrush="{StaticResource DividerBrush}" BorderThickness="1" Margin="0,20,0,0">
-                            <oxy:PlotView x:Name="FilterResponsePlot" Model="{Binding FilterResponseModel}" Width="Auto" Height="300" Margin="10"/>
-                        </GroupBox>
                     </StackPanel>
                 </GroupBox>
+                <TextBlock x:Name="txtCutoffFrequencyResult" />
+                <TextBlock x:Name="txtQualityFactorResult" />
+
+                <!-- Окно графика -->
+                <oxy:PlotView x:Name="FilterResponsePlot" 
+              Model="{Binding FilterResponseModel}" 
+              Height="300" 
+              Width="600"
+              HorizontalAlignment="Center"
+              Margin="0,20,0,0"/>
             </StackPanel>
         </Grid>
     </ScrollViewer>

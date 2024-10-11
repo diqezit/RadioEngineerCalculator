@@ -21,7 +21,7 @@
         public static string InvalidResistanceValue => "Неверное значение сопротивления.";
         public static string InvalidStopbandAttenuationValue => "Неверное значение затухания в полосе заграждения.";
         public static string InvalidStopbandFrequencyUnit => "Неверное значение частоты полосы заграждения.";
-        public static string MissingInputValues => "Пожалуйста, заполните все необходимые поля";
+        public static string InvalidPositiveNumberInput => "Пожалуйста, заполните все необходимые поля";
 
     }
 }
