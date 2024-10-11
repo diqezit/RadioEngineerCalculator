@@ -16,6 +16,16 @@ namespace RadioEngineerCalculator.Services
 
         public FilterResults CalculateFilterResults(FilterInputValues inputValues)
         {
+            if (inputValues == null)
+            {
+                throw new ArgumentNullException(nameof(inputValues));
+            }
+
+            if (inputValues.Capacitance <= 0 || inputValues.Inductance <= 0 || inputValues.Resistance <= 0 || inputValues.Frequency <= 0)
+            {
+                throw new ArgumentException("Все значения должны быть положительными.");
+            }
+
             var cutoffFrequency = CalculateFilterCutoffFrequency(inputValues);
             var qualityFactor = CalculateQualityFactor(inputValues);
             var bandwidth = CalculateBandwidth(cutoffFrequency, qualityFactor);

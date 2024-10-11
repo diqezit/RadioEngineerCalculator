@@ -148,9 +148,14 @@
 
                     </StackPanel>
                 </GroupBox>
+                
+                <!-- Результаты -->
                 <TextBlock x:Name="txtCutoffFrequencyResult" />
                 <TextBlock x:Name="txtQualityFactorResult" />
-
+                <Grid x:Name="LoadingOverlay" Visibility="Collapsed" Background="#80000000">
+                    <ProgressBar IsIndeterminate="True" Width="100" Height="100"/>
+                </Grid>
+                
                 <!-- Окно графика -->
                 <oxy:PlotView x:Name="FilterResponsePlot" 
                               Model="{Binding FilterResponseModel}" 

@@ -15,8 +15,8 @@
         public static string InvalidInductanceValue => "Неверное значение индуктивности.";
         public static string InvalidInput => "Неверный ввод. Пожалуйста, введите корректные числа и выберите единицы измерения.";
         public static string InvalidInputValues => "Пожалуйста, выберите тип фильтра и все единицы измерения.";
-        public static string InvalidNumericInput => "Неправильной числовой ввод.";
-        public static string InvalidPassbandRippleValue => "Неверное значение неравномерности АЧХ в полосе пропускания.";
+        public static string CheckInput => "Неправильный числовой ввод.";
+        public static string CheckComboBox => "Пожалуйста, выберите корректное значение в ячейке.";
         public static string InvalidResistanceInput => "Неверный ввод сопротивления или единицы измерения.";
         public static string InvalidResistanceValue => "Неверное значение сопротивления.";
         public static string InvalidStopbandAttenuationValue => "Неверное значение затухания в полосе заграждения.";

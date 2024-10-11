@@ -10,6 +10,7 @@ using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using RadioEngineerCalculator.Infos;
 using static RadioEngineerCalculator.Services.FiltersCalculationService;
 
 namespace RadioEngineerCalculator.ViewModel
@@ -130,12 +131,12 @@ namespace RadioEngineerCalculator.ViewModel
         #region Constructor
         public LRCFilterTab()
         {
-            InitializeComponent();
             InitializeCollections();
             InitializeServices();
             InitializeDefaultValues();
+            InitializeComponent();
+            CalculateCommand = new RelayCommand(CalculateFilterParameters, CanCalculateFilterParameters);
             DataContext = this;
-            CalculateCommand = new RelayCommand(CalculateFilterParameters);
         }
         #endregion
 
@@ -161,40 +162,61 @@ namespace RadioEngineerCalculator.ViewModel
             Capacitance = 1;
             Inductance = 1;
             Resistance = 1;
-            Frequency = 1;
+            Frequency = 1000;
+            CapacitanceUnits = new ObservableCollection<string>(ComboBoxService.GetUnits("Capacitance"));
+            InductanceUnits = new ObservableCollection<string>(ComboBoxService.GetUnits("Inductance"));
+            ResistanceUnits = new ObservableCollection<string>(ComboBoxService.GetUnits("Resistance"));
+            FrequencyUnits = new ObservableCollection<string>(ComboBoxService.GetUnits("Frequency"));
+            FilterTypes = new ObservableCollection<string> { "LowPass", "HighPass", "BandPass", "BandStop" };
             SelectedCapacitanceUnit = CapacitanceUnits.FirstOrDefault();
             SelectedFilterType = FilterTypes.FirstOrDefault();
             SelectedFrequencyUnit = FrequencyUnits.FirstOrDefault();
             SelectedInductanceUnit = InductanceUnits.FirstOrDefault();
             SelectedResistanceUnit = ResistanceUnits.FirstOrDefault();
-
+            FilterResponseModel = new PlotModel { Title = "Amplitude-Frequency Response" };
         }
 
         #endregion
 
         #region Event Handlers
+        private bool CanCalculateFilterParameters()
+        {
+            return !string.IsNullOrWhiteSpace(SelectedFilterType) &&
+                   !string.IsNullOrWhiteSpace(SelectedCapacitanceUnit) &&
+                   !string.IsNullOrWhiteSpace(SelectedInductanceUnit) &&
+                   !string.IsNullOrWhiteSpace(SelectedResistanceUnit) &&
+                   !string.IsNullOrWhiteSpace(SelectedFrequencyUnit);
+        }
         private void OnParameterChanged(object sender, TextChangedEventArgs e)
         {
-            UpdateFilterParameters();
-        }
-
-        private void OnSelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            if (sender is ComboBox comboBox)
+            if (sender is TextBox textBox)
             {
-                if (comboBox.SelectedItem == null)
+                if (!double.TryParse(textBox.Text, out _))
                 {
-                    MessageBox.Show("Please select a valid value.", "Input Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    MessageBox.Show(ErrorMessages.CheckInput , "Ошибка ввода", MessageBoxButton.OK, MessageBoxImage.Warning);
                     return;
                 }
             }
+            UpdateFilterParameters();
+        }
 
+
+        private void OnSelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (sender is ComboBox comboBox && comboBox.SelectedItem == null)
+            {
+                MessageBox.Show(ErrorMessages.CheckComboBox , "Ошибка ввода", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
             UpdateFilterParameters();
         }
 
         private void UpdateFilterParameters()
         {
-            CalculateFilterParameters();
+            if (CanCalculateFilterParameters())
+            {
+                CalculateFilterParameters();
+            }
         }
 
         #endregion
@@ -202,42 +224,38 @@ namespace RadioEngineerCalculator.ViewModel
         #region Calculation Methods
         private void CalculateFilterParameters()
         {
-            if (string.IsNullOrEmpty(SelectedCapacitanceUnit) ||
-                string.IsNullOrEmpty(SelectedFilterType) ||
-                string.IsNullOrEmpty(SelectedFrequencyUnit) ||
-                string.IsNullOrEmpty(SelectedInductanceUnit) ||
-                string.IsNullOrEmpty(SelectedResistanceUnit))
+            if (Capacitance <= 0 || Inductance <= 0 || Resistance <= 0 || Frequency <= 0)
             {
-                MessageBox.Show("Please fill in all required fields.", "Input Error", MessageBoxButton.OK, MessageBoxImage.Warning);
-                return;
-            }
-
-            var inputValues = new FilterInputValues
-            {
-                Capacitance = Capacitance,
-                Inductance = Inductance,
-                Resistance = Resistance,
-                Frequency = Frequency,
-                CapacitanceUnit = SelectedCapacitanceUnit,
-                InductanceUnit = SelectedInductanceUnit,
-                ResistanceUnit = SelectedResistanceUnit,
-                FrequencyUnit = SelectedFrequencyUnit,
-                FilterType = (FilterType)Enum.Parse(typeof(FilterType), SelectedFilterType)
-            };
-
-            if (!InputValidator.ValidateInputValues(inputValues))
-            {
+                MessageBox.Show("Проверьте ввод данных: все значения должны быть положительными.", "Ошибка ввода", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
             try
             {
+                var inputValues = new FilterInputValues
+                {
+                    Capacitance = Capacitance,
+                    Inductance = Inductance,
+                    Resistance = Resistance,
+                    Frequency = Frequency,
+                    CapacitanceUnit = SelectedCapacitanceUnit,
+                    InductanceUnit = SelectedInductanceUnit,
+                    ResistanceUnit = SelectedResistanceUnit,
+                    FrequencyUnit = SelectedFrequencyUnit,
+                    FilterType = (FilterType)Enum.Parse(typeof(FilterType), SelectedFilterType)
+                };
+
+                if (!InputValidator.ValidateInputValues(inputValues))
+                {
+                    throw new Exception("Invalid input values.");
+                }
+
                 var results = _filtersCalculationService.CalculateFilterResults(inputValues);
                 UpdateUIWithResults(results);
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"An error occurred during calculation:\n{ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show($"Произошла ошибка при расчете: {ex.Message}", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
