@@ -142,9 +142,10 @@
 
                         <!-- Кнопка рассчитать -->
                         <Button Content="Рассчитать"
-                                Command="{Binding CalculateCommand}" 
-                                Style="{StaticResource ModernButton}" 
-                                Margin="0,20,0,0"/>
+        Command="{Binding CalculateCommand}" 
+        IsEnabled="{Binding CanCalculateFilterParameters}"
+        Style="{StaticResource ModernButton}" 
+        Margin="0,20,0,0"/>
 
                     </StackPanel>
                 </GroupBox>
@@ -152,6 +153,13 @@
                 <!-- Результаты -->
                 <TextBlock x:Name="txtCutoffFrequencyResult" />
                 <TextBlock x:Name="txtQualityFactorResult" />
+                <!-- Результаты -->
+                <TextBlock Text="{Binding CutoffFrequencyResult}" 
+           Style="{StaticResource ModernTextBlock}" 
+           Margin="0,10,0,5"/>
+                <TextBlock Text="{Binding QualityFactorResult}" 
+           Style="{StaticResource ModernTextBlock}" 
+           Margin="0,0,0,10"/>
                 <Grid x:Name="LoadingOverlay" Visibility="Collapsed" Background="#80000000">
                     <ProgressBar IsIndeterminate="True" Width="100" Height="100"/>
                 </Grid>

@@ -26,6 +26,8 @@ namespace RadioEngineerCalculator.Services
                 throw new ArgumentException("Все значения должны быть положительными.");
             }
 
+            Validate.InputValues(inputValues);
+
             var cutoffFrequency = CalculateFilterCutoffFrequency(inputValues);
             var qualityFactor = CalculateQualityFactor(inputValues);
             var bandwidth = CalculateBandwidth(cutoffFrequency, qualityFactor);
@@ -63,7 +65,7 @@ namespace RadioEngineerCalculator.Services
                     q = cutoffFrequency / bandwidth;
                     return Math.Abs(q * (normalizedFrequency - 1 / normalizedFrequency)) / Math.Sqrt(1 + Math.Pow(q * (normalizedFrequency - 1 / normalizedFrequency), 2));
                 default:
-                    throw new ArgumentException("Unsupported filter type");
+                    throw new ArgumentException("Непподерживаемый тип фильтра");
             }
         }
 

@@ -11,6 +11,7 @@ using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using static RadioEngineerCalculator.Services.FiltersCalculationService;
 
 namespace RadioEngineerCalculator.ViewModel
 {
@@ -21,13 +22,15 @@ namespace RadioEngineerCalculator.ViewModel
 
         public RelayCommand(Action execute, Func<bool> canExecute = null)
         {
-            _execute = execute ?? throw new ArgumentNullException(nameof(execute));
+            if (execute == null)
+                throw new ArgumentNullException(nameof(execute));
+            _execute = execute;
             _canExecute = canExecute;
         }
 
         public bool CanExecute(object parameter)
         {
-            return _canExecute?.Invoke() ?? true; // Упрощение проверки
+            return _canExecute == null || _canExecute();
         }
 
         public void Execute(object parameter)
@@ -63,6 +66,8 @@ namespace RadioEngineerCalculator.ViewModel
         private string _selectedFrequencyUnit;
         private string _selectedInductanceUnit;
         private string _selectedResistanceUnit;
+        private string _cutoffFrequencyResult;
+        private string _qualityFactorResult;
         #endregion
 
         #region Public Properties
@@ -82,6 +87,18 @@ namespace RadioEngineerCalculator.ViewModel
         {
             get => _selectedFrequencyUnit;
             set => SetProperty(ref _selectedFrequencyUnit, value);
+        }
+
+        public string CutoffFrequencyResult
+        {
+            get => _cutoffFrequencyResult;
+            set => SetProperty(ref _cutoffFrequencyResult, value);
+        }
+
+        public string QualityFactorResult
+        {
+            get => _qualityFactorResult;
+            set => SetProperty(ref _qualityFactorResult, value);
         }
 
         public string SelectedInductanceUnit
@@ -230,35 +247,32 @@ namespace RadioEngineerCalculator.ViewModel
             {
                 var inputValues = new FilterInputValues
                 {
-                    Capacitance = UnitC.Convert(Capacitance, SelectedCapacitanceUnit, "F", UnitC.PhysicalQuantity.Capacitance), 
-                    Inductance = UnitC.Convert(Inductance, SelectedInductanceUnit, "H", UnitC.PhysicalQuantity.Inductance),  
-                    Resistance = UnitC.Convert(Resistance, SelectedResistanceUnit, "Ω", UnitC.PhysicalQuantity.Resistance),  
-                    Frequency = UnitC.Convert(Frequency, SelectedFrequencyUnit, "Hz", UnitC.PhysicalQuantity.Frequency),     
+                    FilterType = (FilterType)Enum.Parse(typeof(FilterType), SelectedFilterType),
+                    Capacitance = UnitC.Convert(Capacitance, SelectedCapacitanceUnit, "F", UnitC.PhysicalQuantity.Capacitance),
+                    Inductance = UnitC.Convert(Inductance, SelectedInductanceUnit, "H", UnitC.PhysicalQuantity.Inductance),
+                    Resistance = UnitC.Convert(Resistance, SelectedResistanceUnit, "Ω", UnitC.PhysicalQuantity.Resistance),
+                    Frequency = UnitC.Convert(Frequency, SelectedFrequencyUnit, "Hz", UnitC.PhysicalQuantity.Frequency),
                 };
 
                 var results = _filtersCalculationService.CalculateFilterResults(inputValues);
                 UpdateUIWithResults(results);
             }
-            catch (FormatException ex)
-            {
-                MessageBox.Show($"{ErrorMessages.InvalidFormat}\n{ex.Message}", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
-                // Тут можно добавить логирование ошибки
-            }
             catch (Exception ex)
             {
                 MessageBox.Show($"{ErrorMessages.CalculationError}\n{ex.Message}", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
-                // Тут можно добавить логирование ошибки
             }
         }
 
 
         private void UpdateUIWithResults(FilterResults results)
         {
-            txtCutoffFrequencyResult.Text = $"Cutoff Frequency: {results.CutoffFrequency:F2} Hz";
-            txtQualityFactorResult.Text = $"Quality Factor (Q): {results.QualityFactor:F2}";
-            // Обновление графика происходит в Graph классе
-            var graph = new Graph(_filterResponseModel, _filtersCalculationService);
+            CutoffFrequencyResult = $"Частота среза: {UnitC.Convert(results.CutoffFrequency, "Hz", SelectedFrequencyUnit, UnitC.PhysicalQuantity.Frequency):F2} {SelectedFrequencyUnit}";
+            QualityFactorResult = $"Добротность (Q): {results.QualityFactor:F2}";
+
+            var graph = new Graph(FilterResponseModel, _filtersCalculationService);
             graph.UpdateFilterResponsePlot(results);
+
+            OnPropertyChanged(nameof(FilterResponseModel));
         }
 
         private void UpdateFilterResponsePlot(FilterResults results)
@@ -286,8 +300,32 @@ namespace RadioEngineerCalculator.ViewModel
 
         private (double magnitude, double phase) CalculateResponse(double freq, FilterResults results)
         {
-            double magnitude = _filtersCalculationService.CalculateFilterMagnitudeResponse(results.FilterType, freq, results.CutoffFrequency, results.Bandwidth);
-            double phase = _filtersCalculationService.CalculateFilterPhaseResponse(results.FilterType, freq, results.CutoffFrequency, results.Bandwidth);
+            double magnitude;
+            double phase;
+            if (results.FilterType == FilterType.LowPass)
+            {
+                magnitude = _filtersCalculationService.CalculateFilterMagnitudeResponse(FilterType.LowPass, freq, results.CutoffFrequency, results.Bandwidth);
+                phase = _filtersCalculationService.CalculateFilterPhaseResponse(FilterType.LowPass, freq, results.CutoffFrequency, results.Bandwidth);
+            }
+            else if (results.FilterType == FilterType.HighPass)
+            {
+                magnitude = _filtersCalculationService.CalculateFilterMagnitudeResponse(FilterType.HighPass, freq, results.CutoffFrequency, results.Bandwidth);
+                phase = _filtersCalculationService.CalculateFilterPhaseResponse(FilterType.HighPass, freq, results.CutoffFrequency, results.Bandwidth);
+            }
+            else if (results.FilterType == FilterType.BandPass)
+            {
+                magnitude = _filtersCalculationService.CalculateFilterMagnitudeResponse(FilterType.BandPass, freq, results.CutoffFrequency, results.Bandwidth);
+                phase = _filtersCalculationService.CalculateFilterPhaseResponse(FilterType.BandPass, freq, results.CutoffFrequency, results.Bandwidth);
+            }
+            else if (results.FilterType == FilterType.BandStop)
+            {
+                magnitude = _filtersCalculationService.CalculateFilterMagnitudeResponse(FilterType.BandStop, freq, results.CutoffFrequency, results.Bandwidth);
+                phase = _filtersCalculationService.CalculateFilterPhaseResponse(FilterType.BandStop, freq, results.CutoffFrequency, results.Bandwidth);
+            }
+            else
+            {
+                throw new ArgumentException("Неизвестный тип фильтра");
+            }
             return (magnitude, phase);
         }
 
