@@ -48,19 +48,12 @@ namespace RadioEngineerCalculator.ViewModel
     public partial class LRCFilterTab : UserControl, INotifyPropertyChanged
     {
         #region Properties
-        public ICommand CalculateCommand { get; private set; }
-        public ObservableCollection<string> CapacitanceUnits { get; set; }
-        public ObservableCollection<string> InductanceUnits { get; set; }
-        public ObservableCollection<string> ResistanceUnits { get; set; }
-        public ObservableCollection<string> FrequencyUnits { get; set; }
-        public ObservableCollection<string> FilterTypes { get; set; }
-
-        private FiltersCalculationService _filtersCalculationService;
+        private readonly FiltersCalculationService _filtersCalculationService;
         private PlotModel _filterResponseModel;
-        private double _capacitance;
-        private double _inductance;
-        private double _resistance;
-        private double _frequency;
+        private double _capacitance = 1;
+        private double _inductance = 1;
+        private double _resistance = 1;
+        private double _frequency = 1000;
         private string _selectedCapacitanceUnit;
         private string _selectedFilterType;
         private string _selectedFrequencyUnit;
@@ -68,9 +61,23 @@ namespace RadioEngineerCalculator.ViewModel
         private string _selectedResistanceUnit;
         private string _cutoffFrequencyResult;
         private string _qualityFactorResult;
+        private bool _canCalculate = false;
+
+        public ICommand CalculateCommand { get; }
+        public ObservableCollection<string> CapacitanceUnits { get; set; }
+        public ObservableCollection<string> InductanceUnits { get; set; }
+        public ObservableCollection<string> ResistanceUnits { get; set; }
+        public ObservableCollection<string> FrequencyUnits { get; set; }
+        public ObservableCollection<string> FilterTypes { get; set; }
         #endregion
 
         #region Public Properties
+        public bool CanCalculate
+        {
+            get => _canCalculate;
+            set => SetProperty(ref _canCalculate, value);
+        }
+
         public string SelectedCapacitanceUnit
         {
             get => _selectedCapacitanceUnit;
@@ -148,11 +155,11 @@ namespace RadioEngineerCalculator.ViewModel
         #region Constructor
         public LRCFilterTab()
         {
-            InitializeCollections();
-            InitializeServices();
-            InitializeDefaultValues();
             InitializeComponent();
-            CalculateCommand = new RelayCommand(CalculateFilterParameters, CanCalculateFilterParameters);
+            _filtersCalculationService = new FiltersCalculationService();
+            InitializeCollections();
+            InitializeDefaultValues();
+            CalculateCommand = new RelayCommand(CalculateFilterParameters, () => CanCalculate);
             DataContext = this;
         }
         #endregion
@@ -167,25 +174,15 @@ namespace RadioEngineerCalculator.ViewModel
             FilterTypes = new ObservableCollection<string> { "LowPass", "HighPass", "BandPass", "BandStop" };
         }
 
-        private void InitializeServices()
-        {
-            _filtersCalculationService = new FiltersCalculationService();
-            _filterResponseModel = new PlotModel { Title = "Amplitude-Frequency Response" };
-            FilterResponseModel = _filterResponseModel;
-        }
-
         private void InitializeDefaultValues()
         {
-            Capacitance = 1;
-            Inductance = 1;
-            Resistance = 1;
-            Frequency = 1000;
             SelectedCapacitanceUnit = CapacitanceUnits.FirstOrDefault();
             SelectedFilterType = FilterTypes.FirstOrDefault();
             SelectedFrequencyUnit = FrequencyUnits.FirstOrDefault();
             SelectedInductanceUnit = InductanceUnits.FirstOrDefault();
             SelectedResistanceUnit = ResistanceUnits.FirstOrDefault();
             FilterResponseModel = new PlotModel { Title = "Amplitude-Frequency Response" };
+            UpdateCanCalculate();
         }
 
         #endregion
@@ -210,7 +207,7 @@ namespace RadioEngineerCalculator.ViewModel
                     return;
                 }
             }
-            UpdateFilterParameters();
+            UpdateCanCalculate();
         }
 
 
@@ -221,15 +218,17 @@ namespace RadioEngineerCalculator.ViewModel
                 MessageBox.Show(ErrorMessages.CheckComboBox, "Ошибка ввода", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
-            UpdateFilterParameters();
+            UpdateCanCalculate();
         }
 
-        private void UpdateFilterParameters()
+        private void UpdateCanCalculate()
         {
-            if (CanCalculateFilterParameters())
-            {
-                CalculateFilterParameters();
-            }
+            CanCalculate = Validate.InputsAreValid(Capacitance, Inductance, Resistance, Frequency) &&
+                           !string.IsNullOrWhiteSpace(SelectedFilterType) &&
+                           !string.IsNullOrWhiteSpace(SelectedCapacitanceUnit) &&
+                           !string.IsNullOrWhiteSpace(SelectedInductanceUnit) &&
+                           !string.IsNullOrWhiteSpace(SelectedResistanceUnit) &&
+                           !string.IsNullOrWhiteSpace(SelectedFrequencyUnit);
         }
 
         #endregion
@@ -237,12 +236,6 @@ namespace RadioEngineerCalculator.ViewModel
         #region Calculation Methods
         private void CalculateFilterParameters()
         {
-            if (!Validate.InputsAreValid(Capacitance, Inductance, Resistance, Frequency))
-            {
-                MessageBox.Show(ErrorMessages.InvalidInput, "Ошибка ввода", MessageBoxButton.OK, MessageBoxImage.Warning);
-                return;
-            }
-
             try
             {
                 var inputValues = new FilterInputValues
@@ -269,64 +262,14 @@ namespace RadioEngineerCalculator.ViewModel
             CutoffFrequencyResult = $"Частота среза: {UnitC.Convert(results.CutoffFrequency, "Hz", SelectedFrequencyUnit, UnitC.PhysicalQuantity.Frequency):F2} {SelectedFrequencyUnit}";
             QualityFactorResult = $"Добротность (Q): {results.QualityFactor:F2}";
 
-            var graph = new Graph(FilterResponseModel, _filtersCalculationService);
-            graph.UpdateFilterResponsePlot(results);
-
-            OnPropertyChanged(nameof(FilterResponseModel));
+            UpdateFilterResponsePlot(results);
         }
 
         private void UpdateFilterResponsePlot(FilterResults results)
         {
-            _filterResponseModel.Series.Clear();
-            var magnitudeSeries = new LineSeries { Title = "Magnitude" };
-            var phaseSeries = new LineSeries { Title = "Phase" };
-
-            double minFreq = results.CutoffFrequency / 10;
-            double maxFreq = results.CutoffFrequency * 10;
-            int points = 1000;
-
-            for (int i = 0; i < points; i++)
-            {
-                double freq = minFreq * Math.Pow(maxFreq / minFreq, (double)i / (points - 1));
-                (double magnitude, double phase) = CalculateResponse(freq, results);
-                magnitudeSeries.Points.Add(new DataPoint(freq, 20 * Math.Log10(magnitude)));
-                phaseSeries.Points.Add(new DataPoint(freq, phase * 180 / Math.PI));
-            }
-
-            _filterResponseModel.Series.Add(magnitudeSeries);
-            _filterResponseModel.Series.Add(phaseSeries);
-            _filterResponseModel.InvalidatePlot(true);
-        }
-
-        private (double magnitude, double phase) CalculateResponse(double freq, FilterResults results)
-        {
-            double magnitude;
-            double phase;
-            if (results.FilterType == FilterType.LowPass)
-            {
-                magnitude = _filtersCalculationService.CalculateFilterMagnitudeResponse(FilterType.LowPass, freq, results.CutoffFrequency, results.Bandwidth);
-                phase = _filtersCalculationService.CalculateFilterPhaseResponse(FilterType.LowPass, freq, results.CutoffFrequency, results.Bandwidth);
-            }
-            else if (results.FilterType == FilterType.HighPass)
-            {
-                magnitude = _filtersCalculationService.CalculateFilterMagnitudeResponse(FilterType.HighPass, freq, results.CutoffFrequency, results.Bandwidth);
-                phase = _filtersCalculationService.CalculateFilterPhaseResponse(FilterType.HighPass, freq, results.CutoffFrequency, results.Bandwidth);
-            }
-            else if (results.FilterType == FilterType.BandPass)
-            {
-                magnitude = _filtersCalculationService.CalculateFilterMagnitudeResponse(FilterType.BandPass, freq, results.CutoffFrequency, results.Bandwidth);
-                phase = _filtersCalculationService.CalculateFilterPhaseResponse(FilterType.BandPass, freq, results.CutoffFrequency, results.Bandwidth);
-            }
-            else if (results.FilterType == FilterType.BandStop)
-            {
-                magnitude = _filtersCalculationService.CalculateFilterMagnitudeResponse(FilterType.BandStop, freq, results.CutoffFrequency, results.Bandwidth);
-                phase = _filtersCalculationService.CalculateFilterPhaseResponse(FilterType.BandStop, freq, results.CutoffFrequency, results.Bandwidth);
-            }
-            else
-            {
-                throw new ArgumentException("Неизвестный тип фильтра");
-            }
-            return (magnitude, phase);
+            var graph = new Graph(FilterResponseModel, _filtersCalculationService);
+            graph.UpdateFilterResponsePlot(results);
+            OnPropertyChanged(nameof(FilterResponseModel));
         }
 
         #endregion
@@ -334,12 +277,12 @@ namespace RadioEngineerCalculator.ViewModel
         #region INotifyPropertyChanged Implementation
         public event PropertyChangedEventHandler PropertyChanged;
 
-        protected void OnPropertyChanged(string propertyName)
+        protected void OnPropertyChanged([CallerMemberName] string propertyName = null)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
-        private bool SetProperty<T>(ref T field, T value, [CallerMemberName] string propertyName = null)
+        protected bool SetProperty<T>(ref T field, T value, [CallerMemberName] string propertyName = null)
         {
             if (EqualityComparer<T>.Default.Equals(field, value)) return false;
             field = value;

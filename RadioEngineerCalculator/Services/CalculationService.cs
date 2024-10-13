@@ -414,5 +414,5 @@ namespace RadioEngineerCalculator.Services
         }
 
         #endregion
-    }
+   }
 }

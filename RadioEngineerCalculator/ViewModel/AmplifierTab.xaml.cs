@@ -1,173 +1,242 @@
-﻿using RadioEngineerCalculator.Services;
+﻿using RadioEngineerCalculator.Infos;
+using RadioEngineerCalculator.Services;
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 
 namespace RadioEngineerCalculator.ViewModel
 {
-    public partial class AmplifierTab : UserControl
+    public partial class AmplifierTab : UserControl, INotifyPropertyChanged
     {
+        #region Properties
+        private readonly CalculationService _calculationService;
+        private string _gainResult;
+        private string _noiseFigureResult;
+        private string _efficiencyResult;
+        private string _compressionPointResult;
+        private string _ip3Result;
+        private bool _canCalculate = false;
+
+        public ICommand CalculateGainCommand { get; private set; }
+        public ICommand CalculateNoiseFigureCommand { get; private set; }
+        public ICommand CalculateEfficiencyCommand { get; private set; }
+        public ICommand Calculate1dBCompressionPointCommand { get; private set; }
+        public ICommand CalculateIP3Command { get; private set; }
+
         public ObservableCollection<string> PowerInUnits { get; set; }
         public ObservableCollection<string> PowerOutUnits { get; set; }
+        #endregion
 
-        private readonly CalculationService _calculationService;
+        #region Public Properties
+        public bool CanCalculate
+        {
+            get => _canCalculate;
+            set => SetProperty(ref _canCalculate, value);
+        }
 
+        public string GainResult
+        {
+            get => _gainResult;
+            set => SetProperty(ref _gainResult, value);
+        }
+
+        public string NoiseFigureResult
+        {
+            get => _noiseFigureResult;
+            set => SetProperty(ref _noiseFigureResult, value);
+        }
+
+        public string EfficiencyResult
+        {
+            get => _efficiencyResult;
+            set => SetProperty(ref _efficiencyResult, value);
+        }
+
+        public string CompressionPointResult
+        {
+            get => _compressionPointResult;
+            set => SetProperty(ref _compressionPointResult, value);
+        }
+
+        public string IP3Result
+        {
+            get => _ip3Result;
+            set => SetProperty(ref _ip3Result, value);
+        }
+        #endregion
+
+        #region Constructor
         public AmplifierTab()
         {
             InitializeComponent();
-            PowerInUnits = ComboBoxService.GetUnits("Power");
-            PowerOutUnits = ComboBoxService.GetUnits("Power");
             _calculationService = new CalculationService();
+            InitializeCollections();
+            InitializeCommands();
             DataContext = this;
         }
+        #endregion
 
-        private void CalculateGain(object sender, RoutedEventArgs e)
+        #region Initialization Methods
+        private void InitializeCollections()
         {
-            if (!TryGetPowerValues(out double powerIn, out string powerInUnit, out double powerOut, out string powerOutUnit))
+            PowerInUnits = new ObservableCollection<string>(ComboBoxService.GetUnits("Power"));
+            PowerOutUnits = new ObservableCollection<string>(ComboBoxService.GetUnits("Power"));
+        }
+
+        private void InitializeCommands()
+        {
+            CalculateGainCommand = new RelayCommand(CalculateGain, () => CanCalculate);
+            CalculateNoiseFigureCommand = new RelayCommand(CalculateNoiseFigure, () => CanCalculate);
+            CalculateEfficiencyCommand = new RelayCommand(CalculateEfficiency, () => CanCalculate);
+            Calculate1dBCompressionPointCommand = new RelayCommand(Calculate1dBCompressionPoint, () => CanCalculate);
+            CalculateIP3Command = new RelayCommand(CalculateIP3, () => CanCalculate);
+        }
+
+        #endregion
+
+        #region Event Handlers
+        private void OnParameterChanged(object sender, TextChangedEventArgs e)
+        {
+            if (sender is TextBox textBox)
             {
-                txtGainResult.Text = "Invalid input";
+                if (!double.TryParse(textBox.Text, out _))
+                {
+                    MessageBox.Show(ErrorMessages.InvalidInputFormat, "Ошибка ввода", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
+            }
+            UpdateCanCalculate();
+        }
+
+        private void OnSelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (sender is ComboBox comboBox && comboBox.SelectedItem == null)
+            {
+                MessageBox.Show(ErrorMessages.CheckComboBox, "Ошибка ввода", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
+            UpdateCanCalculate();
+        }
 
+        private void UpdateCanCalculate()
+        {
+            CanCalculate = Validate.ValidateInputs(
+                txtPowerIn.Text, txtPowerOut.Text, txtNoiseFactor.Text,
+                txtOutputPower.Text, txtInputDCPower.Text, txtInputPower.Text, txtOutputPowerDBm.Text, txtSmallSignalGain.Text,
+                txtFundamentalPower.Text, txtThirdOrderPower.Text,
+                cmbPowerInUnit.SelectedItem?.ToString(), cmbPowerOutUnit.SelectedItem?.ToString()
+            );
+        }
+        #endregion
+
+        #region Calculation Methods
+        private void CalculateGain()
+        {
             try
             {
-                powerIn = UnitC.Conv.Power(powerIn, powerInUnit, "W");
-                powerOut = UnitC.Conv.Power(powerOut, powerOutUnit, "W");
+                var powerInValue = double.Parse(txtPowerIn.Text);
+                var powerOutValue = double.Parse(txtPowerOut.Text);
 
-                double gain = _calculationService.CalculateGain(powerIn, powerOut);
-                txtGainResult.Text = $"Gain: {FormatGain(gain)}";
+                var powerIn = UnitC.Convert(powerInValue, cmbPowerInUnit.SelectedItem.ToString(), "W", UnitC.PhysicalQuantity.Power);
+                var powerOut = UnitC.Convert(powerOutValue, cmbPowerOutUnit.SelectedItem.ToString(), "W", UnitC.PhysicalQuantity.Power);
+
+                var gain = _calculationService.CalculateGain(powerIn, powerOut);
+                GainResult = $"Усиление: {gain:F2} dB";
             }
             catch (Exception ex)
             {
-                txtGainResult.Text = $"Error: {ex.Message}";
+                MessageBox.Show($"{ErrorMessages.CalculationError}\n{ex.Message}", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
-        private void CalculateNoiseFigure(object sender, RoutedEventArgs e)
+        private void CalculateNoiseFigure()
         {
-            if (!double.TryParse(txtNoiseFactor.Text, out double noiseFactor))
-            {
-                txtNoiseFigureResult.Text = "Invalid input";
-                return;
-            }
-
             try
             {
-                double noiseFigure = _calculationService.CalculateNoiseFigure(noiseFactor);
-                txtNoiseFigureResult.Text = $"Noise Figure: {FormatNoiseFigure(noiseFigure)}";
+                var noiseFactor = double.Parse(txtNoiseFactor.Text);
+
+                var noiseFigure = _calculationService.CalculateNoiseFigure(noiseFactor);
+                NoiseFigureResult = $"Коэффициент шума: {noiseFigure:F2} dB";
             }
             catch (Exception ex)
             {
-                txtNoiseFigureResult.Text = $"Error: {ex.Message}";
+                MessageBox.Show($"{ErrorMessages.CalculationError}\n{ex.Message}", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
-        private bool TryGetPowerValues(out double powerIn, out string powerInUnit, out double powerOut, out string powerOutUnit)
+        private void CalculateEfficiency()
         {
-            powerIn = 0;
-            powerOut = 0;
-            powerInUnit = cmbPowerInUnit.SelectedItem?.ToString();
-            powerOutUnit = cmbPowerOutUnit.SelectedItem?.ToString();
-
-            if (double.TryParse(txtPowerIn.Text, out powerIn) &&
-                double.TryParse(txtPowerOut.Text, out powerOut) &&
-                !string.IsNullOrEmpty(powerInUnit) &&
-                !string.IsNullOrEmpty(powerOutUnit))
+            try
             {
-                return true;
+                var outputPower = double.Parse(txtOutputPower.Text);
+                var inputDCPower = double.Parse(txtInputDCPower.Text);
+
+                var efficiency = _calculationService.CalculateAmplifierEfficiency(outputPower, inputDCPower);
+                EfficiencyResult = $"КПД: {efficiency:F2}%";
             }
-
-            return false;
-        }
-
-        private string FormatGain(double gain)
-        {
-            return $"{gain:F2} dB";
-        }
-
-        private string FormatNoiseFigure(double noiseFigure)
-        {
-            return $"{noiseFigure:F2} dB";
-        }
-
-        private void CalculateEfficiency(object sender, RoutedEventArgs e)
-        {
-            if (double.TryParse(txtOutputPower.Text, out double outputPower) &&
-                double.TryParse(txtInputDCPower.Text, out double inputDCPower))
+            catch (Exception ex)
             {
-                try
-                {
-                    double efficiency = _calculationService.CalculateAmplifierEfficiency(outputPower, inputDCPower);
-                    txtEfficiencyResult.Text = $"Efficiency: {FormatEfficiency(efficiency)}";
-                }
-                catch (ArgumentException ex)
-                {
-                    MessageBox.Show(ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                }
-            }
-            else
-            {
-                MessageBox.Show("Please enter valid numbers for Output Power and Input DC Power.", "Input Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show($"{ErrorMessages.CalculationError}\n{ex.Message}", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
-        private void Calculate1dBCompressionPoint(object sender, RoutedEventArgs e)
+        private void Calculate1dBCompressionPoint()
         {
-            if (double.TryParse(txtInputPower.Text, out double inputPower) &&
-                double.TryParse(txtOutputPowerDBm.Text, out double outputPower) &&
-                double.TryParse(txtSmallSignalGain.Text, out double smallSignalGain))
+            try
             {
-                try
-                {
-                    double compressionPoint = _calculationService.Calculate1dBCompressionPoint(inputPower, outputPower, smallSignalGain);
-                    txt1dBCompressionResult.Text = $"1dB Compression Point: {FormatCompressionPoint(compressionPoint)}";
-                }
-                catch (ArgumentException ex)
-                {
-                    MessageBox.Show(ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                }
+                var inputPower = double.Parse(txtInputPower.Text);
+                var outputPower = double.Parse(txtOutputPowerDBm.Text);
+                var smallSignalGain = double.Parse(txtSmallSignalGain.Text);
+
+                var compressionPoint = _calculationService.Calculate1dBCompressionPoint(inputPower, outputPower, smallSignalGain);
+                CompressionPointResult = $"Точка компрессии 1 dB: {compressionPoint:F2} dBm";
             }
-            else
+            catch (Exception ex)
             {
-                MessageBox.Show("Please enter valid numbers for Input Power, Output Power, and Small Signal Gain.", "Input Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show($"{ErrorMessages.CalculationError}\n{ex.Message}", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
-        private void CalculateIP3(object sender, RoutedEventArgs e)
+        private void CalculateIP3()
         {
-            if (double.TryParse(txtFundamentalPower.Text, out double fundamentalPower) &&
-                double.TryParse(txtThirdOrderPower.Text, out double thirdOrderPower))
+            try
             {
-                try
-                {
-                    double ip3 = _calculationService.CalculateIP3(fundamentalPower, thirdOrderPower);
-                    txtIP3Result.Text = $"Third-Order Intercept Point (IP3): {FormatIP3(ip3)}";
-                }
-                catch (ArgumentException ex)
-                {
-                    MessageBox.Show(ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                }
+                var fundamentalPower = double.Parse(txtFundamentalPower.Text);
+                var thirdOrderPower = double.Parse(txtThirdOrderPower.Text);
+
+                var ip3 = _calculationService.CalculateIP3(fundamentalPower, thirdOrderPower);
+                IP3Result = $"Точка пересечения третьего порядка (IP3): {ip3:F2} dBm";
             }
-            else
+            catch (Exception ex)
             {
-                MessageBox.Show("Please enter valid numbers for Fundamental Power and Third-Order Product Power.", "Input Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show($"{ErrorMessages.CalculationError}\n{ex.Message}", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
+        #endregion
 
-        private string FormatEfficiency(double efficiency)
+        #region INotifyPropertyChanged Implementation
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        protected void OnPropertyChanged([CallerMemberName] string propertyName = null)
         {
-            return $"{efficiency:F2}%";
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
-        private string FormatCompressionPoint(double compressionPoint)
+        protected bool SetProperty<T>(ref T field, T value, [CallerMemberName] string propertyName = null)
         {
-            return $"{compressionPoint:F2} dBm";
+            if (EqualityComparer<T>.Default.Equals(field, value)) return false;
+            field = value;
+            OnPropertyChanged(propertyName);
+            return true;
         }
-
-        private string FormatIP3(double ip3)
-        {
-            return $"{ip3:F2} dBm";
-        }
+        #endregion
     }
+
+    
+   
 }

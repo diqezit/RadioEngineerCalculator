@@ -6,7 +6,7 @@
         public const string InvalidFormat = "Некорректный формат данных.";
         public const string InvalidInputFormat = "Некорректный формат входных данных.";
         public const string EAC = "Ошибка калькуляции.";
-        public const string CalculationError = "Ошибка вычисления.";
+        public const string CalculationError = "Произошла ошибка при расчете:";
         public const string InvalidInput = "Проверьте ввод данных: все значения должны быть положительными.";
         public const string FieldsAreEmpty = "Пожалуйста, заполните все поля.";
         public const string OperationFailed = "Операция завершилась неудачно.";

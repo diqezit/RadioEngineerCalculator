@@ -17,6 +17,18 @@ namespace RadioEngineerCalculator.Services
             EnsurePositive(inputValues.Frequency, nameof(inputValues.Frequency));
         }
 
+        public static bool ValidateInputs(params string[] inputs)
+        {
+            foreach (var input in inputs)
+            {
+                if (string.IsNullOrWhiteSpace(input) || !double.TryParse(input, out _))
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+
         public static bool InputsAreValid(double capacitance, double inductance, double resistance, double frequency)
         {
             return capacitance > 0 && inductance > 0 && resistance > 0 && frequency > 0;
