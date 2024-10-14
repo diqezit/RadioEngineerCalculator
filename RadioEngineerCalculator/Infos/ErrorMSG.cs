@@ -98,6 +98,29 @@
         public const string FilterResponseError = "Ошибка в ответе фильтра.";
         #endregion
 
+        #region Ошибки мощности
+        public const string InvalidPowerInput = "Неверный ввод мощности или единицы измерения.";
+        public const string InvalidPowerValue = "Неверное значение мощности.";
+        public const string PowerTooHigh = "Значение мощности слишком велико.";
+        public const string PowerTooLow = "Значение мощности слишком мало.";
+        public const string PowerOutOfRange = "Мощность вне допустимого диапазона.";
+        public const string InvalidPowerUnit = "Неверная единица измерения мощности.";
+        public const string PowerFrequencyError = "Ошибка частоты при расчете мощности.";
+        public const string PowerComponentMismatch = "Несоответствие компонентов при расчете мощности.";
+        public const string PowerConfigurationError = "Ошибка конфигурации при расчете мощности.";
+        public const string PowerCalculationError = "Ошибка вычисления мощности.";
+        public const string PowerDependencyMissing = "Отсутствует зависимость для расчета мощности.";
+        public const string PowerEfficiencyError = "Ошибка при расчете эффективности мощности.";
+        public const string PowerLossError = "Ошибка при расчете потерь мощности.";
+        public const string PowerFactorError = "Ошибка при расчете коэффициента мощности.";
+        public const string PowerBalanceError = "Ошибка баланса мощности.";
+        public const string PowerSupplyError = "Ошибка источника питания.";
+        public const string PowerDissipationError = "Ошибка при расчете рассеиваемой мощности.";
+        public const string PowerRatingExceeded = "Превышена номинальная мощность.";
+        public const string PowerMeasurementError = "Ошибка измерения мощности.";
+        public const string PowerConversionError = "Ошибка преобразования мощности.";
+        #endregion
+
         #region Дополнительные ошибки
         public const string InvalidPositiveNumberInput = "Пожалуйста, заполните все необходимые поля.";
         public const string InvalidConfiguration = "Некорректная конфигурация параметров.";

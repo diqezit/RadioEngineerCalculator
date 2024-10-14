@@ -236,7 +236,4 @@ namespace RadioEngineerCalculator.ViewModel
         }
         #endregion
     }
-
-    
-   
 }

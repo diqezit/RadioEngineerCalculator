@@ -92,6 +92,7 @@
     <Compile Include="Services\ComboBoxService.cs" />
     <Compile Include="Services\FiltersCalculationService.cs" />
     <Compile Include="Services\Graph.cs" />
+    <Compile Include="Services\RelayC.cs" />
     <Compile Include="ViewModel\AntennaArrayTab.xaml.cs">
       <DependentUpon>AntennaArrayTab.xaml</DependentUpon>
     </Compile>
