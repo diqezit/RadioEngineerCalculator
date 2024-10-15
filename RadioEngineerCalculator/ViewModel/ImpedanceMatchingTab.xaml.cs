@@ -3,6 +3,7 @@ using System;
 using System.Collections.ObjectModel;
 using System.Windows;
 using System.Windows.Controls;
+using static RadioEngineerCalculator.Services.UnitC;
 
 namespace RadioEngineerCalculator.ViewModel
 {
@@ -32,8 +33,8 @@ namespace RadioEngineerCalculator.ViewModel
 
             try
             {
-                sourceImpedance = UnitC.Conv.Resistance(sourceImpedance, sourceImpedanceUnit, "Ω");
-                loadImpedance = UnitC.Conv.Resistance(loadImpedance, loadImpedanceUnit, "Ω");
+                sourceImpedance = Convert(sourceImpedance, sourceImpedanceUnit, "Ω", PhysicalQuantity.Resistance);
+                loadImpedance = Convert(loadImpedance, loadImpedanceUnit, "Ω", PhysicalQuantity.Resistance);
 
                 var result = _calculationService.CalculateImpedanceMatching(sourceImpedance, loadImpedance);
                 ResultTextBlock.Text = $"Согласование импедансов: {FormatImpedanceMatching(result)}";
@@ -62,9 +63,9 @@ namespace RadioEngineerCalculator.ViewModel
             return false;
         }
 
-        private string FormatImpedanceMatching(double impedanceMatching)
+        private string FormatImpedanceMatching(double matchingValue)
         {
-            return $"{impedanceMatching:F2}";
+            return AutoFormat(matchingValue, PhysicalQuantity.Resistance);
         }
     }
 }

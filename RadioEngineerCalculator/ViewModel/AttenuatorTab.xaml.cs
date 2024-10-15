@@ -3,6 +3,7 @@ using System;
 using System.Collections.ObjectModel;
 using System.Windows;
 using System.Windows.Controls;
+using static RadioEngineerCalculator.Services.UnitC;
 
 namespace RadioEngineerCalculator.ViewModel
 {
@@ -32,8 +33,8 @@ namespace RadioEngineerCalculator.ViewModel
 
             try
             {
-                inputVoltage = UnitC.Conv.Voltage(inputVoltage, inputVoltageUnit, "V");
-                outputVoltage = UnitC.Conv.Voltage(outputVoltage, outputVoltageUnit, "V");
+                inputVoltage = Convert(inputVoltage, inputVoltageUnit, "V", PhysicalQuantity.Voltage);
+                outputVoltage = Convert(outputVoltage, outputVoltageUnit, "V", PhysicalQuantity.Voltage);
 
                 var result = _calculationService.CalculateAttenuator(inputVoltage, outputVoltage);
                 ResultTextBlock.Text = $"Затухание: {FormatAttenuation(result)}";

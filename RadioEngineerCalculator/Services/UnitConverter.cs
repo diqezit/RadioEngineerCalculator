@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace RadioEngineerCalculator.Services
 {
@@ -74,115 +75,6 @@ namespace RadioEngineerCalculator.Services
 
         #endregion
 
-        #region Вспомогательные методы конвертации
-
-        public static class Conv
-        {
-            public static double ConvertGeneric(double value, string fromUnit, string toUnit, PhysicalQuantity quantity)
-                => Convert(value, fromUnit, toUnit, quantity);
-
-            public static double Frequency(double value, string fromUnit, string toUnit)
-                => ConvertGeneric(value, fromUnit, toUnit, PhysicalQuantity.Frequency);
-
-            public static double Resistance(double value, string fromUnit, string toUnit)
-                => ConvertGeneric(value, fromUnit, toUnit, PhysicalQuantity.Resistance);
-
-            public static double Capacitance(double value, string fromUnit, string toUnit)
-                => ConvertGeneric(value, fromUnit, toUnit, PhysicalQuantity.Capacitance);
-
-            public static double Voltage(double value, string fromUnit, string toUnit)
-                => ConvertGeneric(value, fromUnit, toUnit, PhysicalQuantity.Voltage);
-
-            public static double Current(double value, string fromUnit, string toUnit)
-                => ConvertGeneric(value, fromUnit, toUnit, PhysicalQuantity.Current);
-
-            public static double Inductance(double value, string fromUnit, string toUnit)
-                => ConvertGeneric(value, fromUnit, toUnit, PhysicalQuantity.Inductance);
-
-            public static double Length(double value, string fromUnit, string toUnit)
-                => ConvertGeneric(value, fromUnit, toUnit, PhysicalQuantity.Length);
-
-            public static double Power(double value, string fromUnit, string toUnit)
-                => ConvertGeneric(value, fromUnit, toUnit, PhysicalQuantity.Power);
-
-            public static double Pressure(double value, string fromUnit, string toUnit)
-                => ConvertGeneric(value, fromUnit, toUnit, PhysicalQuantity.Pressure);
-
-            public static double Time(double value, string fromUnit, string toUnit)
-                => ConvertGeneric(value, fromUnit, toUnit, PhysicalQuantity.Time);
-
-            public static double ReactivePower(double value, string fromUnit, string toUnit)
-                => ConvertGeneric(value, fromUnit, toUnit, PhysicalQuantity.ReactivePower);
-
-            public static double Temperature(double value, string fromUnit, string toUnit)
-                => ConvertGeneric(value, fromUnit, toUnit, PhysicalQuantity.Temperature);
-
-            public static double Angle(double value, string fromUnit, string toUnit)
-                => ConvertGeneric(value, fromUnit, toUnit, PhysicalQuantity.Angle);
-
-            public static double Force(double value, string fromUnit, string toUnit)
-                => ConvertGeneric(value, fromUnit, toUnit, PhysicalQuantity.Force);
-
-            public static double Energy(double value, string fromUnit, string toUnit)
-                => ConvertGeneric(value, fromUnit, toUnit, PhysicalQuantity.Energy);
-
-            public static double Speed(double value, string fromUnit, string toUnit)
-                => ConvertGeneric(value, fromUnit, toUnit, PhysicalQuantity.Speed);
-
-            public static double Area(double value, string fromUnit, string toUnit)
-                => ConvertGeneric(value, fromUnit, toUnit, PhysicalQuantity.Area);
-
-            public static double Volume(double value, string fromUnit, string toUnit)
-                => ConvertGeneric(value, fromUnit, toUnit, PhysicalQuantity.Volume);
-
-            public static double Mass(double value, string fromUnit, string toUnit)
-                => ConvertGeneric(value, fromUnit, toUnit, PhysicalQuantity.Mass);
-
-            public static double Density(double value, string fromUnit, string toUnit)
-                => ConvertGeneric(value, fromUnit, toUnit, PhysicalQuantity.Density);
-
-            public static double Flow(double value, string fromUnit, string toUnit)
-                => ConvertGeneric(value, fromUnit, toUnit, PhysicalQuantity.Flow);
-
-            public static double Conductance(double value, string fromUnit, string toUnit)
-                => ConvertGeneric(value, fromUnit, toUnit, PhysicalQuantity.Conductance);
-
-            public static double Resistivity(double value, string fromUnit, string toUnit)
-                => ConvertGeneric(value, fromUnit, toUnit, PhysicalQuantity.Resistivity);
-
-            public static double Permittivity(double value, string fromUnit, string toUnit)
-                => ConvertGeneric(value, fromUnit, toUnit, PhysicalQuantity.Permittivity);
-
-            public static double Permeability(double value, string fromUnit, string toUnit)
-                => ConvertGeneric(value, fromUnit, toUnit, PhysicalQuantity.Permeability);
-
-            public static double MagneticField(double value, string fromUnit, string toUnit)
-                => ConvertGeneric(value, fromUnit, toUnit, PhysicalQuantity.MagneticField);
-
-            public static double MagneticFlux(double value, string fromUnit, string toUnit)
-                => ConvertGeneric(value, fromUnit, toUnit, PhysicalQuantity.MagneticFlux);
-
-            public static double LuminousFlux(double value, string fromUnit, string toUnit)
-                => ConvertGeneric(value, fromUnit, toUnit, PhysicalQuantity.LuminousFlux);
-
-            public static double Illuminance(double value, string fromUnit, string toUnit)
-                => ConvertGeneric(value, fromUnit, toUnit, PhysicalQuantity.Illuminance);
-
-            public static double SoundPressure(double value, string fromUnit, string toUnit)
-                => ConvertGeneric(value, fromUnit, toUnit, PhysicalQuantity.SoundPressure);
-
-            public static double SoundIntensity(double value, string fromUnit, string toUnit)
-                => ConvertGeneric(value, fromUnit, toUnit, PhysicalQuantity.SoundIntensity);
-
-            public static double SoundPower(double value, string fromUnit, string toUnit)
-                => ConvertGeneric(value, fromUnit, toUnit, PhysicalQuantity.SoundPower);
-
-            public static double SoundLevel(double value, string fromUnit, string toUnit)
-                => ConvertGeneric(value, fromUnit, toUnit, PhysicalQuantity.SoundLevel);
-        }
-
-        #endregion
-
         #region Автоматический выбор единиц измерения
         public static string AutoFormat(double value, PhysicalQuantity quantity)
         {
@@ -190,15 +82,12 @@ namespace RadioEngineerCalculator.Services
             string selectedUnit = "undefined";
             double convertedValue = value;
 
-            foreach (var unit in unitFactors)
+            foreach (var unit in unitFactors.OrderByDescending(u => u.Value))
             {
                 if (Math.Abs(value) >= unit.Value)
                 {
                     selectedUnit = unit.Key;
                     convertedValue = value / unit.Value;
-                }
-                else
-                {
                     break;
                 }
             }

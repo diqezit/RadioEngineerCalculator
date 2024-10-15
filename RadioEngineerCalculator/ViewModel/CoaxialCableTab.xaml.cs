@@ -3,6 +3,7 @@ using System;
 using System.Collections.ObjectModel;
 using System.Windows;
 using System.Windows.Controls;
+using static RadioEngineerCalculator.Services.UnitC;
 
 namespace RadioEngineerCalculator.ViewModel
 {
@@ -32,8 +33,8 @@ namespace RadioEngineerCalculator.ViewModel
 
             try
             {
-                innerDiameter = UnitC.Conv.Length(innerDiameter, innerDiameterUnit, "m");
-                outerDiameter = UnitC.Conv.Length(outerDiameter, outerDiameterUnit, "m");
+                innerDiameter = Convert(innerDiameter, innerDiameterUnit, "m", PhysicalQuantity.Length);
+                outerDiameter = Convert(outerDiameter, outerDiameterUnit, "m", PhysicalQuantity.Length);
 
                 var result = _calculationService.CalculateCoaxialCable(innerDiameter, outerDiameter);
                 ResultTextBlock.Text = $"Волновое сопротивление: {FormatImpedance(result)}";
@@ -64,7 +65,7 @@ namespace RadioEngineerCalculator.ViewModel
 
         private string FormatImpedance(double impedance)
         {
-            return $"{impedance:F2} Ом";
+            return AutoFormat(impedance, PhysicalQuantity.Resistance);
         }
     }
 }

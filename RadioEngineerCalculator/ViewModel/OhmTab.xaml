@@ -6,72 +6,84 @@
              xmlns:infos="clr-namespace:RadioEngineerCalculator.Infos"
              mc:Ignorable="d" 
              d:DesignHeight="500" d:DesignWidth="500">
+    <UserControl.Resources>
+        <Style x:Key="HeaderTextBlockStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="18"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="HorizontalAlignment" Value="Center"/>
+            <Setter Property="Margin" Value="0,10,0,20"/>
+        </Style>
+
+        <Style x:Key="ResultTextBlockStyle" TargetType="TextBlock">
+            <Setter Property="Margin" Value="0,10,0,0"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+        </Style>
+
+        <Style x:Key="CalculateButtonStyle" TargetType="Button" BasedOn="{StaticResource ModernButton}">
+            <Setter Property="Margin" Value="0,10,0,0"/>
+        </Style>
+    </UserControl.Resources>
+
     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
         <StackPanel Margin="20">
-            <TextBlock Text="Закон Ома" HorizontalAlignment="Center" VerticalAlignment="Center"
-                       FontSize="18" FontWeight="Bold" Margin="0,0,0,30"/>
+            <TextBlock Text="Закон Ома" Style="{StaticResource HeaderTextBlockStyle}"/>
 
-            <GroupBox Header="Расчет по закону Ома" BorderBrush="{StaticResource DividerBrush}" BorderThickness="1" Margin="0,0,0,20">
+            <!-- Расчет по закону Ома -->
+            <GroupBox Header="Расчет по закону Ома" Style="{StaticResource ModernGroupBox}">
                 <StackPanel Margin="10">
                     <Label Content="Сопротивление (R)" Style="{StaticResource ModernLabel}"/>
-                    <Grid Margin="0,0,0,10">
+                    <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
-                        <TextBox x:Name="txtResistance" Style="{StaticResource ModernTextBox}">
-                            <TextBox.ToolTip>
-                                <ToolTip Content="{x:Static infos:Tooltips.OhmTab_ResistanceTooltip}"/>
-                            </TextBox.ToolTip>
-                        </TextBox>
-                        <ComboBox x:Name="cmbResistanceUnit" Grid.Column="1" Width="70" SelectedIndex="0" Style="{StaticResource ModernComboBox}" Margin="5,0,0,0"
-                                  ItemsSource="{Binding ResistanceUnits}">
-                            <ComboBox.ToolTip>
-                                <ToolTip Content="{x:Static infos:Tooltips.OhmTab_ResistanceUnitTooltip}"/>
-                            </ComboBox.ToolTip>
-                        </ComboBox>
+                        <TextBox Text="{Binding Resistance, UpdateSourceTrigger=PropertyChanged, TargetNullValue=''}" 
+                                 Style="{StaticResource ModernTextBox}"
+                                 ToolTip="{x:Static infos:Tooltips.OhmTab_ResistanceTooltip}"/>
+                        <ComboBox Grid.Column="1" Width="60" 
+                                  ItemsSource="{Binding ResistanceUnits}"
+                                  SelectedItem="{Binding SelectedResistanceUnit}"
+                                  Style="{StaticResource ModernComboBox}"
+                                  ToolTip="{x:Static infos:Tooltips.OhmTab_ResistanceUnitTooltip}"/>
                     </Grid>
 
                     <Label Content="Ток (I)" Style="{StaticResource ModernLabel}"/>
-                    <Grid Margin="0,0,0,10">
+                    <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
-                        <TextBox x:Name="txtCurrent" Style="{StaticResource ModernTextBox}">
-                            <TextBox.ToolTip>
-                                <ToolTip Content="{x:Static infos:Tooltips.OhmTab_CurrentTooltip}"/>
-                            </TextBox.ToolTip>
-                        </TextBox>
-                        <ComboBox x:Name="cmbCurrentUnit" Grid.Column="1" Width="70" SelectedIndex="0" Style="{StaticResource ModernComboBox}" Margin="5,0,0,0"
-                                  ItemsSource="{Binding CurrentUnits}">
-                            <ComboBox.ToolTip>
-                                <ToolTip Content="{x:Static infos:Tooltips.OhmTab_CurrentUnitTooltip}"/>
-                            </ComboBox.ToolTip>
-                        </ComboBox>
+                        <TextBox Text="{Binding Current, UpdateSourceTrigger=PropertyChanged, TargetNullValue=''}" 
+                                 Style="{StaticResource ModernTextBox}"
+                                 ToolTip="{x:Static infos:Tooltips.OhmTab_CurrentTooltip}"/>
+                        <ComboBox Grid.Column="1" Width="60" 
+                                  ItemsSource="{Binding CurrentUnits}"
+                                  SelectedItem="{Binding SelectedCurrentUnit}"
+                                  Style="{StaticResource ModernComboBox}"
+                                  ToolTip="{x:Static infos:Tooltips.OhmTab_CurrentUnitTooltip}"/>
                     </Grid>
 
                     <Label Content="Напряжение (V)" Style="{StaticResource ModernLabel}"/>
-                    <Grid Margin="0,0,0,10">
+                    <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
-                        <TextBox x:Name="txtVoltage" Style="{StaticResource ModernTextBox}">
-                            <TextBox.ToolTip>
-                                <ToolTip Content="{x:Static infos:Tooltips.OhmTab_VoltageTooltip}"/>
-                            </TextBox.ToolTip>
-                        </TextBox>
-                        <ComboBox x:Name="cmbVoltageUnit" Grid.Column="1" Width="70" SelectedIndex="0" Style="{StaticResource ModernComboBox}" Margin="5,0,0,0"
-                                  ItemsSource="{Binding VoltageUnits}">
-                            <ComboBox.ToolTip>
-                                <ToolTip Content="{x:Static infos:Tooltips.OhmTab_VoltageUnitTooltip}"/>
-                            </ComboBox.ToolTip>
-                        </ComboBox>
+                        <TextBox Text="{Binding Voltage, UpdateSourceTrigger=PropertyChanged, TargetNullValue=''}" 
+                                 Style="{StaticResource ModernTextBox}"
+                                 ToolTip="{x:Static infos:Tooltips.OhmTab_VoltageTooltip}"/>
+                        <ComboBox Grid.Column="1" Width="60" 
+                                  ItemsSource="{Binding VoltageUnits}"
+                                  SelectedItem="{Binding SelectedVoltageUnit}"
+                                  Style="{StaticResource ModernComboBox}"
+                                  ToolTip="{x:Static infos:Tooltips.OhmTab_VoltageUnitTooltip}"/>
                     </Grid>
 
-                    <Button Content="Рассчитать" Click="CalculateOhm" Style="{StaticResource ModernButton}" Margin="0,10,0,0"/>
-                    <TextBlock Text="{Binding ResultText}" Margin="0,10,0,0" FontWeight="Bold" TextWrapping="Wrap"/>
+                    <Button Content="Рассчитать" 
+                            Command="{Binding CalculateCommand}"
+                            Style="{StaticResource CalculateButtonStyle}"/>
+                    <TextBlock Text="{Binding ResultText}" 
+                               Style="{StaticResource ResultTextBlockStyle}"/>
                 </StackPanel>
             </GroupBox>
         </StackPanel>

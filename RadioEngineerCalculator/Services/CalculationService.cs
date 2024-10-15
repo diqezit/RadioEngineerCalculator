@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Numerics;
+using static RadioEngineerCalculator.Services.UnitC;
 
 namespace RadioEngineerCalculator.Services
 {
@@ -218,8 +219,8 @@ namespace RadioEngineerCalculator.Services
 
         public double CalculateAMIndex(double carrierAmplitude, string carrierAmplitudeUnit, double modulatingAmplitude, string modulatingAmplitudeUnit)
         {
-            var carrierAmplitudeV = UnitC.Conv.Voltage(carrierAmplitude, carrierAmplitudeUnit, "V");
-            var modulatingAmplitudeV = UnitC.Conv.Voltage(modulatingAmplitude, modulatingAmplitudeUnit, "V");
+            var carrierAmplitudeV = Convert(carrierAmplitude, carrierAmplitudeUnit, "V", PhysicalQuantity.Voltage);
+            var modulatingAmplitudeV = Convert(modulatingAmplitude, modulatingAmplitudeUnit, "V", PhysicalQuantity.Voltage);
 
             if (carrierAmplitudeV <= 0 || modulatingAmplitudeV <= 0)
                 throw new ArgumentException("Амплитуды должны быть больше нуля.");
@@ -229,8 +230,8 @@ namespace RadioEngineerCalculator.Services
 
         public double CalculateFMIndex(double carrierFrequency, string carrierFrequencyUnit, double frequencyDeviation, string frequencyDeviationUnit)
         {
-            var carrierFrequencyHz = UnitC.Conv.Frequency(carrierFrequency, carrierFrequencyUnit, "Hz");
-            var frequencyDeviationHz = UnitC.Conv.Frequency(frequencyDeviation, frequencyDeviationUnit, "Hz");
+            var carrierFrequencyHz = Convert(carrierFrequency, carrierFrequencyUnit, "Hz", PhysicalQuantity.Frequency);
+            var frequencyDeviationHz = Convert(frequencyDeviation, frequencyDeviationUnit, "Hz", PhysicalQuantity.Frequency);
 
             if (carrierFrequencyHz <= 0 || frequencyDeviationHz <= 0)
                 throw new ArgumentException("Частоты должны быть больше нуля.");
@@ -240,8 +241,8 @@ namespace RadioEngineerCalculator.Services
 
         public double CalculatePMIndex(double carrierPhase, string carrierPhaseUnit, double phaseDeviation, string phaseDeviationUnit)
         {
-            var carrierPhaseRad = UnitC.Conv.Angle(carrierPhase, carrierPhaseUnit, "rad");
-            var phaseDeviationRad = UnitC.Conv.Angle(phaseDeviation, phaseDeviationUnit, "rad");
+            var carrierPhaseRad = Convert(carrierPhase, carrierPhaseUnit, "rad", PhysicalQuantity.Angle);
+            var phaseDeviationRad = Convert(phaseDeviation, phaseDeviationUnit, "rad", PhysicalQuantity.Angle);
 
             if (carrierPhaseRad <= 0 || phaseDeviationRad <= 0)
                 throw new ArgumentException("Фазы должны быть больше нуля.");

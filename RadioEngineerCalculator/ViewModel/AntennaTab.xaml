@@ -5,100 +5,95 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:infos="clr-namespace:RadioEngineerCalculator.Infos"
              mc:Ignorable="d" 
-             d:DesignHeight="300" d:DesignWidth="400">
+             d:DesignHeight="450" d:DesignWidth="800">
+    <UserControl.Resources>
+        <Style x:Key="HeaderTextBlockStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="18"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="HorizontalAlignment" Value="Center"/>
+            <Setter Property="Margin" Value="0,10,0,20"/>
+        </Style>
+
+        <Style x:Key="ResultTextBlockStyle" TargetType="TextBlock">
+            <Setter Property="Margin" Value="0,10,0,0"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+        </Style>
+
+        <Style x:Key="CalculateButtonStyle" TargetType="Button" BasedOn="{StaticResource ModernButton}">
+            <Setter Property="Margin" Value="0,10,0,0"/>
+        </Style>
+    </UserControl.Resources>
+
     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-        <Grid Margin="10">
-            <StackPanel>
-                <TextBlock Text="Расчеты антенн" HorizontalAlignment="Center" VerticalAlignment="Center"
-                           FontSize="18" FontWeight="Bold" Margin="0,10,0,20"/>
-                <GroupBox Header="Расчет длины волны" BorderBrush="{StaticResource DividerBrush}" BorderThickness="1" Margin="0,0,0,10">
-                    <StackPanel Margin="10">
-                        <Label Content="Частота" Style="{StaticResource ModernLabel}"/>
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
-                            <TextBox Text="{Binding Frequency, UpdateSourceTrigger=PropertyChanged}" 
-                                     Style="{StaticResource ModernTextBox}">
-                                <TextBox.ToolTip>
-                                    <ToolTip Content="{x:Static infos:Tooltips.AntennaTab_FrequencyTooltip}"/>
-                                </TextBox.ToolTip>
-                            </TextBox>
-                            <ComboBox Grid.Column="1" Width="60" 
-                                      ItemsSource="{Binding FrequencyUnits}"
-                                      SelectedItem="{Binding SelectedFrequencyUnit}"
-                                      Style="{StaticResource ModernComboBox}">
-                                <ComboBox.ToolTip>
-                                    <ToolTip Content="{x:Static infos:Tooltips.AntennaTab_FrequencyUnitTooltip}"/>
-                                </ComboBox.ToolTip>
-                            </ComboBox>
-                        </Grid>
-                        <Button Content="Рассчитать длину волны" 
-        Command="{Binding CalculateWavelengthCommand}"
-        IsEnabled="{Binding CanCalculateWavelength}"
-        Style="{StaticResource ModernButton}" 
-        Margin="0,10,0,0"/>
-                        <TextBlock Text="{Binding WavelengthResult}" 
-                                   Margin="0,10,0,0" 
-                                   FontWeight="Bold"/>
-                    </StackPanel>
-                </GroupBox>
-                <GroupBox Header="Расчет КСВН" BorderBrush="{StaticResource DividerBrush}" BorderThickness="1">
-                    <StackPanel Margin="10">
-                        <Label Content="Направленная мощность" Style="{StaticResource ModernLabel}"/>
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
-                            <TextBox Text="{Binding ForwardPower, UpdateSourceTrigger=PropertyChanged}"
-                                     Style="{StaticResource ModernTextBox}">
-                                <TextBox.ToolTip>
-                                    <ToolTip Content="{x:Static infos:Tooltips.AntennaTab_ForwardPowerTooltip}"/>
-                                </TextBox.ToolTip>
-                            </TextBox>
-                            <ComboBox Grid.Column="1" Width="60"
-                                      ItemsSource="{Binding PowerUnits}"
-                                      SelectedItem="{Binding SelectedForwardPowerUnit}"
-                                      Style="{StaticResource ModernComboBox}">
-                                <ComboBox.ToolTip>
-                                    <ToolTip Content="{x:Static infos:Tooltips.AntennaTab_ForwardPowerUnitTooltip}"/>
-                                </ComboBox.ToolTip>
-                            </ComboBox>
-                        </Grid>
-                        <Label Content="Отраженная мощность" Style="{StaticResource ModernLabel}"/>
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
-                            <TextBox Text="{Binding ReflectedPower, UpdateSourceTrigger=PropertyChanged}"
-                                     Style="{StaticResource ModernTextBox}">
-                                <TextBox.ToolTip>
-                                    <ToolTip Content="{x:Static infos:Tooltips.AntennaTab_ReflectedPowerTooltip}"/>
-                                </TextBox.ToolTip>
-                            </TextBox>
-                            <ComboBox Grid.Column="1" Width="60"
-                                      ItemsSource="{Binding PowerUnits}"
-                                      SelectedItem="{Binding SelectedReflectedPowerUnit}"
-                                      Style="{StaticResource ModernComboBox}">
-                                <ComboBox.ToolTip>
-                                    <ToolTip Content="{x:Static infos:Tooltips.AntennaTab_ReflectedPowerUnitTooltip}"/>
-                                </ComboBox.ToolTip>
-                            </ComboBox>
-                        </Grid>
-                        <Button Content="Рассчитать КСВН" 
-        Command="{Binding CalculateVSWRCommand}"
-        IsEnabled="{Binding CanCalculateVSWR}"
-        Style="{StaticResource ModernButton}" 
-        Margin="0,10,0,0"/>
-                        <TextBlock Text="{Binding VSWRResult}" 
-                                   Margin="0,10,0,0" 
-                                   FontWeight="Bold"/>
-                    </StackPanel>
-                </GroupBox>
-            </StackPanel>
-        </Grid>
+        <StackPanel Margin="20">
+            <TextBlock Text="Расчеты антенн" Style="{StaticResource HeaderTextBlockStyle}"/>
+
+            <GroupBox Header="Расчет длины волны" Style="{StaticResource ModernGroupBox}">
+                <StackPanel Margin="10">
+                    <Label Content="Частота" Style="{StaticResource ModernLabel}"/>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBox Text="{Binding Frequency, UpdateSourceTrigger=PropertyChanged}" 
+                                 Style="{StaticResource ModernTextBox}"
+                                 ToolTip="{x:Static infos:Tooltips.AntennaTab_FrequencyTooltip}"/>
+                        <ComboBox Grid.Column="1" Width="60" 
+                                  ItemsSource="{Binding FrequencyUnits}"
+                                  SelectedItem="{Binding SelectedFrequencyUnit}"
+                                  Style="{StaticResource ModernComboBox}"
+                                  ToolTip="{x:Static infos:Tooltips.AntennaTab_FrequencyUnitTooltip}"/>
+                    </Grid>
+                    <Button Content="Рассчитать длину волны" 
+                            Command="{Binding CalculateWavelengthCommand}"
+                            IsEnabled="{Binding CanCalculateWavelength}"
+                            Style="{StaticResource CalculateButtonStyle}"/>
+                    <TextBlock Text="{Binding WavelengthResult}" 
+                               Style="{StaticResource ResultTextBlockStyle}"/>
+                </StackPanel>
+            </GroupBox>
+
+            <GroupBox Header="Расчет КСВН" Style="{StaticResource ModernGroupBox}" Margin="0,20,0,0">
+                <StackPanel Margin="10">
+                    <Label Content="Направленная мощность" Style="{StaticResource ModernLabel}"/>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBox Text="{Binding ForwardPower, UpdateSourceTrigger=PropertyChanged}"
+                                 Style="{StaticResource ModernTextBox}"
+                                 ToolTip="{x:Static infos:Tooltips.AntennaTab_ForwardPowerTooltip}"/>
+                        <ComboBox Grid.Column="1" Width="60"
+                                  ItemsSource="{Binding PowerUnits}"
+                                  SelectedItem="{Binding SelectedForwardPowerUnit}"
+                                  Style="{StaticResource ModernComboBox}"
+                                  ToolTip="{x:Static infos:Tooltips.AntennaTab_ForwardPowerUnitTooltip}"/>
+                    </Grid>
+                    <Label Content="Отраженная мощность" Style="{StaticResource ModernLabel}"/>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBox Text="{Binding ReflectedPower, UpdateSourceTrigger=PropertyChanged}"
+                                 Style="{StaticResource ModernTextBox}"
+                                 ToolTip="{x:Static infos:Tooltips.AntennaTab_ReflectedPowerTooltip}"/>
+                        <ComboBox Grid.Column="1" Width="60"
+                                  ItemsSource="{Binding PowerUnits}"
+                                  SelectedItem="{Binding SelectedReflectedPowerUnit}"
+                                  Style="{StaticResource ModernComboBox}"
+                                  ToolTip="{x:Static infos:Tooltips.AntennaTab_ReflectedPowerUnitTooltip}"/>
+                    </Grid>
+                    <Button Content="Рассчитать КСВН" 
+                            Command="{Binding CalculateVSWRCommand}"
+                            IsEnabled="{Binding CanCalculateVSWR}"
+                            Style="{StaticResource CalculateButtonStyle}"/>
+                    <TextBlock Text="{Binding VSWRResult}" 
+                               Style="{StaticResource ResultTextBlockStyle}"/>
+                </StackPanel>
+            </GroupBox>
+        </StackPanel>
     </ScrollViewer>
 </UserControl>

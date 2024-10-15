@@ -5,137 +5,150 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:infos="clr-namespace:RadioEngineerCalculator.Infos"
              mc:Ignorable="d" 
-             d:DesignHeight="300" d:DesignWidth="400">
+             d:DesignHeight="450" d:DesignWidth="800">
+    <UserControl.Resources>
+        <Style x:Key="HeaderTextBlockStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="18"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="HorizontalAlignment" Value="Center"/>
+            <Setter Property="Margin" Value="0,10,0,20"/>
+        </Style>
+
+        <Style x:Key="ResultTextBlockStyle" TargetType="TextBlock">
+            <Setter Property="Margin" Value="0,10,0,0"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+        </Style>
+
+        <Style x:Key="CalculateButtonStyle" TargetType="Button" BasedOn="{StaticResource ModernButton}">
+            <Setter Property="Margin" Value="0,10,0,0"/>
+        </Style>
+    </UserControl.Resources>
+
     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-        <Grid Margin="10">
-            <StackPanel>
-                <TextBlock Text="Расчеты усилителя" HorizontalAlignment="Center" VerticalAlignment="Center" 
-                           FontSize="18" FontWeight="Bold" Margin="0,10,0,20"/>
+        <StackPanel Margin="20">
+            <TextBlock Text="Расчеты усилителя" Style="{StaticResource HeaderTextBlockStyle}"/>
 
-                <!-- Расчет усиления -->
-                <GroupBox Header="Расчет усиления" BorderBrush="{StaticResource DividerBrush}" BorderThickness="1" Margin="0,0,0,10">
-                    <StackPanel Margin="10">
-                        <Label Content="Мощность на входе" Style="{StaticResource ModernLabel}"/>
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
-                            <TextBox x:Name="txtPowerIn" Style="{StaticResource ModernTextBox}" TextChanged="OnParameterChanged">
-                                <TextBox.ToolTip>
-                                    <ToolTip Content="{x:Static infos:Tooltips.AmplifierTab_PowerInTooltip}"/>
-                                </TextBox.ToolTip>
-                            </TextBox>
-                            <ComboBox x:Name="cmbPowerInUnit" Grid.Column="1" Width="60" SelectedIndex="0" Style="{StaticResource ModernComboBox}"
-                                      ItemsSource="{Binding PowerInUnits}" SelectionChanged="OnSelectionChanged">
-                                <ComboBox.ToolTip>
-                                    <ToolTip Content="{x:Static infos:Tooltips.AmplifierTab_PowerInUnitTooltip}"/>
-                                </ComboBox.ToolTip>
-                            </ComboBox>
-                        </Grid>
-                        <Label Content="Мощность на выходе" Style="{StaticResource ModernLabel}"/>
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
-                            <TextBox x:Name="txtPowerOut" Style="{StaticResource ModernTextBox}" TextChanged="OnParameterChanged">
-                                <TextBox.ToolTip>
-                                    <ToolTip Content="{x:Static infos:Tooltips.AmplifierTab_PowerOutTooltip}"/>
-                                </TextBox.ToolTip>
-                            </TextBox>
-                            <ComboBox x:Name="cmbPowerOutUnit" Grid.Column="1" Width="60" SelectedIndex="0" Style="{StaticResource ModernComboBox}"
-                                      ItemsSource="{Binding PowerOutUnits}" SelectionChanged="OnSelectionChanged">
-                                <ComboBox.ToolTip>
-                                    <ToolTip Content="{x:Static infos:Tooltips.AmplifierTab_PowerOutUnitTooltip}"/>
-                                </ComboBox.ToolTip>
-                            </ComboBox>
-                        </Grid>
-                        <Button Content="Рассчитать усиление" Command="{Binding CalculateGainCommand}" Style="{StaticResource ModernButton}" Margin="0,10,0,0"/>
-                        <TextBlock Text="{Binding GainResult}" Margin="0,10,0,0" FontWeight="Bold"/>
-                    </StackPanel>
-                </GroupBox>
+            <!-- Расчет усиления -->
+            <GroupBox Header="Расчет усиления" Style="{StaticResource ModernGroupBox}">
+                <StackPanel Margin="10">
+                    <Label Content="Мощность на входе" Style="{StaticResource ModernLabel}"/>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBox Text="{Binding PowerIn, UpdateSourceTrigger=PropertyChanged}" 
+                                 Style="{StaticResource ModernTextBox}"
+                                 ToolTip="{x:Static infos:Tooltips.AmplifierTab_PowerInTooltip}"/>
+                        <ComboBox Grid.Column="1" Width="60" 
+                                  ItemsSource="{Binding PowerUnits}"
+                                  SelectedItem="{Binding SelectedPowerInUnit}"
+                                  Style="{StaticResource ModernComboBox}"
+                                  ToolTip="{x:Static infos:Tooltips.AmplifierTab_PowerInUnitTooltip}"/>
+                    </Grid>
+                    <Label Content="Мощность на выходе" Style="{StaticResource ModernLabel}"/>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBox Text="{Binding PowerOut, UpdateSourceTrigger=PropertyChanged}" 
+                                 Style="{StaticResource ModernTextBox}"
+                                 ToolTip="{x:Static infos:Tooltips.AmplifierTab_PowerOutTooltip}"/>
+                        <ComboBox Grid.Column="1" Width="60" 
+                                  ItemsSource="{Binding PowerUnits}"
+                                  SelectedItem="{Binding SelectedPowerOutUnit}"
+                                  Style="{StaticResource ModernComboBox}"
+                                  ToolTip="{x:Static infos:Tooltips.AmplifierTab_PowerOutUnitTooltip}"/>
+                    </Grid>
+                    <Button Content="Рассчитать усиление" 
+                            Command="{Binding CalculateGainCommand}"
+                            IsEnabled="{Binding CanCalculateGain}"
+                            Style="{StaticResource CalculateButtonStyle}"/>
+                    <TextBlock Text="{Binding GainResult}" 
+                               Style="{StaticResource ResultTextBlockStyle}"/>
+                </StackPanel>
+            </GroupBox>
 
-                <!-- Расчет шумовой характеристики -->
-                <GroupBox Header="Расчет шумовой характеристики" BorderBrush="{StaticResource DividerBrush}" BorderThickness="1">
-                    <StackPanel Margin="10">
-                        <Label Content="Коэффициент шума" Style="{StaticResource ModernLabel}"/>
-                        <TextBox x:Name="txtNoiseFactor" Style="{StaticResource ModernTextBox}" TextChanged="OnParameterChanged">
-                            <TextBox.ToolTip>
-                                <ToolTip Content="{x:Static infos:Tooltips.AmplifierTab_NoiseFactorTooltip}"/>
-                            </TextBox.ToolTip>
-                        </TextBox>
-                        <Button Content="Рассчитать шумовую характеристику" Command="{Binding CalculateNoiseFigureCommand}" Style="{StaticResource ModernButton}" Margin="0,10,0,0"/>
-                        <TextBlock Text="{Binding NoiseFigureResult}" Margin="0,10,0,0" FontWeight="Bold"/>
-                    </StackPanel>
-                </GroupBox>
+            <!-- Расчет шумовой характеристики -->
+            <GroupBox Header="Расчет шумовой характеристики" Style="{StaticResource ModernGroupBox}" Margin="0,20,0,0">
+                <StackPanel Margin="10">
+                    <Label Content="Коэффициент шума" Style="{StaticResource ModernLabel}"/>
+                    <TextBox Text="{Binding NoiseFactor, UpdateSourceTrigger=PropertyChanged}" 
+                             Style="{StaticResource ModernTextBox}"
+                             ToolTip="{x:Static infos:Tooltips.AmplifierTab_NoiseFactorTooltip}"/>
+                    <Button Content="Рассчитать шумовую характеристику" 
+                            Command="{Binding CalculateNoiseFigureCommand}"
+                            IsEnabled="{Binding CanCalculateNoiseFigure}"
+                            Style="{StaticResource CalculateButtonStyle}"/>
+                    <TextBlock Text="{Binding NoiseFigureResult}" 
+                               Style="{StaticResource ResultTextBlockStyle}"/>
+                </StackPanel>
+            </GroupBox>
 
-                <!-- Расчет КПД -->
-                <GroupBox Header="Расчет КПД" BorderBrush="{StaticResource DividerBrush}" BorderThickness="1">
-                    <StackPanel Margin="10">
-                        <Label Content="Мощность на выходе" Style="{StaticResource ModernLabel}"/>
-                        <TextBox x:Name="txtOutputPower" Style="{StaticResource ModernTextBox}" TextChanged="OnParameterChanged">
-                            <TextBox.ToolTip>
-                                <ToolTip Content="{x:Static infos:Tooltips.AmplifierTab_OutputPowerTooltip}"/>
-                            </TextBox.ToolTip>
-                        </TextBox>
-                        <Label Content="Мощность на входе (DC)" Style="{StaticResource ModernLabel}"/>
-                        <TextBox x:Name="txtInputDCPower" Style="{StaticResource ModernTextBox}" TextChanged="OnParameterChanged">
-                            <TextBox.ToolTip>
-                                <ToolTip Content="{x:Static infos:Tooltips.AmplifierTab_InputDCPowerTooltip}"/>
-                            </TextBox.ToolTip>
-                        </TextBox>
-                        <Button Content="Рассчитать КПД" Command="{Binding CalculateEfficiencyCommand}" Style="{StaticResource ModernButton}" Margin="0,10,0,0"/>
-                        <TextBlock Text="{Binding EfficiencyResult}" Margin="0,10,0,0" FontWeight="Bold"/>
-                    </StackPanel>
-                </GroupBox>
+            <!-- Расчет КПД -->
+            <GroupBox Header="Расчет КПД" Style="{StaticResource ModernGroupBox}" Margin="0,20,0,0">
+                <StackPanel Margin="10">
+                    <Label Content="Мощность на выходе" Style="{StaticResource ModernLabel}"/>
+                    <TextBox Text="{Binding OutputPower, UpdateSourceTrigger=PropertyChanged}" 
+                             Style="{StaticResource ModernTextBox}"
+                             ToolTip="{x:Static infos:Tooltips.AmplifierTab_OutputPowerTooltip}"/>
+                    <Label Content="Мощность на входе (DC)" Style="{StaticResource ModernLabel}"/>
+                    <TextBox Text="{Binding InputDCPower, UpdateSourceTrigger=PropertyChanged}" 
+                             Style="{StaticResource ModernTextBox}"
+                             ToolTip="{x:Static infos:Tooltips.AmplifierTab_InputDCPowerTooltip}"/>
+                    <Button Content="Рассчитать КПД" 
+                            Command="{Binding CalculateEfficiencyCommand}"
+                            IsEnabled="{Binding CanCalculateEfficiency}"
+                            Style="{StaticResource CalculateButtonStyle}"/>
+                    <TextBlock Text="{Binding EfficiencyResult}" 
+                               Style="{StaticResource ResultTextBlockStyle}"/>
+                </StackPanel>
+            </GroupBox>
 
-                <!-- Расчет точки компрессии 1 dB -->
-                <GroupBox Header="Расчет точки компрессии 1 dB" BorderBrush="{StaticResource DividerBrush}" BorderThickness="1">
-                    <StackPanel Margin="10">
-                        <Label Content="Мощность на входе" Style="{StaticResource ModernLabel}"/>
-                        <TextBox x:Name="txtInputPower" Style="{StaticResource ModernTextBox}" TextChanged="OnParameterChanged">
-                            <TextBox.ToolTip>
-                                <ToolTip Content="{x:Static infos:Tooltips.AmplifierTab_InputPowerTooltip}"/>
-                            </TextBox.ToolTip>
-                        </TextBox>
-                        <Label Content="Мощность на выходе (dBm)" Style="{StaticResource ModernLabel}"/>
-                        <TextBox x:Name="txtOutputPowerDBm" Style="{StaticResource ModernTextBox}" TextChanged="OnParameterChanged">
-                            <TextBox.ToolTip>
-                                <ToolTip Content="{x:Static infos:Tooltips.AmplifierTab_OutputPowerDBmTooltip}"/>
-                            </TextBox.ToolTip>
-                        </TextBox>
-                        <Label Content="Малое усиление сигнала" Style="{StaticResource ModernLabel}"/>
-                        <TextBox x:Name="txtSmallSignalGain" Style="{StaticResource ModernTextBox}" TextChanged="OnParameterChanged">
-                            <TextBox.ToolTip>
-                                <ToolTip Content="{x:Static infos:Tooltips.AmplifierTab_SmallSignalGainTooltip}"/>
-                            </TextBox.ToolTip>
-                        </TextBox>
-                        <Button Content="Рассчитать точку компрессии 1 dB" Command="{Binding Calculate1dBCompressionPointCommand}" Style="{StaticResource ModernButton}" Margin="0,10,0,0"/>
-                        <TextBlock Text="{Binding CompressionPointResult}" Margin="0,10,0,0" FontWeight="Bold"/>
-                    </StackPanel>
-                </GroupBox>
+            <!-- Расчет точки компрессии 1 dB -->
+            <GroupBox Header="Расчет точки компрессии 1 dB" Style="{StaticResource ModernGroupBox}" Margin="0,20,0,0">
+                <StackPanel Margin="10">
+                    <Label Content="Мощность на входе" Style="{StaticResource ModernLabel}"/>
+                    <TextBox Text="{Binding InputPower, UpdateSourceTrigger=PropertyChanged}" 
+                             Style="{StaticResource ModernTextBox}"
+                             ToolTip="{x:Static infos:Tooltips.AmplifierTab_InputPowerTooltip}"/>
+                    <Label Content="Мощность на выходе (dBm)" Style="{StaticResource ModernLabel}"/>
+                    <TextBox Text="{Binding OutputPowerDBm, UpdateSourceTrigger=PropertyChanged}" 
+                             Style="{StaticResource ModernTextBox}"
+                             ToolTip="{x:Static infos:Tooltips.AmplifierTab_OutputPowerDBmTooltip}"/>
+                    <Label Content="Малое усиление сигнала" Style="{StaticResource ModernLabel}"/>
+                    <TextBox Text="{Binding SmallSignalGain, UpdateSourceTrigger=PropertyChanged}" 
+                             Style="{StaticResource ModernTextBox}"
+                             ToolTip="{x:Static infos:Tooltips.AmplifierTab_SmallSignalGainTooltip}"/>
+                    <Button Content="Рассчитать точку компрессии 1 dB" 
+                            Command="{Binding Calculate1dBCompressionPointCommand}"
+                            IsEnabled="{Binding CanCalculate1dBCompressionPoint}"
+                            Style="{StaticResource CalculateButtonStyle}"/>
+                    <TextBlock Text="{Binding CompressionPointResult}" 
+                               Style="{StaticResource ResultTextBlockStyle}"/>
+                </StackPanel>
+            </GroupBox>
 
-                <!-- Расчет точки пересечения третьего порядка (IP3) -->
-                <GroupBox Header="Расчет точки пересечения третьего порядка (IP3)" BorderBrush="{StaticResource DividerBrush}" BorderThickness="1">
-                    <StackPanel Margin="10">
-                        <Label Content="Мощность основного сигнала" Style="{StaticResource ModernLabel}"/>
-                        <TextBox x:Name="txtFundamentalPower" Style="{StaticResource ModernTextBox}" TextChanged="OnParameterChanged">
-                            <TextBox.ToolTip>
-                                <ToolTip Content="{x:Static infos:Tooltips.AmplifierTab_FundamentalPowerTooltip}"/>
-                            </TextBox.ToolTip>
-                        </TextBox>
-                        <Label Content="Мощность третьего порядка" Style="{StaticResource ModernLabel}"/>
-                        <TextBox x:Name="txtThirdOrderPower" Style="{StaticResource ModernTextBox}" TextChanged="OnParameterChanged">
-                            <TextBox.ToolTip>
-                                <ToolTip Content="{x:Static infos:Tooltips.AmplifierTab_ThirdOrderPowerTooltip}"/>
-                            </TextBox.ToolTip>
-                        </TextBox>
-                        <Button Content="Рассчитать IP3" Command="{Binding CalculateIP3Command}" Style="{StaticResource ModernButton}" Margin="0,10,0,0"/>
-                        <TextBlock Text="{Binding IP3Result}" Margin="0,10,0,0" FontWeight="Bold"/>
-                    </StackPanel>
-                </GroupBox>
-            </StackPanel>
-        </Grid>
+            <!-- Расчет точки пересечения третьего порядка (IP3) -->
+            <GroupBox Header="Расчет точки пересечения третьего порядка (IP3)" Style="{StaticResource ModernGroupBox}" Margin="0,20,0,0">
+                <StackPanel Margin="10">
+                    <Label Content="Мощность основного сигнала" Style="{StaticResource ModernLabel}"/>
+                    <TextBox Text="{Binding FundamentalPower, UpdateSourceTrigger=PropertyChanged}" 
+                             Style="{StaticResource ModernTextBox}"
+                             ToolTip="{x:Static infos:Tooltips.AmplifierTab_FundamentalPowerTooltip}"/>
+                    <Label Content="Мощность третьего порядка" Style="{StaticResource ModernLabel}"/>
+                    <TextBox Text="{Binding ThirdOrderPower, UpdateSourceTrigger=PropertyChanged}" 
+                             Style="{StaticResource ModernTextBox}"
+                             ToolTip="{x:Static infos:Tooltips.AmplifierTab_ThirdOrderPowerTooltip}"/>
+                    <Button Content="Рассчитать IP3" 
+                            Command="{Binding CalculateIP3Command}"
+                            IsEnabled="{Binding CanCalculateIP3}"
+                            Style="{StaticResource CalculateButtonStyle}"/>
+                    <TextBlock Text="{Binding IP3Result}" 
+                               Style="{StaticResource ResultTextBlockStyle}"/>
+                </StackPanel>
+            </GroupBox>
+        </StackPanel>
     </ScrollViewer>
 </UserControl>

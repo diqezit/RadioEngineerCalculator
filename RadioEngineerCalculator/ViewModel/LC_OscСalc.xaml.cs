@@ -6,6 +6,7 @@ using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
 using System.Numerics;
+using static RadioEngineerCalculator.Services.UnitC;
 
 namespace RadioEngineerCalculator.ViewModel
 {
@@ -146,8 +147,8 @@ namespace RadioEngineerCalculator.ViewModel
 
             try
             {
-                inductance = UnitC.Conv.Inductance(inductance, inductanceUnit, "H");
-                capacitance = UnitC.Conv.Capacitance(capacitance, capacitanceUnit, "F");
+                inductance = Convert(inductance, inductanceUnit, "H", PhysicalQuantity.Inductance);
+                capacitance = Convert(capacitance, capacitanceUnit, "F", PhysicalQuantity.Capacitance);
 
                 double result = _calculationService.CalculateResonanceFrequency(inductance, capacitance);
                 ResonanceFrequencyResult = $"Резонансная частота: {FormatFrequency(result)}";
@@ -171,10 +172,10 @@ namespace RadioEngineerCalculator.ViewModel
 
             try
             {
-                resistance = UnitC.Conv.Resistance(resistance, ResistanceUnit, "Ω");
-                inductance = UnitC.Conv.Inductance(inductance, InductanceUnit, "H");
-                capacitance = UnitC.Conv.Capacitance(capacitance, CapacitanceUnit, "F");
-                frequency = UnitC.Conv.Frequency(frequency, FrequencyUnit, "Hz");
+                resistance = Convert(resistance, ResistanceUnit, "Ω", PhysicalQuantity.Resistance);
+                inductance = Convert(inductance, InductanceUnit, "H", PhysicalQuantity.Inductance);
+                capacitance = Convert(capacitance, CapacitanceUnit, "F", PhysicalQuantity.Capacitance);
+                frequency = Convert(frequency, FrequencyUnit, "Hz", PhysicalQuantity.Frequency);
 
                 Complex seriesImpedance = _calculationService.CalculateSeriesImpedance(resistance, inductance, capacitance, frequency);
                 Complex parallelImpedance = _calculationService.CalculateParallelImpedance(resistance, inductance, capacitance, frequency);
@@ -200,9 +201,9 @@ namespace RadioEngineerCalculator.ViewModel
 
             try
             {
-                inductance = UnitC.Conv.Inductance(inductance, InductanceUnit, "H");
-                resistance = UnitC.Conv.Resistance(resistance, ResistanceUnit, "Ohm");
-                frequency = UnitC.Conv.Frequency(frequency, FrequencyUnit, "Hz");
+                inductance = Convert(inductance, InductanceUnit, "H", PhysicalQuantity.Inductance);
+                resistance = Convert(resistance, ResistanceUnit, "Ω", PhysicalQuantity.Resistance);
+                frequency = Convert(frequency, FrequencyUnit, "Hz", PhysicalQuantity.Frequency);
 
                 double seriesQFactor = _calculationService.CalculateSeriesQFactor(inductance, resistance, frequency);
                 double parallelQFactor = _calculationService.CalculateParallelQFactor(inductance, resistance, frequency);
@@ -221,7 +222,10 @@ namespace RadioEngineerCalculator.ViewModel
             return double.TryParse(input, out result) && result > 0;
         }
 
-        private string FormatFrequency(double frequency) => UnitC.Form.Frequency(frequency);
+        private string FormatFrequency(double frequency)
+        {
+            return AutoFormat(frequency, PhysicalQuantity.Frequency);
+        }
 
         private string FormatComplex(Complex complex) => $"{complex.Real:F2} + {complex.Imaginary:F2}j";
 

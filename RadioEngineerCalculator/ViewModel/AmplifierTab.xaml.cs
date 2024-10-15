@@ -5,38 +5,228 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
-using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using static RadioEngineerCalculator.Services.UnitC;
+using static RadioEngineerCalculator.Services.Validate;
 
 namespace RadioEngineerCalculator.ViewModel
 {
     public partial class AmplifierTab : UserControl, INotifyPropertyChanged
     {
-        #region Properties
+        #region Fields
         private readonly CalculationService _calculationService;
+        private readonly Dictionary<string, ObservableCollection<string>> _unitCollections;
+
+        private double _powerIn;
+        private double _powerOut;
+        private double _noiseFactor;
+        private double _outputPower;
+        private double _inputDCPower;
+        private double _inputPower;
+        private double _outputPowerDBm;
+        private double _smallSignalGain;
+        private double _fundamentalPower;
+        private double _thirdOrderPower;
+
+        private string _selectedPowerInUnit;
+        private string _selectedPowerOutUnit;
+
         private string _gainResult;
         private string _noiseFigureResult;
         private string _efficiencyResult;
         private string _compressionPointResult;
         private string _ip3Result;
-        private bool _canCalculate = false;
+        #endregion
 
+        #region Constructor and Initialization
+        public AmplifierTab()
+        {
+            InitializeComponent();
+            DataContext = this;
+            _calculationService = new CalculationService();
+            _unitCollections = InitializeUnitCollections();
+            InitializeCommands();
+            InitializeDefaultUnits();
+        }
+
+        private Dictionary<string, ObservableCollection<string>> InitializeUnitCollections()
+        {
+            return new Dictionary<string, ObservableCollection<string>>
+            {
+                ["Power"] = new ObservableCollection<string>(ComboBoxService.GetUnits("Power"))
+            };
+        }
+
+        private void InitializeCommands()
+        {
+            CalculateGainCommand = new RelayCommand(CalculateGain, () => CanCalculateGain);
+            CalculateNoiseFigureCommand = new RelayCommand(CalculateNoiseFigure, () => CanCalculateNoiseFigure);
+            CalculateEfficiencyCommand = new RelayCommand(CalculateEfficiency, () => CanCalculateEfficiency);
+            Calculate1dBCompressionPointCommand = new RelayCommand(Calculate1dBCompressionPoint, () => CanCalculate1dBCompressionPoint);
+            CalculateIP3Command = new RelayCommand(CalculateIP3, () => CanCalculateIP3);
+        }
+
+        private void InitializeDefaultUnits()
+        {
+            SelectedPowerInUnit = PowerUnits[0];
+            SelectedPowerOutUnit = PowerUnits[0];
+        }
+        #endregion
+
+        #region Properties
         public ICommand CalculateGainCommand { get; private set; }
         public ICommand CalculateNoiseFigureCommand { get; private set; }
         public ICommand CalculateEfficiencyCommand { get; private set; }
         public ICommand Calculate1dBCompressionPointCommand { get; private set; }
         public ICommand CalculateIP3Command { get; private set; }
 
-        public ObservableCollection<string> PowerInUnits { get; set; }
-        public ObservableCollection<string> PowerOutUnits { get; set; }
-        #endregion
+        public ObservableCollection<string> PowerUnits => _unitCollections["Power"];
 
-        #region Public Properties
-        public bool CanCalculate
+        public double PowerIn
         {
-            get => _canCalculate;
-            set => SetProperty(ref _canCalculate, value);
+            get => _powerIn;
+            set
+            {
+                if (SetProperty(ref _powerIn, value))
+                {
+                    OnPropertyChanged(nameof(CanCalculateGain));
+                }
+            }
+        }
+
+        public double PowerOut
+        {
+            get => _powerOut;
+            set
+            {
+                if (SetProperty(ref _powerOut, value))
+                {
+                    OnPropertyChanged(nameof(CanCalculateGain));
+                }
+            }
+        }
+
+        public string SelectedPowerInUnit
+        {
+            get => _selectedPowerInUnit;
+            set
+            {
+                if (SetProperty(ref _selectedPowerInUnit, value))
+                {
+                    OnPropertyChanged(nameof(CanCalculateGain));
+                    ConvertPowerIn();
+                }
+            }
+        }
+
+        public string SelectedPowerOutUnit
+        {
+            get => _selectedPowerOutUnit;
+            set
+            {
+                if (SetProperty(ref _selectedPowerOutUnit, value))
+                {
+                    OnPropertyChanged(nameof(CanCalculateGain));
+                    ConvertPowerOut();
+                }
+            }
+        }
+
+        public double NoiseFactor
+        {
+            get => _noiseFactor;
+            set
+            {
+                if (SetProperty(ref _noiseFactor, value))
+                {
+                    OnPropertyChanged(nameof(CanCalculateNoiseFigure));
+                }
+            }
+        }
+
+        public double OutputPower
+        {
+            get => _outputPower;
+            set
+            {
+                if (SetProperty(ref _outputPower, value))
+                {
+                    OnPropertyChanged(nameof(CanCalculateEfficiency));
+                }
+            }
+        }
+
+        public double InputDCPower
+        {
+            get => _inputDCPower;
+            set
+            {
+                if (SetProperty(ref _inputDCPower, value))
+                {
+                    OnPropertyChanged(nameof(CanCalculateEfficiency));
+                }
+            }
+        }
+
+        public double InputPower
+        {
+            get => _inputPower;
+            set
+            {
+                if (SetProperty(ref _inputPower, value))
+                {
+                    OnPropertyChanged(nameof(CanCalculate1dBCompressionPoint));
+                }
+            }
+        }
+
+        public double OutputPowerDBm
+        {
+            get => _outputPowerDBm;
+            set
+            {
+                if (SetProperty(ref _outputPowerDBm, value))
+                {
+                    OnPropertyChanged(nameof(CanCalculate1dBCompressionPoint));
+                }
+            }
+        }
+
+        public double SmallSignalGain
+        {
+            get => _smallSignalGain;
+            set
+            {
+                if (SetProperty(ref _smallSignalGain, value))
+                {
+                    OnPropertyChanged(nameof(CanCalculate1dBCompressionPoint));
+                }
+            }
+        }
+
+        public double FundamentalPower
+        {
+            get => _fundamentalPower;
+            set
+            {
+                if (SetProperty(ref _fundamentalPower, value))
+                {
+                    OnPropertyChanged(nameof(CanCalculateIP3));
+                }
+            }
+        }
+
+        public double ThirdOrderPower
+        {
+            get => _thirdOrderPower;
+            set
+            {
+                if (SetProperty(ref _thirdOrderPower, value))
+                {
+                    OnPropertyChanged(nameof(CanCalculateIP3));
+                }
+            }
         }
 
         public string GainResult
@@ -70,87 +260,19 @@ namespace RadioEngineerCalculator.ViewModel
         }
         #endregion
 
-        #region Constructor
-        public AmplifierTab()
-        {
-            InitializeComponent();
-            _calculationService = new CalculationService();
-            InitializeCollections();
-            InitializeCommands();
-            DataContext = this;
-        }
-        #endregion
-
-        #region Initialization Methods
-        private void InitializeCollections()
-        {
-            PowerInUnits = new ObservableCollection<string>(ComboBoxService.GetUnits("Power"));
-            PowerOutUnits = new ObservableCollection<string>(ComboBoxService.GetUnits("Power"));
-        }
-
-        private void InitializeCommands()
-        {
-            CalculateGainCommand = new RelayCommand(CalculateGain, () => CanCalculate);
-            CalculateNoiseFigureCommand = new RelayCommand(CalculateNoiseFigure, () => CanCalculate);
-            CalculateEfficiencyCommand = new RelayCommand(CalculateEfficiency, () => CanCalculate);
-            Calculate1dBCompressionPointCommand = new RelayCommand(Calculate1dBCompressionPoint, () => CanCalculate);
-            CalculateIP3Command = new RelayCommand(CalculateIP3, () => CanCalculate);
-        }
-
-        #endregion
-
-        #region Event Handlers
-        private void OnParameterChanged(object sender, TextChangedEventArgs e)
-        {
-            if (sender is TextBox textBox)
-            {
-                if (!double.TryParse(textBox.Text, out _))
-                {
-                    MessageBox.Show(ErrorMessages.InvalidInputFormat, "Ошибка ввода", MessageBoxButton.OK, MessageBoxImage.Warning);
-                    return;
-                }
-            }
-            UpdateCanCalculate();
-        }
-
-        private void OnSelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            if (sender is ComboBox comboBox && comboBox.SelectedItem == null)
-            {
-                MessageBox.Show(ErrorMessages.CheckComboBox, "Ошибка ввода", MessageBoxButton.OK, MessageBoxImage.Warning);
-                return;
-            }
-            UpdateCanCalculate();
-        }
-
-        private void UpdateCanCalculate()
-        {
-            CanCalculate = Validate.ValidateInputs(
-                txtPowerIn.Text, txtPowerOut.Text, txtNoiseFactor.Text,
-                txtOutputPower.Text, txtInputDCPower.Text, txtInputPower.Text, txtOutputPowerDBm.Text, txtSmallSignalGain.Text,
-                txtFundamentalPower.Text, txtThirdOrderPower.Text,
-                cmbPowerInUnit.SelectedItem?.ToString(), cmbPowerOutUnit.SelectedItem?.ToString()
-            );
-        }
-        #endregion
-
         #region Calculation Methods
         private void CalculateGain()
         {
             try
             {
-                var powerInValue = double.Parse(txtPowerIn.Text);
-                var powerOutValue = double.Parse(txtPowerOut.Text);
-
-                var powerIn = UnitC.Convert(powerInValue, cmbPowerInUnit.SelectedItem.ToString(), "W", UnitC.PhysicalQuantity.Power);
-                var powerOut = UnitC.Convert(powerOutValue, cmbPowerOutUnit.SelectedItem.ToString(), "W", UnitC.PhysicalQuantity.Power);
-
-                var gain = _calculationService.CalculateGain(powerIn, powerOut);
+                double powerInW = Convert(PowerIn, SelectedPowerInUnit, "W", PhysicalQuantity.Power);
+                double powerOutW = Convert(PowerOut, SelectedPowerOutUnit, "W", PhysicalQuantity.Power);
+                double gain = _calculationService.CalculateGain(powerInW, powerOutW);
                 GainResult = $"Усиление: {gain:F2} dB";
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"{ErrorMessages.CalculationError}\n{ex.Message}", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+                GainResult = $"Ошибка: {ex.Message}";
             }
         }
 
@@ -158,14 +280,12 @@ namespace RadioEngineerCalculator.ViewModel
         {
             try
             {
-                var noiseFactor = double.Parse(txtNoiseFactor.Text);
-
-                var noiseFigure = _calculationService.CalculateNoiseFigure(noiseFactor);
+                double noiseFigure = _calculationService.CalculateNoiseFigure(NoiseFactor);
                 NoiseFigureResult = $"Коэффициент шума: {noiseFigure:F2} dB";
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"{ErrorMessages.CalculationError}\n{ex.Message}", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+                NoiseFigureResult = $"Ошибка: {ex.Message}";
             }
         }
 
@@ -173,15 +293,12 @@ namespace RadioEngineerCalculator.ViewModel
         {
             try
             {
-                var outputPower = double.Parse(txtOutputPower.Text);
-                var inputDCPower = double.Parse(txtInputDCPower.Text);
-
-                var efficiency = _calculationService.CalculateAmplifierEfficiency(outputPower, inputDCPower);
+                double efficiency = _calculationService.CalculateAmplifierEfficiency(OutputPower, InputDCPower);
                 EfficiencyResult = $"КПД: {efficiency:F2}%";
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"{ErrorMessages.CalculationError}\n{ex.Message}", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+                EfficiencyResult = $"Ошибка: {ex.Message}";
             }
         }
 
@@ -189,16 +306,12 @@ namespace RadioEngineerCalculator.ViewModel
         {
             try
             {
-                var inputPower = double.Parse(txtInputPower.Text);
-                var outputPower = double.Parse(txtOutputPowerDBm.Text);
-                var smallSignalGain = double.Parse(txtSmallSignalGain.Text);
-
-                var compressionPoint = _calculationService.Calculate1dBCompressionPoint(inputPower, outputPower, smallSignalGain);
+                double compressionPoint = _calculationService.Calculate1dBCompressionPoint(InputPower, OutputPowerDBm, SmallSignalGain);
                 CompressionPointResult = $"Точка компрессии 1 dB: {compressionPoint:F2} dBm";
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"{ErrorMessages.CalculationError}\n{ex.Message}", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+                CompressionPointResult = $"Ошибка: {ex.Message}";
             }
         }
 
@@ -206,15 +319,39 @@ namespace RadioEngineerCalculator.ViewModel
         {
             try
             {
-                var fundamentalPower = double.Parse(txtFundamentalPower.Text);
-                var thirdOrderPower = double.Parse(txtThirdOrderPower.Text);
-
-                var ip3 = _calculationService.CalculateIP3(fundamentalPower, thirdOrderPower);
+                double ip3 = _calculationService.CalculateIP3(FundamentalPower, ThirdOrderPower);
                 IP3Result = $"Точка пересечения третьего порядка (IP3): {ip3:F2} dBm";
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"{ErrorMessages.CalculationError}\n{ex.Message}", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+                IP3Result = $"Ошибка: {ex.Message}";
+            }
+        }
+        #endregion
+
+        #region Can Calculate Properties
+        public bool CanCalculateGain => InputsAreValid(PowerIn, PowerOut) &&
+                                        !string.IsNullOrWhiteSpace(SelectedPowerInUnit) &&
+                                        !string.IsNullOrWhiteSpace(SelectedPowerOutUnit);
+
+        public bool CanCalculateNoiseFigure => InputsAreValid(NoiseFactor);
+
+        public bool CanCalculateEfficiency => InputsAreValid(OutputPower, InputDCPower);
+
+        public bool CanCalculate1dBCompressionPoint => InputsAreValid(InputPower, OutputPowerDBm, SmallSignalGain);
+
+        public bool CanCalculateIP3 => InputsAreValid(FundamentalPower, ThirdOrderPower);
+        #endregion
+
+        #region Unit Conversion Methods
+        private void ConvertPowerIn() => ConvertUnit(ref _powerIn, "W", SelectedPowerInUnit, PhysicalQuantity.Power);
+        private void ConvertPowerOut() => ConvertUnit(ref _powerOut, "W", SelectedPowerOutUnit, PhysicalQuantity.Power);
+
+        private void ConvertUnit(ref double value, string fromUnit, string toUnit, PhysicalQuantity quantity)
+        {
+            if (InputsAreValid(value) && !string.IsNullOrWhiteSpace(toUnit))
+            {
+                value = Convert(value, fromUnit, toUnit, quantity);
             }
         }
         #endregion
@@ -222,7 +359,7 @@ namespace RadioEngineerCalculator.ViewModel
         #region INotifyPropertyChanged Implementation
         public event PropertyChangedEventHandler PropertyChanged;
 
-        protected void OnPropertyChanged([CallerMemberName] string propertyName = null)
+        protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
