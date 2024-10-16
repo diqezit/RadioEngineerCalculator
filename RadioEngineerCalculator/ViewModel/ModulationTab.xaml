@@ -5,145 +5,154 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:infos="clr-namespace:RadioEngineerCalculator.Infos"
              mc:Ignorable="d" 
-             d:DesignHeight="300" d:DesignWidth="400">
+             d:DesignHeight="450" d:DesignWidth="800">
+    <UserControl.Resources>
+        <Style x:Key="HeaderTextBlockStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="18"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="HorizontalAlignment" Value="Center"/>
+            <Setter Property="Margin" Value="0,10,0,20"/>
+        </Style>
+
+        <Style x:Key="ResultTextBlockStyle" TargetType="TextBlock">
+            <Setter Property="Margin" Value="0,10,0,0"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+        </Style>
+
+        <Style x:Key="CalculateButtonStyle" TargetType="Button" BasedOn="{StaticResource ModernButton}">
+            <Setter Property="Margin" Value="0,10,0,0"/>
+        </Style>
+    </UserControl.Resources>
+
     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-        <Grid Margin="10">
-            <StackPanel>
-                <TextBlock Text="Анализ модуляции" HorizontalAlignment="Center" VerticalAlignment="Center" 
-                           FontSize="18" FontWeight="Bold" Margin="0,10,0,20"/>
+        <StackPanel Margin="20">
+            <TextBlock Text="Анализ модуляции" Style="{StaticResource HeaderTextBlockStyle}"/>
 
-                <!-- AM Модуляция -->
-                <GroupBox Header="AM Модуляция" BorderBrush="{StaticResource DividerBrush}" BorderThickness="1" Margin="0,0,0,10">
-                    <StackPanel Margin="10">
-                        <Label Content="Амплитуда несущей" Style="{StaticResource ModernLabel}"/>
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
-                            <TextBox x:Name="txtCarrierAmplitude" Style="{StaticResource ModernTextBox}">
-                                <TextBox.ToolTip>
-                                    <ToolTip Content="{x:Static infos:Tooltips.ModulationTab_CarrierAmplitudeTooltip}"/>
-                                </TextBox.ToolTip>
-                            </TextBox>
-                            <ComboBox x:Name="cmbCarrierAmplitudeUnit" Grid.Column="1" Width="60" SelectedIndex="0" Style="{StaticResource ModernComboBox}"
-                                      ItemsSource="{Binding AmplitudeUnits}">
-                                <ComboBox.ToolTip>
-                                    <ToolTip Content="{x:Static infos:Tooltips.ModulationTab_CarrierAmplitudeUnitTooltip}"/>
-                                </ComboBox.ToolTip>
-                            </ComboBox>
-                        </Grid>
-                        <Label Content="Амплитуда модулирующего сигнала" Style="{StaticResource ModernLabel}"/>
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
-                            <TextBox x:Name="txtModulatingAmplitude" Style="{StaticResource ModernTextBox}">
-                                <TextBox.ToolTip>
-                                    <ToolTip Content="{x:Static infos:Tooltips.ModulationTab_ModulatingAmplitudeTooltip}"/>
-                                </TextBox.ToolTip>
-                            </TextBox>
-                            <ComboBox x:Name="cmbModulatingAmplitudeUnit" Grid.Column="1" Width="60" SelectedIndex="0" Style="{StaticResource ModernComboBox}"
-                                      ItemsSource="{Binding AmplitudeUnits}">
-                                <ComboBox.ToolTip>
-                                    <ToolTip Content="{x:Static infos:Tooltips.ModulationTab_ModulatingAmplitudeUnitTooltip}"/>
-                                </ComboBox.ToolTip>
-                            </ComboBox>
-                        </Grid>
-                        <Button Content="Рассчитать индекс модуляции" Click="CalculateAMIndex" Style="{StaticResource ModernButton}" Margin="0,10,0,0"/>
-                        <TextBlock x:Name="txtAMIndexResult" Margin="0,10,0,0" FontWeight="Bold"/>
-                    </StackPanel>
-                </GroupBox>
+            <!-- AM Модуляция -->
+            <GroupBox Header="AM Модуляция" Style="{StaticResource ModernGroupBox}">
+                <StackPanel Margin="10">
+                    <Label Content="Амплитуда несущей" Style="{StaticResource ModernLabel}"/>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBox Text="{Binding CarrierAmplitude, UpdateSourceTrigger=PropertyChanged}" 
+                                 Style="{StaticResource ModernTextBox}"
+                                 ToolTip="{x:Static infos:Tooltips.ModulationTab_CarrierAmplitudeTooltip}"/>
+                        <ComboBox Grid.Column="1" Width="60" 
+                                  ItemsSource="{Binding AmplitudeUnits}"
+                                  SelectedItem="{Binding SelectedCarrierAmplitudeUnit}"
+                                  Style="{StaticResource ModernComboBox}"
+                                  ToolTip="{x:Static infos:Tooltips.ModulationTab_CarrierAmplitudeUnitTooltip}"/>
+                    </Grid>
+                    <Label Content="Амплитуда модулирующего сигнала" Style="{StaticResource ModernLabel}"/>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBox Text="{Binding ModulatingAmplitude, UpdateSourceTrigger=PropertyChanged}" 
+                                 Style="{StaticResource ModernTextBox}"
+                                 ToolTip="{x:Static infos:Tooltips.ModulationTab_ModulatingAmplitudeTooltip}"/>
+                        <ComboBox Grid.Column="1" Width="60" 
+                                  ItemsSource="{Binding AmplitudeUnits}"
+                                  SelectedItem="{Binding SelectedModulatingAmplitudeUnit}"
+                                  Style="{StaticResource ModernComboBox}"
+                                  ToolTip="{x:Static infos:Tooltips.ModulationTab_ModulatingAmplitudeUnitTooltip}"/>
+                    </Grid>
+                    <Button Content="Рассчитать индекс модуляции AM" 
+                            Command="{Binding CalculateAMIndexCommand}"
+                            IsEnabled="{Binding CanCalculateAMIndex}"
+                            Style="{StaticResource CalculateButtonStyle}"/>
+                    <TextBlock Text="{Binding AMIndexResult}" 
+                               Style="{StaticResource ResultTextBlockStyle}"/>
+                </StackPanel>
+            </GroupBox>
 
-                <!-- FM Модуляция -->
-                <GroupBox Header="FM Модуляция" BorderBrush="{StaticResource DividerBrush}" BorderThickness="1" Margin="0,0,0,10">
-                    <StackPanel Margin="10">
-                        <Label Content="Частота несущей" Style="{StaticResource ModernLabel}"/>
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
-                            <TextBox x:Name="txtCarrierFrequency" Style="{StaticResource ModernTextBox}">
-                                <TextBox.ToolTip>
-                                    <ToolTip Content="{x:Static infos:Tooltips.ModulationTab_CarrierFrequencyTooltip}"/>
-                                </TextBox.ToolTip>
-                            </TextBox>
-                            <ComboBox x:Name="cmbCarrierFrequencyUnit" Grid.Column="1" Width="60" SelectedIndex="0" Style="{StaticResource ModernComboBox}"
-                                      ItemsSource="{Binding FrequencyUnits}">
-                                <ComboBox.ToolTip>
-                                    <ToolTip Content="{x:Static infos:Tooltips.ModulationTab_CarrierFrequencyUnitTooltip}"/>
-                                </ComboBox.ToolTip>
-                            </ComboBox>
-                        </Grid>
-                        <Label Content="Девиация частоты" Style="{StaticResource ModernLabel}"/>
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
-                            <TextBox x:Name="txtFrequencyDeviation" Style="{StaticResource ModernTextBox}">
-                                <TextBox.ToolTip>
-                                    <ToolTip Content="{x:Static infos:Tooltips.ModulationTab_FrequencyDeviationTooltip}"/>
-                                </TextBox.ToolTip>
-                            </TextBox>
-                            <ComboBox x:Name="cmbFrequencyDeviationUnit" Grid.Column="1" Width="60" SelectedIndex="0" Style="{StaticResource ModernComboBox}"
-                                      ItemsSource="{Binding FrequencyUnits}">
-                                <ComboBox.ToolTip>
-                                    <ToolTip Content="{x:Static infos:Tooltips.ModulationTab_FrequencyDeviationUnitTooltip}"/>
-                                </ComboBox.ToolTip>
-                            </ComboBox>
-                        </Grid>
-                        <Button Content="Рассчитать индекс модуляции" Click="CalculateFMIndex" Style="{StaticResource ModernButton}" Margin="0,10,0,0"/>
-                        <TextBlock x:Name="txtFMIndexResult" Margin="0,10,0,0" FontWeight="Bold"/>
-                    </StackPanel>
-                </GroupBox>
+            <!-- FM Модуляция -->
+            <GroupBox Header="FM Модуляция" Style="{StaticResource ModernGroupBox}" Margin="0,20,0,0">
+                <StackPanel Margin="10">
+                    <Label Content="Частота несущей" Style="{StaticResource ModernLabel}"/>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBox Text="{Binding CarrierFrequency, UpdateSourceTrigger=PropertyChanged}" 
+                                 Style="{StaticResource ModernTextBox}"
+                                 ToolTip="{x:Static infos:Tooltips.ModulationTab_CarrierFrequencyTooltip}"/>
+                        <ComboBox Grid.Column="1" Width="60" 
+                                  ItemsSource="{Binding FrequencyUnits}"
+                                  SelectedItem="{Binding SelectedCarrierFrequencyUnit}"
+                                  Style="{StaticResource ModernComboBox}"
+                                  ToolTip="{x:Static infos:Tooltips.ModulationTab_CarrierFrequencyUnitTooltip}"/>
+                    </Grid>
+                    <Label Content="Девиация частоты" Style="{StaticResource ModernLabel}"/>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBox Text="{Binding FrequencyDeviation, UpdateSourceTrigger=PropertyChanged}" 
+                                 Style="{StaticResource ModernTextBox}"
+                                 ToolTip="{x:Static infos:Tooltips.ModulationTab_FrequencyDeviationTooltip}"/>
+                        <ComboBox Grid.Column="1" Width="60" 
+                                  ItemsSource="{Binding FrequencyUnits}"
+                                  SelectedItem="{Binding SelectedFrequencyDeviationUnit}"
+                                  Style="{StaticResource ModernComboBox}"
+                                  ToolTip="{x:Static infos:Tooltips.ModulationTab_FrequencyDeviationUnitTooltip}"/>
+                    </Grid>
+                    <Button Content="Рассчитать индекс модуляции FM" 
+                            Command="{Binding CalculateFMIndexCommand}"
+                            IsEnabled="{Binding CanCalculateFMIndex}"
+                            Style="{StaticResource CalculateButtonStyle}"/>
+                    <TextBlock Text="{Binding FMIndexResult}" 
+                               Style="{StaticResource ResultTextBlockStyle}"/>
+                </StackPanel>
+            </GroupBox>
 
-                <!-- PM Модуляция -->
-                <GroupBox Header="PM Модуляция" BorderBrush="{StaticResource DividerBrush}" BorderThickness="1" Margin="0,0,0,10">
-                    <StackPanel Margin="10">
-                        <Label Content="Фаза несущей" Style="{StaticResource ModernLabel}"/>
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
-                            <TextBox x:Name="txtCarrierPhase" Style="{StaticResource ModernTextBox}">
-                                <TextBox.ToolTip>
-                                    <ToolTip Content="{x:Static infos:Tooltips.ModulationTab_CarrierPhaseTooltip}"/>
-                                </TextBox.ToolTip>
-                            </TextBox>
-                            <ComboBox x:Name="cmbCarrierPhaseUnit" Grid.Column="1" Width="60" SelectedIndex="0" Style="{StaticResource ModernComboBox}"
-                                      ItemsSource="{Binding AngleUnits}">
-                                <ComboBox.ToolTip>
-                                    <ToolTip Content="{x:Static infos:Tooltips.ModulationTab_CarrierPhaseUnitTooltip}"/>
-                                </ComboBox.ToolTip>
-                            </ComboBox>
-                        </Grid>
-                        <Label Content="Девиация фазы" Style="{StaticResource ModernLabel}"/>
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
-                            <TextBox x:Name="txtPhaseDeviation" Style="{StaticResource ModernTextBox}">
-                                <TextBox.ToolTip>
-                                    <ToolTip Content="{x:Static infos:Tooltips.ModulationTab_PhaseDeviationTooltip}"/>
-                                </TextBox.ToolTip>
-                            </TextBox>
-                            <ComboBox x:Name="cmbPhaseDeviationUnit" Grid.Column="1" Width="60" SelectedIndex="0" Style="{StaticResource ModernComboBox}"
-                                      ItemsSource="{Binding AngleUnits}">
-                                <ComboBox.ToolTip>
-                                    <ToolTip Content="{x:Static infos:Tooltips.ModulationTab_PhaseDeviationUnitTooltip}"/>
-                                </ComboBox.ToolTip>
-                            </ComboBox>
-                        </Grid>
-                        <Button Content="Рассчитать индекс модуляции" Click="CalculatePMIndex" Style="{StaticResource ModernButton}" Margin="0,10,0,0"/>
-                        <TextBlock x:Name="txtPMIndexResult" Margin="0,10,0,0" FontWeight="Bold"/>
-                    </StackPanel>
-                </GroupBox>
-            </StackPanel>
-        </Grid>
+            <!-- PM Модуляция -->
+            <GroupBox Header="PM Модуляция" Style="{StaticResource ModernGroupBox}" Margin="0,20,0,0">
+                <StackPanel Margin="10">
+                    <Label Content="Фаза несущей" Style="{StaticResource ModernLabel}"/>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBox Text="{Binding CarrierPhase, UpdateSourceTrigger=PropertyChanged}" 
+                                 Style="{StaticResource ModernTextBox}"
+                                 ToolTip="{x:Static infos:Tooltips.ModulationTab_CarrierPhaseTooltip}"/>
+                        <ComboBox Grid.Column="1" Width="60" 
+                                  ItemsSource="{Binding AngleUnits}"
+                                  SelectedItem="{Binding SelectedCarrierPhaseUnit}"
+                                  Style="{StaticResource ModernComboBox}"
+                                  ToolTip="{x:Static infos:Tooltips.ModulationTab_CarrierPhaseUnitTooltip}"/>
+                    </Grid>
+                    <Label Content="Девиация фазы" Style="{StaticResource ModernLabel}"/>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBox Text="{Binding PhaseDeviation, UpdateSourceTrigger=PropertyChanged}" 
+                                 Style="{StaticResource ModernTextBox}"
+                                 ToolTip="{x:Static infos:Tooltips.ModulationTab_PhaseDeviationTooltip}"/>
+                        <ComboBox Grid.Column="1" Width="60" 
+                                  ItemsSource="{Binding AngleUnits}"
+                                  SelectedItem="{Binding SelectedPhaseDeviationUnit}"
+                                  Style="{StaticResource ModernComboBox}"
+                                  ToolTip="{x:Static infos:Tooltips.ModulationTab_PhaseDeviationUnitTooltip}"/>
+                    </Grid>
+                    <Button Content="Рассчитать индекс модуляции PM" 
+                            Command="{Binding CalculatePMIndexCommand}"
+                            IsEnabled="{Binding CanCalculatePMIndex}"
+                            Style="{StaticResource CalculateButtonStyle}"/>
+                    <TextBlock Text="{Binding PMIndexResult}" 
+                               Style="{StaticResource ResultTextBlockStyle}"/>
+                </StackPanel>
+            </GroupBox>
+        </StackPanel>
     </ScrollViewer>
 </UserControl>

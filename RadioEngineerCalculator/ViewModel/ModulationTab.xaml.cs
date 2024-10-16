@@ -1,138 +1,395 @@
-﻿using RadioEngineerCalculator.Services;
+﻿using RadioEngineerCalculator.Infos;
+using RadioEngineerCalculator.Services;
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Windows;
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
 using System.Windows.Controls;
+using System.Windows.Input;
+using static RadioEngineerCalculator.Services.UnitC;
+using static RadioEngineerCalculator.Services.Validate;
 
 namespace RadioEngineerCalculator.ViewModel
 {
-    public partial class ModulationTab : UserControl
+    public partial class ModulationTab : UserControl, INotifyPropertyChanged
     {
-        public ObservableCollection<string> AmplitudeUnits { get; set; }
-        public ObservableCollection<string> FrequencyUnits { get; set; }
-        public ObservableCollection<string> AngleUnits { get; set; }
+        #region Приватные поля
 
         private readonly CalculationService _calculationService;
+        private readonly Dictionary<string, ObservableCollection<string>> _unitCollections;
+
+        private double _carrierAmplitude;
+        private double _modulatingAmplitude;
+        private double _carrierFrequency;
+        private double _frequencyDeviation;
+        private double _carrierPhase;
+        private double _phaseDeviation;
+
+        private string _selectedCarrierAmplitudeUnit;
+        private string _selectedModulatingAmplitudeUnit;
+        private string _selectedCarrierFrequencyUnit;
+        private string _selectedFrequencyDeviationUnit;
+        private string _selectedCarrierPhaseUnit;
+        private string _selectedPhaseDeviationUnit;
+
+        private string _amIndexResult;
+        private string _fmIndexResult;
+        private string _pmIndexResult;
+
+        #endregion
+
+        #region Публичные свойства
+
+        public double CarrierAmplitude
+        {
+            get => _carrierAmplitude;
+            set
+            {
+                if (SetProperty(ref _carrierAmplitude, value))
+                {
+                    OnPropertyChanged(nameof(CanCalculateAMIndex));
+                }
+            }
+        }
+
+        public double ModulatingAmplitude
+        {
+            get => _modulatingAmplitude;
+            set
+            {
+                if (SetProperty(ref _modulatingAmplitude, value))
+                {
+                    OnPropertyChanged(nameof(CanCalculateAMIndex));
+                }
+            }
+        }
+
+        public double CarrierFrequency
+        {
+            get => _carrierFrequency;
+            set
+            {
+                if (SetProperty(ref _carrierFrequency, value))
+                {
+                    OnPropertyChanged(nameof(CanCalculateFMIndex));
+                }
+            }
+        }
+
+        public double FrequencyDeviation
+        {
+            get => _frequencyDeviation;
+            set
+            {
+                if (SetProperty(ref _frequencyDeviation, value))
+                {
+                    OnPropertyChanged(nameof(CanCalculateFMIndex));
+                }
+            }
+        }
+
+        public double CarrierPhase
+        {
+            get => _carrierPhase;
+            set
+            {
+                if (SetProperty(ref _carrierPhase, value))
+                {
+                    OnPropertyChanged(nameof(CanCalculatePMIndex));
+                }
+            }
+        }
+
+        public double PhaseDeviation
+        {
+            get => _phaseDeviation;
+            set
+            {
+                if (SetProperty(ref _phaseDeviation, value))
+                {
+                    OnPropertyChanged(nameof(CanCalculatePMIndex));
+                }
+            }
+        }
+
+        public string SelectedCarrierAmplitudeUnit
+        {
+            get => _selectedCarrierAmplitudeUnit;
+            set
+            {
+                if (SetProperty(ref _selectedCarrierAmplitudeUnit, value))
+                {
+                    ConvertCarrierAmplitude();
+                }
+            }
+        }
+
+        public string SelectedModulatingAmplitudeUnit
+        {
+            get => _selectedModulatingAmplitudeUnit;
+            set
+            {
+                if (SetProperty(ref _selectedModulatingAmplitudeUnit, value))
+                {
+                    ConvertModulatingAmplitude();
+                }
+            }
+        }
+
+        public string SelectedCarrierFrequencyUnit
+        {
+            get => _selectedCarrierFrequencyUnit;
+            set
+            {
+                if (SetProperty(ref _selectedCarrierFrequencyUnit, value))
+                {
+                    ConvertCarrierFrequency();
+                }
+            }
+        }
+
+        public string SelectedFrequencyDeviationUnit
+        {
+            get => _selectedFrequencyDeviationUnit;
+            set
+            {
+                if (SetProperty(ref _selectedFrequencyDeviationUnit, value))
+                {
+                    ConvertFrequencyDeviation();
+                }
+            }
+        }
+
+        public string SelectedCarrierPhaseUnit
+        {
+            get => _selectedCarrierPhaseUnit;
+            set
+            {
+                if (SetProperty(ref _selectedCarrierPhaseUnit, value))
+                {
+                    ConvertCarrierPhase();
+                }
+            }
+        }
+
+        public string SelectedPhaseDeviationUnit
+        {
+            get => _selectedPhaseDeviationUnit;
+            set
+            {
+                if (SetProperty(ref _selectedPhaseDeviationUnit, value))
+                {
+                    ConvertPhaseDeviation();
+                }
+            }
+        }
+
+        public string AMIndexResult
+        {
+            get => _amIndexResult;
+            set => SetProperty(ref _amIndexResult, value);
+        }
+
+        public string FMIndexResult
+        {
+            get => _fmIndexResult;
+            set => SetProperty(ref _fmIndexResult, value);
+        }
+
+        public string PMIndexResult
+        {
+            get => _pmIndexResult;
+            set => SetProperty(ref _pmIndexResult, value);
+        }
+
+        public ObservableCollection<string> AmplitudeUnits => _unitCollections["Voltage"];
+        public ObservableCollection<string> FrequencyUnits => _unitCollections["Frequency"];
+        public ObservableCollection<string> AngleUnits => _unitCollections["Angle"];
+
+        #endregion
+
+        #region Команды
+
+        public ICommand CalculateAMIndexCommand { get; private set; }
+        public ICommand CalculateFMIndexCommand { get; private set; }
+        public ICommand CalculatePMIndexCommand { get; private set; }
+
+        #endregion
+
+        #region Конструктор и инициализация
 
         public ModulationTab()
         {
             InitializeComponent();
-            AmplitudeUnits = ComboBoxService.GetUnits("Voltage");
-            FrequencyUnits = ComboBoxService.GetUnits("Frequency");
-            AngleUnits = ComboBoxService.GetUnits("Angle");
-            _calculationService = new CalculationService();
             DataContext = this;
+            _calculationService = new CalculationService();
+            _unitCollections = InitializeUnitCollections();
+            InitializeCommands();
+            InitializeDefaultUnits();
         }
 
-        private void CalculateAMIndex(object sender, RoutedEventArgs e)
+        private Dictionary<string, ObservableCollection<string>> InitializeUnitCollections()
         {
-            if (!TryGetAmplitudeValues(out double carrierAmplitude, out string carrierAmplitudeUnit, out double modulatingAmplitude, out string modulatingAmplitudeUnit))
+            return new Dictionary<string, ObservableCollection<string>>
             {
-                txtAMIndexResult.Text = "Неверный ввод";
-                return;
-            }
+                ["Voltage"] = new ObservableCollection<string>(ComboBoxService.GetUnits("Voltage")),
+                ["Frequency"] = new ObservableCollection<string>(ComboBoxService.GetUnits("Frequency")),
+                ["Angle"] = new ObservableCollection<string>(ComboBoxService.GetUnits("Angle"))
+            };
+        }
 
+        private void InitializeCommands()
+        {
+            CalculateAMIndexCommand = new RelayCommand(CalculateAMIndex, () => CanCalculateAMIndex);
+            CalculateFMIndexCommand = new RelayCommand(CalculateFMIndex, () => CanCalculateFMIndex);
+            CalculatePMIndexCommand = new RelayCommand(CalculatePMIndex, () => CanCalculatePMIndex);
+        }
+
+        private void InitializeDefaultUnits()
+        {
+            SelectedCarrierAmplitudeUnit = AmplitudeUnits[0];
+            SelectedModulatingAmplitudeUnit = AmplitudeUnits[0];
+            SelectedCarrierFrequencyUnit = FrequencyUnits[0];
+            SelectedFrequencyDeviationUnit = FrequencyUnits[0];
+            SelectedCarrierPhaseUnit = AngleUnits[0];
+            SelectedPhaseDeviationUnit = AngleUnits[0];
+        }
+
+        #endregion
+
+        #region Методы расчета
+
+        private void CalculateAMIndex()
+        {
             try
             {
-                double amIndex = _calculationService.CalculateAMIndex(carrierAmplitude, carrierAmplitudeUnit, modulatingAmplitude, modulatingAmplitudeUnit);
-                txtAMIndexResult.Text = $"Индекс модуляции AM: {amIndex:F2}";
+                ValidateAMInputs();
+                double carrierAmplitudeV = Convert(CarrierAmplitude, SelectedCarrierAmplitudeUnit, "V", PhysicalQuantity.Voltage);
+                double modulatingAmplitudeV = Convert(ModulatingAmplitude, SelectedModulatingAmplitudeUnit, "V", PhysicalQuantity.Voltage);
+                double amIndex = _calculationService.CalculateAMIndex(carrierAmplitudeV, modulatingAmplitudeV);
+                AMIndexResult = $"Индекс модуляции AM: {amIndex:F2}";
             }
             catch (Exception ex)
             {
-                txtAMIndexResult.Text = $"Ошибка: {ex.Message}";
+                AMIndexResult = $"Ошибка: {ex.Message}";
             }
         }
 
-        private void CalculateFMIndex(object sender, RoutedEventArgs e)
+        private void CalculateFMIndex()
         {
-            if (!TryGetFrequencyValues(out double carrierFrequency, out string carrierFrequencyUnit, out double frequencyDeviation, out string frequencyDeviationUnit))
-            {
-                txtFMIndexResult.Text = "Неверный ввод";
-                return;
-            }
-
             try
             {
-                double fmIndex = _calculationService.CalculateFMIndex(carrierFrequency, carrierFrequencyUnit, frequencyDeviation, frequencyDeviationUnit);
-                txtFMIndexResult.Text = $"Индекс модуляции FM: {fmIndex:F2}";
+                ValidateFMInputs();
+                double carrierFrequencyHz = Convert(CarrierFrequency, SelectedCarrierFrequencyUnit, "Hz", PhysicalQuantity.Frequency);
+                double frequencyDeviationHz = Convert(FrequencyDeviation, SelectedFrequencyDeviationUnit, "Hz", PhysicalQuantity.Frequency);
+                double fmIndex = _calculationService.CalculateFMIndex(carrierFrequencyHz, frequencyDeviationHz);
+                FMIndexResult = $"Индекс модуляции FM: {fmIndex:F2}";
             }
             catch (Exception ex)
             {
-                txtFMIndexResult.Text = $"Ошибка: {ex.Message}";
+                FMIndexResult = $"Ошибка: {ex.Message}";
             }
         }
 
-        private void CalculatePMIndex(object sender, RoutedEventArgs e)
+        private void CalculatePMIndex()
         {
-            if (!TryGetAngleValues(out double carrierPhase, out string carrierPhaseUnit, out double phaseDeviation, out string phaseDeviationUnit))
-            {
-                txtPMIndexResult.Text = "Неверный ввод";
-                return;
-            }
-
             try
             {
-                double pmIndex = _calculationService.CalculatePMIndex(carrierPhase, carrierPhaseUnit, phaseDeviation, phaseDeviationUnit);
-                txtPMIndexResult.Text = $"Индекс модуляции PM: {pmIndex:F2}";
+                ValidatePMInputs();
+                double carrierPhaseRad = Convert(CarrierPhase, SelectedCarrierPhaseUnit, "rad", PhysicalQuantity.Angle);
+                double phaseDeviationRad = Convert(PhaseDeviation, SelectedPhaseDeviationUnit, "rad", PhysicalQuantity.Angle);
+                double pmIndex = _calculationService.CalculatePMIndex(carrierPhaseRad, phaseDeviationRad);
+                PMIndexResult = $"Индекс модуляции PM: {pmIndex:F2}";
             }
             catch (Exception ex)
             {
-                txtPMIndexResult.Text = $"Ошибка: {ex.Message}";
+                PMIndexResult = $"Ошибка: {ex.Message}";
             }
         }
 
-        private bool TryGetAmplitudeValues(out double carrierAmplitude, out string carrierAmplitudeUnit, out double modulatingAmplitude, out string modulatingAmplitudeUnit)
+        #endregion
+
+        #region Методы валидации
+
+        private void ValidateAMInputs()
         {
-            carrierAmplitude = 0;
-            modulatingAmplitude = 0;
-            carrierAmplitudeUnit = cmbCarrierAmplitudeUnit.SelectedItem?.ToString();
-            modulatingAmplitudeUnit = cmbModulatingAmplitudeUnit.SelectedItem?.ToString();
-
-            if (double.TryParse(txtCarrierAmplitude.Text, out carrierAmplitude) &&
-                double.TryParse(txtModulatingAmplitude.Text, out modulatingAmplitude) &&
-                !string.IsNullOrEmpty(carrierAmplitudeUnit) &&
-                !string.IsNullOrEmpty(modulatingAmplitudeUnit))
+            if (!InputsAreValid(CarrierAmplitude, ModulatingAmplitude))
             {
-                return true;
+                throw new ArgumentException(ErrorMessages.InvalidInput);
             }
-
-            return false;
         }
 
-        private bool TryGetFrequencyValues(out double carrierFrequency, out string carrierFrequencyUnit, out double frequencyDeviation, out string frequencyDeviationUnit)
+        private void ValidateFMInputs()
         {
-            carrierFrequency = 0;
-            frequencyDeviation = 0;
-            carrierFrequencyUnit = cmbCarrierFrequencyUnit.SelectedItem?.ToString();
-            frequencyDeviationUnit = cmbFrequencyDeviationUnit.SelectedItem?.ToString();
-
-            if (double.TryParse(txtCarrierFrequency.Text, out carrierFrequency) &&
-                double.TryParse(txtFrequencyDeviation.Text, out frequencyDeviation) &&
-                !string.IsNullOrEmpty(carrierFrequencyUnit) &&
-                !string.IsNullOrEmpty(frequencyDeviationUnit))
+            if (!InputsAreValid(CarrierFrequency, FrequencyDeviation))
             {
-                return true;
+                throw new ArgumentException(ErrorMessages.InvalidInput);
             }
-
-            return false;
         }
 
-        private bool TryGetAngleValues(out double carrierPhase, out string carrierPhaseUnit, out double phaseDeviation, out string phaseDeviationUnit)
+        private void ValidatePMInputs()
         {
-            carrierPhase = 0;
-            phaseDeviation = 0;
-            carrierPhaseUnit = cmbCarrierPhaseUnit.SelectedItem?.ToString();
-            phaseDeviationUnit = cmbPhaseDeviationUnit.SelectedItem?.ToString();
-
-            if (double.TryParse(txtCarrierPhase.Text, out carrierPhase) &&
-                double.TryParse(txtPhaseDeviation.Text, out phaseDeviation) &&
-                !string.IsNullOrEmpty(carrierPhaseUnit) &&
-                !string.IsNullOrEmpty(phaseDeviationUnit))
+            if (!InputsAreValid(CarrierPhase, PhaseDeviation))
             {
-                return true;
+                throw new ArgumentException(ErrorMessages.InvalidInput);
             }
-
-            return false;
         }
+
+        #endregion
+
+        #region Методы конвертации единиц измерения
+
+        private void ConvertCarrierAmplitude() => ConvertUnit(ref _carrierAmplitude, "V", SelectedCarrierAmplitudeUnit, PhysicalQuantity.Voltage);
+        private void ConvertModulatingAmplitude() => ConvertUnit(ref _modulatingAmplitude, "V", SelectedModulatingAmplitudeUnit, PhysicalQuantity.Voltage);
+        private void ConvertCarrierFrequency() => ConvertUnit(ref _carrierFrequency, "Hz", SelectedCarrierFrequencyUnit, PhysicalQuantity.Frequency);
+        private void ConvertFrequencyDeviation() => ConvertUnit(ref _frequencyDeviation, "Hz", SelectedFrequencyDeviationUnit, PhysicalQuantity.Frequency);
+        private void ConvertCarrierPhase() => ConvertUnit(ref _carrierPhase, "rad", SelectedCarrierPhaseUnit, PhysicalQuantity.Angle);
+        private void ConvertPhaseDeviation() => ConvertUnit(ref _phaseDeviation, "rad", SelectedPhaseDeviationUnit, PhysicalQuantity.Angle);
+
+        private void ConvertUnit(ref double value, string fromUnit, string toUnit, PhysicalQuantity quantity)
+        {
+            if (InputsAreValid(value) && !string.IsNullOrWhiteSpace(toUnit))
+            {
+                value = Convert(value, fromUnit, toUnit, quantity);
+            }
+        }
+
+        #endregion
+
+        #region Свойства CanCalculate
+
+        public bool CanCalculateAMIndex => InputsAreValid(CarrierAmplitude, ModulatingAmplitude) &&
+                                           !string.IsNullOrWhiteSpace(SelectedCarrierAmplitudeUnit) &&
+                                           !string.IsNullOrWhiteSpace(SelectedModulatingAmplitudeUnit);
+
+        public bool CanCalculateFMIndex => InputsAreValid(CarrierFrequency, FrequencyDeviation) &&
+                                           !string.IsNullOrWhiteSpace(SelectedCarrierFrequencyUnit) &&
+                                           !string.IsNullOrWhiteSpace(SelectedFrequencyDeviationUnit);
+
+        public bool CanCalculatePMIndex => InputsAreValid(CarrierPhase, PhaseDeviation) &&
+                                           !string.IsNullOrWhiteSpace(SelectedCarrierPhaseUnit) &&
+                                           !string.IsNullOrWhiteSpace(SelectedPhaseDeviationUnit);
+
+        #endregion
+
+        #region INotifyPropertyChanged
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
+        protected bool SetProperty<T>(ref T field, T value, [CallerMemberName] string propertyName = null)
+        {
+            if (EqualityComparer<T>.Default.Equals(field, value)) return false;
+            field = value;
+            OnPropertyChanged(propertyName);
+            return true;
+        }
+
+        #endregion
     }
 }

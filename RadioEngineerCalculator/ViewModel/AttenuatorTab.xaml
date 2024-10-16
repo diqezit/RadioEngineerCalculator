@@ -5,55 +5,69 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:infos="clr-namespace:RadioEngineerCalculator.Infos"
              mc:Ignorable="d" 
-             d:DesignHeight="300" d:DesignWidth="400">
+             d:DesignHeight="450" d:DesignWidth="800">
+    <UserControl.Resources>
+        <Style x:Key="HeaderTextBlockStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="18"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="HorizontalAlignment" Value="Center"/>
+            <Setter Property="Margin" Value="0,10,0,20"/>
+        </Style>
+
+        <Style x:Key="ResultTextBlockStyle" TargetType="TextBlock">
+            <Setter Property="Margin" Value="0,10,0,0"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+        </Style>
+
+        <Style x:Key="CalculateButtonStyle" TargetType="Button" BasedOn="{StaticResource ModernButton}">
+            <Setter Property="Margin" Value="0,10,0,0"/>
+        </Style>
+    </UserControl.Resources>
+
     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-        <Grid Margin="10">
-            <StackPanel>
-                <TextBlock Text="Расчеты аттенюаторов" HorizontalAlignment="Center" VerticalAlignment="Center" 
-                           FontSize="18" FontWeight="Bold" Margin="0,10,0,20"/>
-                <GroupBox Header="Расчет затухания" BorderBrush="{StaticResource DividerBrush}" BorderThickness="1">
-                    <StackPanel Margin="10">
-                        <Label Content="Входное напряжение" Style="{StaticResource ModernLabel}"/>
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
-                            <TextBox x:Name="InputVoltageTextBox" Style="{StaticResource ModernTextBox}">
-                                <TextBox.ToolTip>
-                                    <ToolTip Content="{x:Static infos:Tooltips.AttenuatorTab_InputVoltageTooltip}"/>
-                                </TextBox.ToolTip>
-                            </TextBox>
-                            <ComboBox x:Name="InputVoltageUnitComboBox" Grid.Column="1" Width="60" SelectedIndex="0" Style="{StaticResource ModernComboBox}"
-                                      ItemsSource="{Binding InputVoltageUnits}">
-                                <ComboBox.ToolTip>
-                                    <ToolTip Content="{x:Static infos:Tooltips.AttenuatorTab_InputVoltageUnitTooltip}"/>
-                                </ComboBox.ToolTip>
-                            </ComboBox>
-                        </Grid>
-                        <Label Content="Выходное напряжение" Style="{StaticResource ModernLabel}"/>
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
-                            <TextBox x:Name="OutputVoltageTextBox" Style="{StaticResource ModernTextBox}">
-                                <TextBox.ToolTip>
-                                    <ToolTip Content="{x:Static infos:Tooltips.AttenuatorTab_OutputVoltageTooltip}"/>
-                                </TextBox.ToolTip>
-                            </TextBox>
-                            <ComboBox x:Name="OutputVoltageUnitComboBox" Grid.Column="1" Width="60" SelectedIndex="0" Style="{StaticResource ModernComboBox}"
-                                      ItemsSource="{Binding OutputVoltageUnits}">
-                                <ComboBox.ToolTip>
-                                    <ToolTip Content="{x:Static infos:Tooltips.AttenuatorTab_OutputVoltageUnitTooltip}"/>
-                                </ComboBox.ToolTip>
-                            </ComboBox>
-                        </Grid>
-                        <Button Content="Рассчитать затухание" Click="CalculateAttenuator" Style="{StaticResource ModernButton}" Margin="0,10,0,0"/>
-                        <TextBlock x:Name="ResultTextBlock" Margin="0,10,0,0" FontWeight="Bold"/>
-                    </StackPanel>
-                </GroupBox>
-            </StackPanel>
-        </Grid>
+        <StackPanel Margin="20">
+            <TextBlock Text="Расчеты аттенюаторов" Style="{StaticResource HeaderTextBlockStyle}"/>
+
+            <GroupBox Header="Расчет затухания" Style="{StaticResource ModernGroupBox}">
+                <StackPanel Margin="10">
+                    <Label Content="Входное напряжение" Style="{StaticResource ModernLabel}"/>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBox Text="{Binding InputVoltage, UpdateSourceTrigger=PropertyChanged}" 
+                                 Style="{StaticResource ModernTextBox}"
+                                 ToolTip="{x:Static infos:Tooltips.AttenuatorTab_InputVoltageTooltip}"/>
+                        <ComboBox Grid.Column="1" Width="60" 
+                                  ItemsSource="{Binding VoltageUnits}"
+                                  SelectedItem="{Binding SelectedInputVoltageUnit}"
+                                  Style="{StaticResource ModernComboBox}"
+                                  ToolTip="{x:Static infos:Tooltips.AttenuatorTab_InputVoltageUnitTooltip}"/>
+                    </Grid>
+                    <Label Content="Выходное напряжение" Style="{StaticResource ModernLabel}"/>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBox Text="{Binding OutputVoltage, UpdateSourceTrigger=PropertyChanged}" 
+                                 Style="{StaticResource ModernTextBox}"
+                                 ToolTip="{x:Static infos:Tooltips.AttenuatorTab_OutputVoltageTooltip}"/>
+                        <ComboBox Grid.Column="1" Width="60" 
+                                  ItemsSource="{Binding VoltageUnits}"
+                                  SelectedItem="{Binding SelectedOutputVoltageUnit}"
+                                  Style="{StaticResource ModernComboBox}"
+                                  ToolTip="{x:Static infos:Tooltips.AttenuatorTab_OutputVoltageUnitTooltip}"/>
+                    </Grid>
+                    <Button Content="Рассчитать затухание" 
+                            Command="{Binding CalculateAttenuationCommand}"
+                            IsEnabled="{Binding CanCalculateAttenuation}"
+                            Style="{StaticResource CalculateButtonStyle}"/>
+                    <TextBlock Text="{Binding AttenuationResult}" 
+                               Style="{StaticResource ResultTextBlockStyle}"/>
+                </StackPanel>
+            </GroupBox>
+        </StackPanel>
     </ScrollViewer>
 </UserControl>

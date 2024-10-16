@@ -1,71 +1,181 @@
-﻿using RadioEngineerCalculator.Services;
+﻿using RadioEngineerCalculator.Infos;
+using RadioEngineerCalculator.Services;
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Windows;
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
 using System.Windows.Controls;
+using System.Windows.Input;
 using static RadioEngineerCalculator.Services.UnitC;
+using static RadioEngineerCalculator.Services.Validate;
 
 namespace RadioEngineerCalculator.ViewModel
 {
-    public partial class AttenuatorTab : UserControl
+    public partial class AttenuatorTab : UserControl, INotifyPropertyChanged
     {
-        public ObservableCollection<string> InputVoltageUnits { get; set; }
-        public ObservableCollection<string> OutputVoltageUnits { get; set; }
+        #region Приватные поля
 
         private readonly CalculationService _calculationService;
+        private readonly Dictionary<string, ObservableCollection<string>> _unitCollections;
+
+        private string _attenuationResult;
+        private double _inputVoltage;
+        private double _outputVoltage;
+        private string _selectedInputVoltageUnit;
+        private string _selectedOutputVoltageUnit;
+
+        #endregion
+
+        #region Конструктор
 
         public AttenuatorTab()
         {
             InitializeComponent();
-            InputVoltageUnits = ComboBoxService.GetUnits("Voltage");
-            OutputVoltageUnits = ComboBoxService.GetUnits("Voltage");
-            _calculationService = new CalculationService();
             DataContext = this;
+            _calculationService = new CalculationService();
+            _unitCollections = InitializeUnitCollections();
+            InitializeCommands();
+            InitializeDefaultUnits();
         }
 
-        private void CalculateAttenuator(object sender, RoutedEventArgs e)
-        {
-            if (!TryGetVoltageValues(out double inputVoltage, out string inputVoltageUnit, out double outputVoltage, out string outputVoltageUnit))
-            {
-                ResultTextBlock.Text = "Invalid input";
-                return;
-            }
+        #endregion
 
+        #region Публичные свойства
+
+        public ICommand CalculateAttenuationCommand { get; private set; }
+
+        public bool CanCalculateAttenuation =>
+            InputsAreValid(InputVoltage, OutputVoltage) &&
+            !string.IsNullOrWhiteSpace(SelectedInputVoltageUnit) &&
+            !string.IsNullOrWhiteSpace(SelectedOutputVoltageUnit);
+
+        public string AttenuationResult
+        {
+            get => _attenuationResult;
+            set => SetProperty(ref _attenuationResult, value);
+        }
+
+        public double InputVoltage
+        {
+            get => _inputVoltage;
+            set
+            {
+                if (SetProperty(ref _inputVoltage, value))
+                {
+                    OnPropertyChanged(nameof(CanCalculateAttenuation));
+                }
+            }
+        }
+
+        public double OutputVoltage
+        {
+            get => _outputVoltage;
+            set
+            {
+                if (SetProperty(ref _outputVoltage, value))
+                {
+                    OnPropertyChanged(nameof(CanCalculateAttenuation));
+                }
+            }
+        }
+
+        public string SelectedInputVoltageUnit
+        {
+            get => _selectedInputVoltageUnit;
+            set
+            {
+                if (SetProperty(ref _selectedInputVoltageUnit, value))
+                {
+                    OnPropertyChanged(nameof(CanCalculateAttenuation));
+                    ConvertInputVoltage();
+                }
+            }
+        }
+
+        public string SelectedOutputVoltageUnit
+        {
+            get => _selectedOutputVoltageUnit;
+            set
+            {
+                if (SetProperty(ref _selectedOutputVoltageUnit, value))
+                {
+                    OnPropertyChanged(nameof(CanCalculateAttenuation));
+                    ConvertOutputVoltage();
+                }
+            }
+        }
+
+        public ObservableCollection<string> VoltageUnits => _unitCollections["Voltage"];
+
+        #endregion
+
+        #region Приватные методы
+
+        private Dictionary<string, ObservableCollection<string>> InitializeUnitCollections()
+        {
+            return new Dictionary<string, ObservableCollection<string>>
+            {
+                ["Voltage"] = new ObservableCollection<string>(ComboBoxService.GetUnits("Voltage"))
+            };
+        }
+
+        private void InitializeCommands()
+        {
+            CalculateAttenuationCommand = new RelayCommand(CalculateAttenuation, () => CanCalculateAttenuation);
+        }
+
+        private void InitializeDefaultUnits()
+        {
+            SelectedInputVoltageUnit = VoltageUnits[0];
+            SelectedOutputVoltageUnit = VoltageUnits[0];
+        }
+
+        private void CalculateAttenuation()
+        {
             try
             {
-                inputVoltage = Convert(inputVoltage, inputVoltageUnit, "V", PhysicalQuantity.Voltage);
-                outputVoltage = Convert(outputVoltage, outputVoltageUnit, "V", PhysicalQuantity.Voltage);
-
-                var result = _calculationService.CalculateAttenuator(inputVoltage, outputVoltage);
-                ResultTextBlock.Text = $"Затухание: {FormatAttenuation(result)}";
+                double inputVoltageV = Convert(InputVoltage, SelectedInputVoltageUnit, "V", PhysicalQuantity.Voltage);
+                double outputVoltageV = Convert(OutputVoltage, SelectedOutputVoltageUnit, "V", PhysicalQuantity.Voltage);
+                double attenuation = _calculationService.CalculateAttenuator(inputVoltageV, outputVoltageV);
+                AttenuationResult = $"Затухание: {attenuation:F2} дБ";
             }
             catch (Exception ex)
             {
-                ResultTextBlock.Text = $"Error: {ex.Message}";
+                AttenuationResult = $"Ошибка: {ex.Message}";
             }
         }
 
-        private bool TryGetVoltageValues(out double inputVoltage, out string inputVoltageUnit, out double outputVoltage, out string outputVoltageUnit)
-        {
-            inputVoltage = 0;
-            outputVoltage = 0;
-            inputVoltageUnit = InputVoltageUnitComboBox.SelectedItem?.ToString();
-            outputVoltageUnit = OutputVoltageUnitComboBox.SelectedItem?.ToString();
+        private void ConvertInputVoltage() => ConvertUnit(ref _inputVoltage, "V", SelectedInputVoltageUnit, PhysicalQuantity.Voltage);
+        private void ConvertOutputVoltage() => ConvertUnit(ref _outputVoltage, "V", SelectedOutputVoltageUnit, PhysicalQuantity.Voltage);
 
-            if (double.TryParse(InputVoltageTextBox.Text, out inputVoltage) &&
-                double.TryParse(OutputVoltageTextBox.Text, out outputVoltage) &&
-                !string.IsNullOrEmpty(inputVoltageUnit) &&
-                !string.IsNullOrEmpty(outputVoltageUnit))
+        private void ConvertUnit(ref double value, string fromUnit, string toUnit, PhysicalQuantity quantity)
+        {
+            if (InputsAreValid(value) && !string.IsNullOrWhiteSpace(toUnit))
             {
-                return true;
+                value = Convert(value, fromUnit, toUnit, quantity);
             }
-
-            return false;
         }
 
-        private string FormatAttenuation(double attenuation)
+        #endregion
+
+        #region Реализация INotifyPropertyChanged
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
         {
-            return $"{attenuation:F2} дБ";
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
+
+        protected bool SetProperty<T>(ref T field, T value, [CallerMemberName] string propertyName = null)
+        {
+            if (EqualityComparer<T>.Default.Equals(field, value)) return false;
+            field = value;
+            OnPropertyChanged(propertyName);
+            return true;
+        }
+
+        #endregion
     }
 }

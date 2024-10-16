@@ -76,7 +76,7 @@ namespace RadioEngineerCalculator.Services
         public static void EnsurePositive(double value, string paramName)
         {
             if (value <= 0)
-                throw new ArgumentException($"{paramName} должен быть больше нуля.");
+                throw new ArgumentException($"{paramName} должен быть положительным числом");
         }
 
         public static bool IsInRange(double value, double min, double max)

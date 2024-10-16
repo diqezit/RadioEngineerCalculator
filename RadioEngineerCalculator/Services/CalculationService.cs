@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Numerics;
 using static RadioEngineerCalculator.Services.UnitC;
+using static RadioEngineerCalculator.Services.Validate;
 
 namespace RadioEngineerCalculator.Services
 {
@@ -119,14 +120,6 @@ namespace RadioEngineerCalculator.Services
             return SpeedOfLight / frequency;
         }
 
-        public double CalculateVSWR(double forwardPower, double reflectedPower)
-        {
-            Validate.EnsurePositive(forwardPower, nameof(forwardPower));
-            Validate.EnsurePositive(reflectedPower, nameof(reflectedPower));
-            var sqrtRatio = Math.Sqrt(reflectedPower / forwardPower);
-            return (1 + sqrtRatio) / (1 - sqrtRatio);
-        }
-
         public double CalculateQFactor(double resonantFrequency, double bandwidth)
         {
             Validate.EnsurePositive(resonantFrequency, nameof(resonantFrequency));
@@ -146,6 +139,28 @@ namespace RadioEngineerCalculator.Services
             Validate.EnsurePositive(resistivity, nameof(resistivity));
             Validate.EnsurePositive(relativePermeability, nameof(relativePermeability));
             return Math.Sqrt(resistivity / (Math.PI * frequency * Mu0 * relativePermeability));
+        }
+
+        public double CalculateReflectionCoefficient(double sourceImpedance, double loadImpedance)
+        {
+            ValidatePositive(sourceImpedance, nameof(sourceImpedance));
+            ValidatePositive(loadImpedance, nameof(loadImpedance));
+
+            return Math.Abs((loadImpedance - sourceImpedance) / (loadImpedance + sourceImpedance));
+        }
+
+        public double CalculateVSWR(double sourceImpedance, double loadImpedance)
+        {
+            double reflectionCoefficient = CalculateReflectionCoefficient(sourceImpedance, loadImpedance);
+            return (1 + reflectionCoefficient) / (1 - reflectionCoefficient);
+        }
+
+        private void ValidatePositive(double value, string paramName)
+        {
+            if (value <= 0)
+            {
+                throw new ArgumentException($"{paramName} должно быть положительным числом.", paramName);
+            }
         }
 
         public double CalculateImpedanceMatching(double sourceImpedance, double loadImpedance)
@@ -217,45 +232,50 @@ namespace RadioEngineerCalculator.Services
 
         #region Расчеты для модуляции
 
-        public double CalculateAMIndex(double carrierAmplitude, string carrierAmplitudeUnit, double modulatingAmplitude, string modulatingAmplitudeUnit)
+        public double CalculateAMIndex(double carrierAmplitude, double modulatingAmplitude)
         {
-            var carrierAmplitudeV = Convert(carrierAmplitude, carrierAmplitudeUnit, "V", PhysicalQuantity.Voltage);
-            var modulatingAmplitudeV = Convert(modulatingAmplitude, modulatingAmplitudeUnit, "V", PhysicalQuantity.Voltage);
-
-            if (carrierAmplitudeV <= 0 || modulatingAmplitudeV <= 0)
+            if (carrierAmplitude <= 0 || modulatingAmplitude <= 0)
+            {
                 throw new ArgumentException("Амплитуды должны быть больше нуля.");
-
-            return modulatingAmplitudeV / carrierAmplitudeV;
+            }
+            return modulatingAmplitude / carrierAmplitude;
         }
 
-        public double CalculateFMIndex(double carrierFrequency, string carrierFrequencyUnit, double frequencyDeviation, string frequencyDeviationUnit)
+        public double CalculateFMIndex(double carrierFrequency, double frequencyDeviation)
         {
-            var carrierFrequencyHz = Convert(carrierFrequency, carrierFrequencyUnit, "Hz", PhysicalQuantity.Frequency);
-            var frequencyDeviationHz = Convert(frequencyDeviation, frequencyDeviationUnit, "Hz", PhysicalQuantity.Frequency);
-
-            if (carrierFrequencyHz <= 0 || frequencyDeviationHz <= 0)
+            if (carrierFrequency <= 0 || frequencyDeviation <= 0)
+            {
                 throw new ArgumentException("Частоты должны быть больше нуля.");
-
-            return frequencyDeviationHz / carrierFrequencyHz;
+            }
+            return frequencyDeviation / carrierFrequency;
         }
 
-        public double CalculatePMIndex(double carrierPhase, string carrierPhaseUnit, double phaseDeviation, string phaseDeviationUnit)
+        public double CalculatePMIndex(double carrierPhase, double phaseDeviation)
         {
-            var carrierPhaseRad = Convert(carrierPhase, carrierPhaseUnit, "rad", PhysicalQuantity.Angle);
-            var phaseDeviationRad = Convert(phaseDeviation, phaseDeviationUnit, "rad", PhysicalQuantity.Angle);
-
-            if (carrierPhaseRad <= 0 || phaseDeviationRad <= 0)
+            if (carrierPhase <= 0 || phaseDeviation <= 0)
+            {
                 throw new ArgumentException("Фазы должны быть больше нуля.");
-
-            return phaseDeviationRad / carrierPhaseRad;
+            }
+            return phaseDeviation / carrierPhase;
         }
 
         public double CalculateAMBandwidth(double modulationFrequency)
-            => 2 * modulationFrequency;
+        {
+            if (modulationFrequency <= 0)
+            {
+                throw new ArgumentException("Частота модуляции должна быть больше нуля.");
+            }
+            return 2 * modulationFrequency;
+        }
 
         public double CalculateFMBandwidth(double modulationIndex, double modulationFrequency)
-            => 2 * (modulationIndex + 1) * modulationFrequency;
-
+        {
+            if (modulationIndex <= 0 || modulationFrequency <= 0)
+            {
+                throw new ArgumentException("Индекс модуляции и частота модуляции должны быть больше нуля.");
+            }
+            return 2 * (modulationIndex + 1) * modulationFrequency;
+        }
         #endregion
 
         #region Расчеты для длинных линий
@@ -415,5 +435,96 @@ namespace RadioEngineerCalculator.Services
         }
 
         #endregion
-   }
+
+        #region Расчеты для коаксиального кабеля
+
+        /// <summary>
+        /// Рассчитывает волновое сопротивление коаксиального кабеля
+        /// </summary>
+        /// <param name="innerDiameter">Внутренний диаметр в метрах</param>
+        /// <param name="outerDiameter">Внешний диаметр в метрах</param>
+        /// <param name="dielectricConstant">Диэлектрическая постоянная</param>
+        /// <returns>Волновое сопротивление в Омах</returns>
+        public double CalculateCoaxialCableImpedance(double innerDiameter, double outerDiameter, double dielectricConstant)
+        {
+            EnsurePositive(innerDiameter, nameof(innerDiameter));
+            EnsurePositive(outerDiameter, nameof(outerDiameter));
+            EnsurePositive(dielectricConstant, nameof(dielectricConstant));
+
+            if (innerDiameter >= outerDiameter)
+            {
+                throw new ArgumentException("Внутренний диаметр должен быть меньше внешнего диаметра");
+            }
+
+            return (60 / Math.Sqrt(dielectricConstant)) * Math.Log10(outerDiameter / innerDiameter);
+        }
+
+        /// <summary>
+        /// Рассчитывает затухание в коаксиальном кабеле
+        /// </summary>
+        /// <param name="innerDiameter">Внутренний диаметр в метрах</param>
+        /// <param name="outerDiameter">Внешний диаметр в метрах</param>
+        /// <param name="frequency">Частота в Герцах</param>
+        /// <param name="dielectricConstant">Диэлектрическая постоянная</param>
+        /// <param name="length">Длина кабеля в метрах</param>
+        /// <returns>Затухание в дБ</returns>
+        public double CalculateCoaxialCableAttenuation(double innerDiameter, double outerDiameter, double frequency, double dielectricConstant, double length)
+        {
+            EnsurePositive(innerDiameter, nameof(innerDiameter));
+            EnsurePositive(outerDiameter, nameof(outerDiameter));
+            EnsurePositive(frequency, nameof(frequency));
+            EnsurePositive(dielectricConstant, nameof(dielectricConstant));
+            EnsurePositive(length, nameof(length));
+
+            if (innerDiameter >= outerDiameter)
+            {
+                throw new ArgumentException("Внутренний диаметр должен быть меньше внешнего диаметра");
+            }
+
+            double impedance = CalculateCoaxialCableImpedance(innerDiameter, outerDiameter, dielectricConstant);
+            double conductorLoss = (1 / innerDiameter + 1 / outerDiameter) * Math.Sqrt(Math.PI * frequency * 4e-7 / (2 * 5.8e7));
+            double dielectricLoss = (Math.PI / 3e8) * frequency * Math.Sqrt(dielectricConstant) * Math.Tan(0.001); // предполагаем тангенс угла потерь 0.001
+
+            return (conductorLoss + dielectricLoss) * impedance * length * 8.686; // 8.686 для перевода из Np в дБ
+        }
+
+        /// <summary>
+        /// Рассчитывает коэффициент скорости в коаксиальном кабеле
+        /// </summary>
+        /// <param name="dielectricConstant">Диэлектрическая постоянная</param>
+        /// <returns>Коэффициент скорости (безразмерная величина)</returns>
+        public double CalculateVelocityFactor(double dielectricConstant)
+        {
+            EnsurePositive(dielectricConstant, nameof(dielectricConstant));
+
+            return 1 / Math.Sqrt(dielectricConstant);
+        }
+
+        /// <summary>
+        /// Рассчитывает емкость коаксиального кабеля
+        /// </summary>
+        /// <param name="innerDiameter">Внутренний диаметр в метрах</param>
+        /// <param name="outerDiameter">Внешний диаметр в метрах</param>
+        /// <param name="dielectricConstant">Диэлектрическая постоянная</param>
+        /// <param name="length">Длина кабеля в метрах</param>
+        /// <returns>Емкость в Фарадах</returns>
+        public double CalculateCoaxialCableCapacitance(double innerDiameter, double outerDiameter, double dielectricConstant, double length)
+        {
+            EnsurePositive(innerDiameter, nameof(innerDiameter));
+            EnsurePositive(outerDiameter, nameof(outerDiameter));
+            EnsurePositive(dielectricConstant, nameof(dielectricConstant));
+            EnsurePositive(length, nameof(length));
+
+            if (innerDiameter >= outerDiameter)
+            {
+                throw new ArgumentException("Внутренний диаметр должен быть меньше внешнего диаметра");
+            }
+
+            return (2 * Math.PI * 8.854e-12 * dielectricConstant * length) / Math.Log(outerDiameter / innerDiameter);
+        }
+
+        #endregion
+
+
+    }
 }

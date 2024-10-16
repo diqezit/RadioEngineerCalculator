@@ -6,54 +6,100 @@
              xmlns:infos="clr-namespace:RadioEngineerCalculator.Infos"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
+    <UserControl.Resources>
+        <Style x:Key="HeaderTextBlockStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="18"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="HorizontalAlignment" Value="Center"/>
+            <Setter Property="Margin" Value="0,10,0,20"/>
+        </Style>
+
+        <Style x:Key="ResultTextBlockStyle" TargetType="TextBlock">
+            <Setter Property="Margin" Value="0,10,0,0"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+        </Style>
+
+        <Style x:Key="CalculateButtonStyle" TargetType="Button" BasedOn="{StaticResource ModernButton}">
+            <Setter Property="Margin" Value="0,10,0,0"/>
+        </Style>
+    </UserControl.Resources>
+
     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-        <Grid Margin="10">
-            <StackPanel>
-                <TextBlock Text="Расчет согласования импедансов" HorizontalAlignment="Center" VerticalAlignment="Center" 
-                           FontSize="18" FontWeight="Bold" Margin="0,10,0,20"/>
-                <GroupBox Header="Расчет согласования импедансов" BorderBrush="{StaticResource DividerBrush}" BorderThickness="1">
-                    <StackPanel Margin="10">
-                        <Label Content="Импеданс источника" Style="{StaticResource ModernLabel}"/>
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
-                            <TextBox x:Name="SourceImpedanceTextBox" Style="{StaticResource ModernTextBox}">
-                                <TextBox.ToolTip>
-                                    <ToolTip Content="{x:Static infos:Tooltips.ImpedanceMatchingTab_SourceImpedanceTooltip}"/>
-                                </TextBox.ToolTip>
-                            </TextBox>
-                            <ComboBox x:Name="SourceImpedanceUnitComboBox" Grid.Column="1" Width="60" SelectedIndex="0" Style="{StaticResource ModernComboBox}"
-                                      ItemsSource="{Binding SourceImpedanceUnits}">
-                                <ComboBox.ToolTip>
-                                    <ToolTip Content="{x:Static infos:Tooltips.ImpedanceMatchingTab_SourceImpedanceUnitTooltip}"/>
-                                </ComboBox.ToolTip>
-                            </ComboBox>
-                        </Grid>
-                        <Label Content="Импеданс нагрузки" Style="{StaticResource ModernLabel}" Margin="0,10,0,0"/>
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
-                            <TextBox x:Name="LoadImpedanceTextBox" Style="{StaticResource ModernTextBox}">
-                                <TextBox.ToolTip>
-                                    <ToolTip Content="{x:Static infos:Tooltips.ImpedanceMatchingTab_LoadImpedanceTooltip}"/>
-                                </TextBox.ToolTip>
-                            </TextBox>
-                            <ComboBox x:Name="LoadImpedanceUnitComboBox" Grid.Column="1" Width="60" SelectedIndex="0" Style="{StaticResource ModernComboBox}"
-                                      ItemsSource="{Binding LoadImpedanceUnits}">
-                                <ComboBox.ToolTip>
-                                    <ToolTip Content="{x:Static infos:Tooltips.ImpedanceMatchingTab_LoadImpedanceUnitTooltip}"/>
-                                </ComboBox.ToolTip>
-                            </ComboBox>
-                        </Grid>
-                        <Button Content="Рассчитать" Click="CalculateImpedanceMatching" Style="{StaticResource ModernButton}" Margin="0,20,0,0"/>
-                        <TextBlock x:Name="ResultTextBlock" Margin="0,10,0,0" FontWeight="Bold"/>
-                    </StackPanel>
-                </GroupBox>
-            </StackPanel>
-        </Grid>
+        <StackPanel Margin="20">
+            <TextBlock Text="Расчеты согласования импедансов" Style="{StaticResource HeaderTextBlockStyle}"/>
+
+            <GroupBox Header="Параметры импедансов" Style="{StaticResource ModernGroupBox}">
+                <StackPanel Margin="10">
+                    <Label Content="Импеданс источника" Style="{StaticResource ModernLabel}"/>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBox Text="{Binding SourceImpedance, UpdateSourceTrigger=PropertyChanged}" 
+                                 Style="{StaticResource ModernTextBox}"
+                                 ToolTip="{x:Static infos:Tooltips.ImpedanceMatchingTab_SourceImpedanceTooltip}"/>
+                        <ComboBox Grid.Column="1" Width="60" 
+                                  ItemsSource="{Binding ImpedanceUnits}"
+                                  SelectedItem="{Binding SelectedSourceImpedanceUnit}"
+                                  Style="{StaticResource ModernComboBox}"
+                                  ToolTip="{x:Static infos:Tooltips.ImpedanceMatchingTab_SourceImpedanceUnitTooltip}"/>
+                    </Grid>
+
+                    <Label Content="Импеданс нагрузки" Style="{StaticResource ModernLabel}"/>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBox Text="{Binding LoadImpedance, UpdateSourceTrigger=PropertyChanged}" 
+                                 Style="{StaticResource ModernTextBox}"
+                                 ToolTip="{x:Static infos:Tooltips.ImpedanceMatchingTab_LoadImpedanceTooltip}"/>
+                        <ComboBox Grid.Column="1" Width="60" 
+                                  ItemsSource="{Binding ImpedanceUnits}"
+                                  SelectedItem="{Binding SelectedLoadImpedanceUnit}"
+                                  Style="{StaticResource ModernComboBox}"
+                                  ToolTip="{x:Static infos:Tooltips.ImpedanceMatchingTab_LoadImpedanceUnitTooltip}"/>
+                    </Grid>
+
+                    <Button Content="Рассчитать согласование импедансов" 
+                            Command="{Binding CalculateImpedanceMatchingCommand}"
+                            Style="{StaticResource CalculateButtonStyle}"/>
+
+                    <Button Content="Рассчитать коэффициент отражения" 
+                            Command="{Binding CalculateReflectionCoefficientCommand}"
+                            Style="{StaticResource CalculateButtonStyle}"/>
+
+                    <Button Content="Рассчитать КСВН" 
+                            Command="{Binding CalculateVSWRCommand}"
+                            Style="{StaticResource CalculateButtonStyle}"/>
+                </StackPanel>
+            </GroupBox>
+
+            <GroupBox Header="Результаты расчетов" Style="{StaticResource ModernGroupBox}" Margin="0,20,0,0">
+                <StackPanel Margin="10">
+                    <TextBlock Text="{Binding ImpedanceMatchingResult}" 
+                               Style="{StaticResource ResultTextBlockStyle}"/>
+                    <TextBlock Text="{Binding ReflectionCoefficientResult}" 
+                               Style="{StaticResource ResultTextBlockStyle}"/>
+                    <TextBlock Text="{Binding VSWRResult}" 
+                               Style="{StaticResource ResultTextBlockStyle}"/>
+                </StackPanel>
+            </GroupBox>
+
+            <GroupBox Header="Информация" Style="{StaticResource ModernGroupBox}" Margin="0,20,0,0">
+                <StackPanel Margin="10">
+                    <TextBlock TextWrapping="Wrap" Margin="0,0,0,10">
+                        Согласование импедансов важно для максимальной передачи мощности и минимизации отражений в радиочастотных системах.
+                    </TextBlock>
+                    <TextBlock TextWrapping="Wrap" Margin="0,0,0,10">
+                        Коэффициент отражения показывает, какая часть сигнала отражается обратно из-за несогласованности импедансов.
+                    </TextBlock>
+                    <TextBlock TextWrapping="Wrap">
+                        КСВН (Коэффициент стоячей волны по напряжению) - это мера согласования линии передачи с нагрузкой. Идеальное значение КСВН равно 1.
+                    </TextBlock>
+                </StackPanel>
+            </GroupBox>
+        </StackPanel>
     </ScrollViewer>
 </UserControl>

@@ -6,54 +6,117 @@
              xmlns:infos="clr-namespace:RadioEngineerCalculator.Infos"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
+    <UserControl.Resources>
+        <Style x:Key="HeaderTextBlockStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="18"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="HorizontalAlignment" Value="Center"/>
+            <Setter Property="Margin" Value="0,10,0,20"/>
+        </Style>
+
+        <Style x:Key="ResultTextBlockStyle" TargetType="TextBlock">
+            <Setter Property="Margin" Value="0,10,0,0"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+        </Style>
+
+        <Style x:Key="CalculateButtonStyle" TargetType="Button" BasedOn="{StaticResource ModernButton}">
+            <Setter Property="Margin" Value="0,10,0,0"/>
+        </Style>
+    </UserControl.Resources>
+
     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-        <Grid Margin="10">
-            <StackPanel>
-                <TextBlock Text="Расчет коаксиального кабеля" HorizontalAlignment="Center" VerticalAlignment="Center" 
-                           FontSize="18" FontWeight="Bold" Margin="0,10,0,20"/>
-                <GroupBox Header="Расчет волнового сопротивления" BorderBrush="{StaticResource DividerBrush}" BorderThickness="1">
-                    <StackPanel Margin="10">
-                        <Label Content="Диаметр внутреннего проводника" Style="{StaticResource ModernLabel}"/>
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
-                            <TextBox x:Name="InnerDiameterTextBox" Style="{StaticResource ModernTextBox}">
-                                <TextBox.ToolTip>
-                                    <ToolTip Content="{x:Static infos:Tooltips.CoaxialCableTab_InnerDiameterTooltip}"/>
-                                </TextBox.ToolTip>
-                            </TextBox>
-                            <ComboBox x:Name="InnerDiameterUnitComboBox" Grid.Column="1" Width="60" SelectedIndex="0" Style="{StaticResource ModernComboBox}"
-                                      ItemsSource="{Binding InnerDiameterUnits}">
-                                <ComboBox.ToolTip>
-                                    <ToolTip Content="{x:Static infos:Tooltips.CoaxialCableTab_InnerDiameterUnitTooltip}"/>
-                                </ComboBox.ToolTip>
-                            </ComboBox>
-                        </Grid>
-                        <Label Content="Диаметр внешнего проводника" Style="{StaticResource ModernLabel}" Margin="0,10,0,0"/>
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
-                            <TextBox x:Name="OuterDiameterTextBox" Style="{StaticResource ModernTextBox}">
-                                <TextBox.ToolTip>
-                                    <ToolTip Content="{x:Static infos:Tooltips.CoaxialCableTab_OuterDiameterTooltip}"/>
-                                </TextBox.ToolTip>
-                            </TextBox>
-                            <ComboBox x:Name="OuterDiameterUnitComboBox" Grid.Column="1" Width="60" SelectedIndex="0" Style="{StaticResource ModernComboBox}"
-                                      ItemsSource="{Binding OuterDiameterUnits}">
-                                <ComboBox.ToolTip>
-                                    <ToolTip Content="{x:Static infos:Tooltips.CoaxialCableTab_OuterDiameterUnitTooltip}"/>
-                                </ComboBox.ToolTip>
-                            </ComboBox>
-                        </Grid>
-                        <Button Content="Рассчитать" Click="CalculateCoaxialCable" Style="{StaticResource ModernButton}" Margin="0,20,0,0"/>
-                        <TextBlock x:Name="ResultTextBlock" Margin="0,10,0,0" FontWeight="Bold"/>
-                    </StackPanel>
-                </GroupBox>
-            </StackPanel>
-        </Grid>
+        <StackPanel Margin="20">
+            <TextBlock Text="Расчеты коаксиального кабеля" Style="{StaticResource HeaderTextBlockStyle}"/>
+
+            <GroupBox Header="Параметры кабеля" Style="{StaticResource ModernGroupBox}">
+                <StackPanel Margin="10">
+                    <Label Content="Диаметр внутреннего проводника" Style="{StaticResource ModernLabel}"/>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBox Text="{Binding InnerDiameter, UpdateSourceTrigger=PropertyChanged}" 
+                                 Style="{StaticResource ModernTextBox}"
+                                 ToolTip="{x:Static infos:Tooltips.CoaxialCableTab_InnerDiameterTooltip}"/>
+                        <ComboBox Grid.Column="1" Width="60" 
+                                  ItemsSource="{Binding LengthUnits}"
+                                  SelectedItem="{Binding SelectedInnerDiameterUnit}"
+                                  Style="{StaticResource ModernComboBox}"
+                                  ToolTip="{x:Static infos:Tooltips.CoaxialCableTab_InnerDiameterUnitTooltip}"/>
+                    </Grid>
+
+                    <Label Content="Диаметр внешнего проводника" Style="{StaticResource ModernLabel}"/>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBox Text="{Binding OuterDiameter, UpdateSourceTrigger=PropertyChanged}" 
+                                 Style="{StaticResource ModernTextBox}"
+                                 ToolTip="{x:Static infos:Tooltips.CoaxialCableTab_OuterDiameterTooltip}"/>
+                        <ComboBox Grid.Column="1" Width="60" 
+                                  ItemsSource="{Binding LengthUnits}"
+                                  SelectedItem="{Binding SelectedOuterDiameterUnit}"
+                                  Style="{StaticResource ModernComboBox}"
+                                  ToolTip="{x:Static infos:Tooltips.CoaxialCableTab_OuterDiameterUnitTooltip}"/>
+                    </Grid>
+
+                    <Label Content="Длина кабеля" Style="{StaticResource ModernLabel}"/>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBox Text="{Binding CableLength, UpdateSourceTrigger=PropertyChanged}" 
+                                 Style="{StaticResource ModernTextBox}"
+                                 ToolTip="{x:Static infos:Tooltips.CoaxialCableTab_CableLengthTooltip}"/>
+                        <ComboBox Grid.Column="1" Width="60" 
+                                  ItemsSource="{Binding LengthUnits}"
+                                  SelectedItem="{Binding SelectedCableLengthUnit}"
+                                  Style="{StaticResource ModernComboBox}"
+                                  ToolTip="{x:Static infos:Tooltips.CoaxialCableTab_CableLengthUnitTooltip}"/>
+                    </Grid>
+
+                    <Label Content="Частота" Style="{StaticResource ModernLabel}"/>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBox Text="{Binding Frequency, UpdateSourceTrigger=PropertyChanged}" 
+                                 Style="{StaticResource ModernTextBox}"
+                                 ToolTip="{x:Static infos:Tooltips.CoaxialCableTab_FrequencyTooltip}"/>
+                        <ComboBox Grid.Column="1" Width="60" 
+                                  ItemsSource="{Binding FrequencyUnits}"
+                                  SelectedItem="{Binding SelectedFrequencyUnit}"
+                                  Style="{StaticResource ModernComboBox}"
+                                  ToolTip="{x:Static infos:Tooltips.CoaxialCableTab_FrequencyUnitTooltip}"/>
+                    </Grid>
+
+                    <Label Content="Диэлектрическая постоянная" Style="{StaticResource ModernLabel}"/>
+                    <TextBox Text="{Binding DielectricConstant, UpdateSourceTrigger=PropertyChanged}" 
+                             Style="{StaticResource ModernTextBox}"
+                             ToolTip="{x:Static infos:Tooltips.CoaxialCableTab_DielectricConstantTooltip}"/>
+
+                    <Button Content="Рассчитать" 
+                            Command="{Binding CalculateCommand}"
+                            Style="{StaticResource CalculateButtonStyle}"/>
+                </StackPanel>
+            </GroupBox>
+
+            <GroupBox Header="Результаты расчетов" Style="{StaticResource ModernGroupBox}" Margin="0,20,0,0">
+                <StackPanel Margin="10">
+                    <TextBlock Text="{Binding ImpedanceResult}" 
+                               Style="{StaticResource ResultTextBlockStyle}"/>
+                    <TextBlock Text="{Binding AttenuationResult}" 
+                               Style="{StaticResource ResultTextBlockStyle}"/>
+                    <TextBlock Text="{Binding VelocityFactorResult}" 
+                               Style="{StaticResource ResultTextBlockStyle}"/>
+                    <TextBlock Text="{Binding CapacitanceResult}" 
+                               Style="{StaticResource ResultTextBlockStyle}"/>
+                </StackPanel>
+            </GroupBox>
+        </StackPanel>
     </ScrollViewer>
 </UserControl>

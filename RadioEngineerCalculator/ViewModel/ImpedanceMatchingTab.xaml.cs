@@ -1,71 +1,202 @@
-﻿using RadioEngineerCalculator.Services;
+﻿using RadioEngineerCalculator.Infos;
+using RadioEngineerCalculator.Services;
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Windows;
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
 using System.Windows.Controls;
+using System.Windows.Input;
 using static RadioEngineerCalculator.Services.UnitC;
+using static RadioEngineerCalculator.Services.Validate;
 
 namespace RadioEngineerCalculator.ViewModel
 {
-    public partial class ImpedanceMatchingTab : UserControl
+    public partial class ImpedanceMatchingTab : UserControl, INotifyPropertyChanged
     {
-        public ObservableCollection<string> SourceImpedanceUnits { get; set; }
-        public ObservableCollection<string> LoadImpedanceUnits { get; set; }
-
         private readonly CalculationService _calculationService;
+        private readonly ObservableCollection<string> _impedanceUnits;
+
+        private double _sourceImpedance;
+        private double _loadImpedance;
+        private string _selectedSourceImpedanceUnit;
+        private string _selectedLoadImpedanceUnit;
+        private string _impedanceMatchingResult;
+        private string _reflectionCoefficientResult;
+        private string _vswrResult;
 
         public ImpedanceMatchingTab()
         {
             InitializeComponent();
-            SourceImpedanceUnits = ComboBoxService.GetUnits("Resistance");
-            LoadImpedanceUnits = ComboBoxService.GetUnits("Resistance");
-            _calculationService = new CalculationService();
             DataContext = this;
+            _calculationService = new CalculationService();
+            _impedanceUnits = new ObservableCollection<string>(ComboBoxService.GetUnits("Resistance"));
+            InitializeCommands();
+            InitializeDefaultUnits();
         }
 
-        private void CalculateImpedanceMatching(object sender, RoutedEventArgs e)
-        {
-            if (!TryGetImpedanceValues(out double sourceImpedance, out string sourceImpedanceUnit, out double loadImpedance, out string loadImpedanceUnit))
-            {
-                ResultTextBlock.Text = "Invalid input";
-                return;
-            }
+        public ICommand CalculateImpedanceMatchingCommand { get; private set; }
+        public ICommand CalculateReflectionCoefficientCommand { get; private set; }
+        public ICommand CalculateVSWRCommand { get; private set; }
 
+        public bool CanCalculateImpedanceMatching => InputsAreValid(SourceImpedance, LoadImpedance) &&
+                                                     !string.IsNullOrWhiteSpace(SelectedSourceImpedanceUnit) &&
+                                                     !string.IsNullOrWhiteSpace(SelectedLoadImpedanceUnit);
+
+        public double SourceImpedance
+        {
+            get => _sourceImpedance;
+            set
+            {
+                if (SetProperty(ref _sourceImpedance, value))
+                {
+                    OnPropertyChanged(nameof(CanCalculateImpedanceMatching));
+                }
+            }
+        }
+
+        public double LoadImpedance
+        {
+            get => _loadImpedance;
+            set
+            {
+                if (SetProperty(ref _loadImpedance, value))
+                {
+                    OnPropertyChanged(nameof(CanCalculateImpedanceMatching));
+                }
+            }
+        }
+
+        public string SelectedSourceImpedanceUnit
+        {
+            get => _selectedSourceImpedanceUnit;
+            set
+            {
+                if (SetProperty(ref _selectedSourceImpedanceUnit, value))
+                {
+                    OnPropertyChanged(nameof(CanCalculateImpedanceMatching));
+                    ConvertSourceImpedance();
+                }
+            }
+        }
+
+        public string SelectedLoadImpedanceUnit
+        {
+            get => _selectedLoadImpedanceUnit;
+            set
+            {
+                if (SetProperty(ref _selectedLoadImpedanceUnit, value))
+                {
+                    OnPropertyChanged(nameof(CanCalculateImpedanceMatching));
+                    ConvertLoadImpedance();
+                }
+            }
+        }
+
+        public string ImpedanceMatchingResult
+        {
+            get => _impedanceMatchingResult;
+            set => SetProperty(ref _impedanceMatchingResult, value);
+        }
+
+        public string ReflectionCoefficientResult
+        {
+            get => _reflectionCoefficientResult;
+            set => SetProperty(ref _reflectionCoefficientResult, value);
+        }
+
+        public string VSWRResult
+        {
+            get => _vswrResult;
+            set => SetProperty(ref _vswrResult, value);
+        }
+
+        public ObservableCollection<string> ImpedanceUnits => _impedanceUnits;
+
+        private void InitializeCommands()
+        {
+            CalculateImpedanceMatchingCommand = new RelayCommand(CalculateImpedanceMatching, () => CanCalculateImpedanceMatching);
+            CalculateReflectionCoefficientCommand = new RelayCommand(CalculateReflectionCoefficient, () => CanCalculateImpedanceMatching);
+            CalculateVSWRCommand = new RelayCommand(CalculateVSWR, () => CanCalculateImpedanceMatching);
+        }
+
+        private void InitializeDefaultUnits()
+        {
+            SelectedSourceImpedanceUnit = ImpedanceUnits[0];
+            SelectedLoadImpedanceUnit = ImpedanceUnits[0];
+        }
+
+        private void CalculateImpedanceMatching()
+        {
             try
             {
-                sourceImpedance = Convert(sourceImpedance, sourceImpedanceUnit, "Ω", PhysicalQuantity.Resistance);
-                loadImpedance = Convert(loadImpedance, loadImpedanceUnit, "Ω", PhysicalQuantity.Resistance);
-
-                var result = _calculationService.CalculateImpedanceMatching(sourceImpedance, loadImpedance);
-                ResultTextBlock.Text = $"Согласование импедансов: {FormatImpedanceMatching(result)}";
+                double sourceImpedanceOhm = Convert(SourceImpedance, SelectedSourceImpedanceUnit, "Ω", PhysicalQuantity.Resistance);
+                double loadImpedanceOhm = Convert(LoadImpedance, SelectedLoadImpedanceUnit, "Ω", PhysicalQuantity.Resistance);
+                double matchingImpedance = _calculationService.CalculateImpedanceMatching(sourceImpedanceOhm, loadImpedanceOhm);
+                ImpedanceMatchingResult = $"Согласованный импеданс: {FormatResult(matchingImpedance, PhysicalQuantity.Resistance)}";
             }
             catch (Exception ex)
             {
-                ResultTextBlock.Text = $"Error: {ex.Message}";
+                ImpedanceMatchingResult = $"Ошибка: {ex.Message}";
             }
         }
 
-        private bool TryGetImpedanceValues(out double sourceImpedance, out string sourceImpedanceUnit, out double loadImpedance, out string loadImpedanceUnit)
+        private void CalculateReflectionCoefficient()
         {
-            sourceImpedance = 0;
-            loadImpedance = 0;
-            sourceImpedanceUnit = SourceImpedanceUnitComboBox.SelectedItem?.ToString();
-            loadImpedanceUnit = LoadImpedanceUnitComboBox.SelectedItem?.ToString();
-
-            if (double.TryParse(SourceImpedanceTextBox.Text, out sourceImpedance) &&
-                double.TryParse(LoadImpedanceTextBox.Text, out loadImpedance) &&
-                !string.IsNullOrEmpty(sourceImpedanceUnit) &&
-                !string.IsNullOrEmpty(loadImpedanceUnit))
+            try
             {
-                return true;
+                double sourceImpedanceOhm = Convert(SourceImpedance, SelectedSourceImpedanceUnit, "Ω", PhysicalQuantity.Resistance);
+                double loadImpedanceOhm = Convert(LoadImpedance, SelectedLoadImpedanceUnit, "Ω", PhysicalQuantity.Resistance);
+                double reflectionCoefficient = _calculationService.CalculateReflectionCoefficient(sourceImpedanceOhm, loadImpedanceOhm);
+                ReflectionCoefficientResult = $"Коэффициент отражения: {reflectionCoefficient:F4}";
             }
-
-            return false;
+            catch (Exception ex)
+            {
+                ReflectionCoefficientResult = $"Ошибка: {ex.Message}";
+            }
         }
 
-        private string FormatImpedanceMatching(double matchingValue)
+        private void CalculateVSWR()
         {
-            return AutoFormat(matchingValue, PhysicalQuantity.Resistance);
+            try
+            {
+                double sourceImpedanceOhm = Convert(SourceImpedance, SelectedSourceImpedanceUnit, "Ω", PhysicalQuantity.Resistance);
+                double loadImpedanceOhm = Convert(LoadImpedance, SelectedLoadImpedanceUnit, "Ω", PhysicalQuantity.Resistance);
+                double vswr = _calculationService.CalculateVSWR(sourceImpedanceOhm, loadImpedanceOhm);
+                VSWRResult = $"КСВН: {vswr:F2}";
+            }
+            catch (Exception ex)
+            {
+                VSWRResult = $"Ошибка: {ex.Message}";
+            }
+        }
+
+        private void ConvertSourceImpedance() => ConvertUnit(ref _sourceImpedance, "Ω", SelectedSourceImpedanceUnit, PhysicalQuantity.Resistance);
+        private void ConvertLoadImpedance() => ConvertUnit(ref _loadImpedance, "Ω", SelectedLoadImpedanceUnit, PhysicalQuantity.Resistance);
+
+        private void ConvertUnit(ref double value, string fromUnit, string toUnit, PhysicalQuantity quantity)
+        {
+            if (InputsAreValid(value) && !string.IsNullOrWhiteSpace(toUnit))
+            {
+                value = Convert(value, fromUnit, toUnit, quantity);
+            }
+        }
+
+        private string FormatResult(double value, PhysicalQuantity quantity) => UnitC.AutoFormat(value, quantity);
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
+        protected bool SetProperty<T>(ref T field, T value, [CallerMemberName] string propertyName = null)
+        {
+            if (EqualityComparer<T>.Default.Equals(field, value)) return false;
+            field = value;
+            OnPropertyChanged(propertyName);
+            return true;
         }
     }
 }

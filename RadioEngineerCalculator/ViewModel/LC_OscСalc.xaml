@@ -6,89 +6,126 @@
              xmlns:infos="clr-namespace:RadioEngineerCalculator.Infos"
              mc:Ignorable="d" 
              d:DesignHeight="600" d:DesignWidth="800">
+    <UserControl.Resources>
+        <Style x:Key="HeaderTextBlockStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="18"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="HorizontalAlignment" Value="Center"/>
+            <Setter Property="Margin" Value="0,10,0,20"/>
+        </Style>
+
+        <Style x:Key="ResultTextBlockStyle" TargetType="TextBlock">
+            <Setter Property="Margin" Value="0,10,0,0"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+        </Style>
+
+        <Style x:Key="CalculateButtonStyle" TargetType="Button" BasedOn="{StaticResource ModernButton}">
+            <Setter Property="Margin" Value="0,10,0,0"/>
+        </Style>
+    </UserControl.Resources>
+
     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-        <Grid Margin="10">
-            <StackPanel>
-                <TextBlock Text="Расчет колебательных контуров" HorizontalAlignment="Center" VerticalAlignment="Center" 
-                           FontSize="18" FontWeight="Bold" Margin="0,10,0,20"/>
+        <StackPanel Margin="20">
+            <TextBlock Text="Расчет колебательных контуров" Style="{StaticResource HeaderTextBlockStyle}"/>
 
-                <!-- Общие параметры -->
-                <GroupBox Header="Общие параметры" BorderBrush="{StaticResource DividerBrush}" BorderThickness="1">
-                    <StackPanel Margin="10">
-                        <Label Content="Индуктивность (L)" Style="{StaticResource ModernLabel}"/>
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
-                            <TextBox Text="{Binding Inductance, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBox}">
-                                <TextBox.ToolTip>
-                                    <ToolTip Content="{x:Static infos:Tooltips.ResonantCircuitTab_InductanceTooltip}"/>
-                                </TextBox.ToolTip>
-                            </TextBox>
-                            <ComboBox Grid.Column="1" Width="60" SelectedValue="{Binding InductanceUnit}" ItemsSource="{Binding InductanceUnits}" Style="{StaticResource ModernComboBox}">
-                                <ComboBox.ToolTip>
-                                    <ToolTip Content="{x:Static infos:Tooltips.ResonantCircuitTab_InductanceUnitTooltip}"/>
-                                </ComboBox.ToolTip>
-                            </ComboBox>
-                        </Grid>
+            <!-- Общие параметры -->
+            <GroupBox Header="Общие параметры" Style="{StaticResource ModernGroupBox}">
+                <StackPanel Margin="10">
+                    <Label Content="Индуктивность (L)" Style="{StaticResource ModernLabel}"/>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBox Text="{Binding Inductance, UpdateSourceTrigger=PropertyChanged}" 
+                                 Style="{StaticResource ModernTextBox}"
+                                 ToolTip="{x:Static infos:Tooltips.ResonantCircuitTab_InductanceTooltip}"/>
+                        <ComboBox Grid.Column="1" Width="60" 
+                                  ItemsSource="{Binding InductanceUnits}"
+                                  SelectedItem="{Binding SelectedInductanceUnit}"
+                                  Style="{StaticResource ModernComboBox}"
+                                  ToolTip="{x:Static infos:Tooltips.ResonantCircuitTab_InductanceUnitTooltip}"/>
+                    </Grid>
 
-                        <Label Content="Емкость (C)" Style="{StaticResource ModernLabel}"/>
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
-                            <TextBox Text="{Binding Capacitance, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBox}">
-                                <TextBox.ToolTip>
-                                    <ToolTip Content="{x:Static infos:Tooltips.ResonantCircuitTab_CapacitanceTooltip}"/>
-                                </TextBox.ToolTip>
-                            </TextBox>
-                            <ComboBox Grid.Column="1" Width="60" SelectedValue="{Binding CapacitanceUnit}" ItemsSource="{Binding CapacitanceUnits}" Style="{StaticResource ModernComboBox}">
-                                <ComboBox.ToolTip>
-                                    <ToolTip Content="{x:Static infos:Tooltips.ResonantCircuitTab_CapacitanceUnitTooltip}"/>
-                                </ComboBox.ToolTip>
-                            </ComboBox>
-                        </Grid>
+                    <Label Content="Емкость (C)" Style="{StaticResource ModernLabel}"/>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBox Text="{Binding Capacitance, UpdateSourceTrigger=PropertyChanged}" 
+                                 Style="{StaticResource ModernTextBox}"
+                                 ToolTip="{x:Static infos:Tooltips.ResonantCircuitTab_CapacitanceTooltip}"/>
+                        <ComboBox Grid.Column="1" Width="60" 
+                                  ItemsSource="{Binding CapacitanceUnits}"
+                                  SelectedItem="{Binding SelectedCapacitanceUnit}"
+                                  Style="{StaticResource ModernComboBox}"
+                                  ToolTip="{x:Static infos:Tooltips.ResonantCircuitTab_CapacitanceUnitTooltip}"/>
+                    </Grid>
 
-                        <Label Content="Сопротивление (R)" Style="{StaticResource ModernLabel}"/>
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
-                            <TextBox Text="{Binding Resistance, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBox}"/>
-                            <ComboBox Grid.Column="1" Width="60" SelectedValue="{Binding ResistanceUnit}" ItemsSource="{Binding ResistanceUnits}" Style="{StaticResource ModernComboBox}"/>
-                        </Grid>
+                    <Label Content="Сопротивление (R)" Style="{StaticResource ModernLabel}"/>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBox Text="{Binding Resistance, UpdateSourceTrigger=PropertyChanged}" 
+                                 Style="{StaticResource ModernTextBox}"
+                                 ToolTip="{x:Static infos:Tooltips.ResonantCircuitTab_ResistanceTooltip}"/>
+                        <ComboBox Grid.Column="1" Width="60" 
+                                  ItemsSource="{Binding ResistanceUnits}"
+                                  SelectedItem="{Binding SelectedResistanceUnit}"
+                                  Style="{StaticResource ModernComboBox}"
+                                  ToolTip="{x:Static infos:Tooltips.ResonantCircuitTab_ResistanceUnitTooltip}"/>
+                    </Grid>
 
-                        <Label Content="Частота (F)" Style="{StaticResource ModernLabel}"/>
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
-                            <TextBox Text="{Binding Frequency, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBox}"/>
-                            <ComboBox Grid.Column="1" Width="60" SelectedValue="{Binding FrequencyUnit}" ItemsSource="{Binding FrequencyUnits}" Style="{StaticResource ModernComboBox}"/>
-                        </Grid>
-                    </StackPanel>
-                </GroupBox>
+                    <Label Content="Частота (F)" Style="{StaticResource ModernLabel}"/>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBox Text="{Binding Frequency, UpdateSourceTrigger=PropertyChanged}" 
+                                 Style="{StaticResource ModernTextBox}"
+                                 ToolTip="{x:Static infos:Tooltips.ResonantCircuitTab_FrequencyTooltip}"/>
+                        <ComboBox Grid.Column="1" Width="60" 
+                                  ItemsSource="{Binding FrequencyUnits}"
+                                  SelectedItem="{Binding SelectedFrequencyUnit}"
+                                  Style="{StaticResource ModernComboBox}"
+                                  ToolTip="{x:Static infos:Tooltips.ResonantCircuitTab_FrequencyUnitTooltip}"/>
+                    </Grid>
+                </StackPanel>
+            </GroupBox>
 
-                <!-- Расчеты -->
-                <GroupBox Header="Расчеты" BorderBrush="{StaticResource DividerBrush}" BorderThickness="1" Margin="0,20,0,0">
-                    <StackPanel Margin="10">
-                        <Button Content="Рассчитать резонансную частоту" Click="CalculateResonanceFrequency" Style="{StaticResource ModernButton}" Margin="0,10,0,0"/>
-                        <TextBlock Text="{Binding ResonanceFrequencyResult}" Margin="0,10,0,0" FontWeight="Bold"/>
+            <!-- Расчеты -->
+            <GroupBox Header="Расчеты" Style="{StaticResource ModernGroupBox}" Margin="0,20,0,0">
+                <StackPanel Margin="10">
+                    <Button Content="Рассчитать резонансную частоту" 
+                            Command="{Binding CalculateResonanceFrequencyCommand}"
+                            IsEnabled="{Binding CanCalculateResonanceFrequency}"
+                            Style="{StaticResource CalculateButtonStyle}"/>
+                    <TextBlock Text="{Binding ResonanceFrequencyResult}" 
+                               Style="{StaticResource ResultTextBlockStyle}"/>
 
-                        <Button Content="Рассчитать импеданс" Click="CalculateImpedance" Style="{StaticResource ModernButton}" Margin="0,10,0,0"/>
-                        <TextBlock Text="{Binding SeriesImpedanceResult}" Margin="0,10,0,0"/>
-                        <TextBlock Text="{Binding ParallelImpedanceResult}" Margin="0,5,0,0"/>
+                    <Button Content="Рассчитать импеданс" 
+                            Command="{Binding CalculateImpedanceCommand}"
+                            IsEnabled="{Binding CanCalculateImpedance}"
+                            Style="{StaticResource CalculateButtonStyle}"/>
+                    <TextBlock Text="{Binding SeriesImpedanceResult}" 
+                               Style="{StaticResource ResultTextBlockStyle}"/>
+                    <TextBlock Text="{Binding ParallelImpedanceResult}" 
+                               Style="{StaticResource ResultTextBlockStyle}"/>
 
-                        <Button Content="Рассчитать добротность" Click="CalculateQFactor" Style="{StaticResource ModernButton}" Margin="0,10,0,0"/>
-                        <TextBlock Text="{Binding SeriesQFactorResult}" Margin="0,10,0,0"/>
-                        <TextBlock Text="{Binding ParallelQFactorResult}" Margin="0,5,0,0"/>
-                    </StackPanel>
-                </GroupBox>
-            </StackPanel>
-        </Grid>
+                    <Button Content="Рассчитать добротность" 
+                            Command="{Binding CalculateQFactorCommand}"
+                            IsEnabled="{Binding CanCalculateQFactor}"
+                            Style="{StaticResource CalculateButtonStyle}"/>
+                    <TextBlock Text="{Binding SeriesQFactorResult}" 
+                               Style="{StaticResource ResultTextBlockStyle}"/>
+                    <TextBlock Text="{Binding ParallelQFactorResult}" 
+                               Style="{StaticResource ResultTextBlockStyle}"/>
+                </StackPanel>
+            </GroupBox>
+        </StackPanel>
     </ScrollViewer>
 </UserControl>

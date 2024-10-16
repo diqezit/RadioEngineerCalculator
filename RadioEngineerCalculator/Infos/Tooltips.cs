@@ -35,6 +35,11 @@
         public const string CoaxialCableTab_InnerDiameterUnitTooltip = "Выберите единицу измерения для диаметра внутреннего проводника.";
         public const string CoaxialCableTab_OuterDiameterTooltip = "Введите диаметр внешнего проводника.";
         public const string CoaxialCableTab_OuterDiameterUnitTooltip = "Выберите единицу измерения для диаметра внешнего проводника.";
+        public const string CoaxialCableTab_CableLengthTooltip = "Введите длину кабеля.";
+        public const string CoaxialCableTab_CableLengthUnitTooltip = "Выберите единицу измерения для длины кабеля.";
+        public const string CoaxialCableTab_FrequencyTooltip = "Введите частоту.";
+        public const string CoaxialCableTab_FrequencyUnitTooltip = "Выберите единицу измерения для частоты.";
+        public const string CoaxialCableTab_DielectricConstantTooltip = "Введите диэлектрическую постоянную.";
 
         // FilterTab Tooltips
         public const string FilterTab_ResistanceTooltip = "Введите сопротивление.";
@@ -101,6 +106,10 @@
         public const string ModulationTab_PhaseDeviationUnitTooltip = "Выберите единицу измерения для девиации фазы.";
 
         // ResonantCircuitTab Tooltips
+        public const string ResonantCircuitTab_FrequencyTooltip = "Введите частоту (F).";
+        public const string ResonantCircuitTab_FrequencyUnitTooltip = "Выберите единицу измерения для частоты.";
+        public const string ResonantCircuitTab_ResistanceTooltip = "Введите сопротивление (R).";
+        public const string ResonantCircuitTab_ResistanceUnitTooltip = "Выберите единицу измерения для сопротивления.";
         public const string ResonantCircuitTab_InductanceTooltip = "Введите индуктивность (L).";
         public const string ResonantCircuitTab_InductanceUnitTooltip = "Выберите единицу измерения для индуктивности.";
         public const string ResonantCircuitTab_CapacitanceTooltip = "Введите емкость (C).";

@@ -14,7 +14,7 @@ namespace RadioEngineerCalculator.Services
             Pressure, Time, ReactivePower, Temperature, Angle, Force, Energy, Speed, Area,
             Volume, Mass, Density, Flow, Conductance, Resistivity, Permittivity, Permeability,
             MagneticField, MagneticFlux, LuminousFlux, Illuminance, SoundPressure,
-            SoundIntensity, SoundPower, SoundLevel
+            SoundIntensity, SoundPower, SoundLevel, Attenuation
         }
 
         #endregion
@@ -55,8 +55,10 @@ namespace RadioEngineerCalculator.Services
             { PhysicalQuantity.SoundPressure, new Dictionary<string, double> { { "Pa", 1 }, { "μPa", 1e-6 }, { "dB", 1 } } },
             { PhysicalQuantity.SoundIntensity, new Dictionary<string, double> { { "W/m²", 1 }, { "mW/m²", 1e-3 }, { "μW/m²", 1e-6 } } },
             { PhysicalQuantity.SoundPower, new Dictionary<string, double> { { "W", 1 }, { "mW", 1e-3 }, { "μW", 1e-6 } } },
-            { PhysicalQuantity.SoundLevel, new Dictionary<string, double> { { "dB", 1 }, { "dB(A)", 1 }, { "dB(B)", 1 }, { "dB(C)", 1 } } }
+            { PhysicalQuantity.SoundLevel, new Dictionary<string, double> { { "dB", 1 }, { "dB(A)", 1 }, { "dB(B)", 1 }, { "dB(C)", 1 } } },
+            { PhysicalQuantity.Attenuation, new Dictionary<string, double> { { "dB", 1 }, { "dBm", 1 }, { "Np", 8.685889638 } } },
         };
+
 
         #endregion
 
@@ -143,6 +145,8 @@ namespace RadioEngineerCalculator.Services
             public static string SoundIntensity(double value) => FormatValue(value, "W/m²", "mW/m²", "μW/m²", 1e-3, 1e-6);
             public static string SoundPower(double value) => FormatValue(value, "W", "mW", "μW", 1e-3, 1e-6);
             public static string SoundLevel(double value) => $"{value:F2} dB";
+
+            public static string Attenuation(double value) => FormatValue(value, "dB", "dBm", "Np", 1, 1);
         }
 
         #endregion
