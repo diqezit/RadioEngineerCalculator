@@ -41,7 +41,7 @@ namespace RadioEngineerCalculator.ViewModel
         public ICommand CalculateWavelengthCommand { get; private set; }
         public ICommand CalculateVSWRCommand { get; private set; }
 
-        public bool CanCalculateWavelength =>  InputsAreValid(Frequency) && !string.IsNullOrWhiteSpace(SelectedFrequencyUnit);
+        public bool CanCalculateWavelength => InputsAreValid(Frequency) && !string.IsNullOrWhiteSpace(SelectedFrequencyUnit);
         public bool CanCalculateVSWR => InputsAreValid(ForwardPower, ReflectedPower) &&
                                         !string.IsNullOrWhiteSpace(SelectedForwardPowerUnit) &&
                                         !string.IsNullOrWhiteSpace(SelectedReflectedPowerUnit);
@@ -179,7 +179,7 @@ namespace RadioEngineerCalculator.ViewModel
             {
                 double frequencyHz = Convert(Frequency, SelectedFrequencyUnit, "Hz", PhysicalQuantity.Frequency);
                 double wavelength = _calculationService.CalculateWavelength(frequencyHz);
-                WavelengthResult = $"Длина волны: {FormatResult(wavelength, PhysicalQuantity.Length)}";
+                WavelengthResult = $"Длина волны: {Form.Length(wavelength)}";
             }
             catch (Exception ex)
             {
@@ -202,17 +202,9 @@ namespace RadioEngineerCalculator.ViewModel
             }
         }
 
-        private void ConvertFrequency() => ConvertUnit(ref _frequency, "Hz", SelectedFrequencyUnit, PhysicalQuantity.Frequency);
-        private void ConvertForwardPower() => ConvertUnit(ref _forwardPower, "W", SelectedForwardPowerUnit, PhysicalQuantity.Power);
-        private void ConvertReflectedPower() => ConvertUnit(ref _reflectedPower, "W", SelectedReflectedPowerUnit, PhysicalQuantity.Power);
-
-        private void ConvertUnit(ref double value, string fromUnit, string toUnit, PhysicalQuantity quantity)
-        {
-            if (InputsAreValid(value) && !string.IsNullOrWhiteSpace(toUnit))
-            {
-                value = Convert(value, fromUnit, toUnit, quantity);
-            }
-        }
+        private void ConvertFrequency() => _frequency = Convert(Frequency, SelectedFrequencyUnit, "Hz", PhysicalQuantity.Frequency);
+        private void ConvertForwardPower() => _forwardPower = Convert(ForwardPower, SelectedForwardPowerUnit, "W", PhysicalQuantity.Power);
+        private void ConvertReflectedPower() => _reflectedPower = Convert(ReflectedPower, SelectedReflectedPowerUnit, "W", PhysicalQuantity.Power);
 
         private void UpdateWavelengthResult()
         {
@@ -225,10 +217,8 @@ namespace RadioEngineerCalculator.ViewModel
             if (valueParts.Length != 2 || !double.TryParse(valueParts[0], out double value)) return;
 
             double convertedWavelength = Convert(value, valueParts[1], SelectedWavelengthUnit, PhysicalQuantity.Length);
-            WavelengthResult = $"Длина волны: {convertedWavelength:F2} {SelectedWavelengthUnit}";
+            WavelengthResult = $"Длина волны: {Form.Length(convertedWavelength)}";
         }
-
-        private string FormatResult(double value, PhysicalQuantity quantity) => UnitC.AutoFormat(value, quantity);
 
         public event PropertyChangedEventHandler PropertyChanged;
 

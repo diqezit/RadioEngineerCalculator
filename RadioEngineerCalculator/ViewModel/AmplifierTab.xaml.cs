@@ -270,7 +270,7 @@ namespace RadioEngineerCalculator.ViewModel
                 double powerInW = Convert(PowerIn, SelectedPowerInUnit, "W", PhysicalQuantity.Power);
                 double powerOutW = Convert(PowerOut, SelectedPowerOutUnit, "W", PhysicalQuantity.Power);
                 double gain = _calculationService.CalculateGain(powerInW, powerOutW);
-                GainResult = $"Усиление: {gain:F2} dB";
+                GainResult = $"Усиление: {UnitC.Form.Power(gain)} dB";
             }
             catch (Exception ex)
             {
@@ -283,7 +283,7 @@ namespace RadioEngineerCalculator.ViewModel
             try
             {
                 double noiseFigure = _calculationService.CalculateNoiseFigure(NoiseFactor);
-                NoiseFigureResult = $"Коэффициент шума: {noiseFigure:F2} dB";
+                NoiseFigureResult = $"Коэффициент шума: {UnitC.Form.Power(noiseFigure)} dB";
             }
             catch (Exception ex)
             {
@@ -309,7 +309,7 @@ namespace RadioEngineerCalculator.ViewModel
             try
             {
                 double compressionPoint = _calculationService.Calculate1dBCompressionPoint(InputPower, OutputPowerDBm, SmallSignalGain);
-                CompressionPointResult = $"Точка компрессии 1 dB: {compressionPoint:F2} dBm";
+                CompressionPointResult = $"Точка компрессии 1 dB: {UnitC.Form.Power(compressionPoint)} dBm";
             }
             catch (Exception ex)
             {
@@ -322,7 +322,7 @@ namespace RadioEngineerCalculator.ViewModel
             try
             {
                 double ip3 = _calculationService.CalculateIP3(FundamentalPower, ThirdOrderPower);
-                IP3Result = $"Точка пересечения третьего порядка (IP3): {ip3:F2} dBm";
+                IP3Result = $"Точка пересечения третьего порядка (IP3): {UnitC.Form.Power(ip3)} dBm";
             }
             catch (Exception ex)
             {
@@ -346,16 +346,8 @@ namespace RadioEngineerCalculator.ViewModel
         #endregion
 
         #region Unit Conversion Methods
-        private void ConvertPowerIn() => ConvertUnit(ref _powerIn, "W", SelectedPowerInUnit, PhysicalQuantity.Power);
-        private void ConvertPowerOut() => ConvertUnit(ref _powerOut, "W", SelectedPowerOutUnit, PhysicalQuantity.Power);
-
-        private void ConvertUnit(ref double value, string fromUnit, string toUnit, PhysicalQuantity quantity)
-        {
-            if (InputsAreValid(value) && !string.IsNullOrWhiteSpace(toUnit))
-            {
-                value = Convert(value, fromUnit, toUnit, quantity);
-            }
-        }
+        private void ConvertPowerIn() => _powerIn = Convert(PowerIn, SelectedPowerInUnit, "W", PhysicalQuantity.Power);
+        private void ConvertPowerOut() => _powerOut = Convert(PowerOut, SelectedPowerOutUnit, "W", PhysicalQuantity.Power);
         #endregion
 
         #region INotifyPropertyChanged Implementation

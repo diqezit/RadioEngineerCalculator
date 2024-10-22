@@ -114,7 +114,7 @@ namespace RadioEngineerCalculator.ViewModel
 
         private Dictionary<string, ObservableCollection<string>> InitializeUnitCollections()
         {
-            return new Dictionary<string, ObservableCollection<string>>
+            return new()
             {
                 ["Voltage"] = new ObservableCollection<string>(GetUnits("Voltage"))
             };
@@ -146,14 +146,14 @@ namespace RadioEngineerCalculator.ViewModel
             }
         }
 
-        private void ConvertInputVoltage() => ConvertUnit(ref _inputVoltage, "V", SelectedInputVoltageUnit, PhysicalQuantity.Voltage);
-        private void ConvertOutputVoltage() => ConvertUnit(ref _outputVoltage, "V", SelectedOutputVoltageUnit, PhysicalQuantity.Voltage);
+        private void ConvertInputVoltage() => ConvertUnit(ref _inputVoltage, "V", SelectedInputVoltageUnit);
+        private void ConvertOutputVoltage() => ConvertUnit(ref _outputVoltage, "V", SelectedOutputVoltageUnit);
 
-        private void ConvertUnit(ref double value, string fromUnit, string toUnit, PhysicalQuantity quantity)
+        private void ConvertUnit(ref double value, string fromUnit, string toUnit)
         {
             if (InputsAreValid(value) && !string.IsNullOrWhiteSpace(toUnit))
             {
-                value = Convert(value, fromUnit, toUnit, quantity);
+                value = Convert(value, fromUnit, toUnit, PhysicalQuantity.Voltage);
             }
         }
 

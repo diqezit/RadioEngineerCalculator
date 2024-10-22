@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Numerics;
-using static RadioEngineerCalculator.Services.ComboBoxService;
-using static RadioEngineerCalculator.Services.UnitC;
-using static RadioEngineerCalculator.Services.Validate;
 
 namespace RadioEngineerCalculator.Services
 {
@@ -16,54 +13,56 @@ namespace RadioEngineerCalculator.Services
 
         public double CalculateVoltage(double resistance, double current)
         {
-            EnsurePositive(resistance, nameof(resistance));
-            EnsurePositive(current, nameof(current));
+            ValidatePositive(resistance, nameof(resistance));
+            ValidatePositive(current, nameof(current));
             return resistance * current;
         }
 
         public double CalculateCurrent(double voltage, double resistance)
         {
-            EnsurePositive(resistance, nameof(resistance));
+            ValidatePositive(resistance, nameof(resistance));
             return voltage / resistance;
         }
 
         public double CalculateResistance(double voltage, double current)
         {
-            EnsurePositive(current, nameof(current));
+            ValidatePositive(current, nameof(current));
             return voltage / current;
         }
 
         public double CalculateParallelResistance(double r1, double r2)
         {
-            EnsurePositive(r1, nameof(r1));
-            EnsurePositive(r2, nameof(r2));
+            ValidatePositive(r1, nameof(r1));
+            ValidatePositive(r2, nameof(r2));
             return 1 / (1 / r1 + 1 / r2);
         }
 
         public double CalculateSeriesResistance(double r1, double r2)
         {
-            EnsurePositive(r1, nameof(r1));
-            EnsurePositive(r2, nameof(r2));
+            ValidatePositive(r1, nameof(r1));
+            ValidatePositive(r2, nameof(r2));
             return r1 + r2;
         }
 
         public double CalculatePower(double current, double resistance)
         {
-            EnsurePositive(current, nameof(current));
-            EnsurePositive(resistance, nameof(resistance));
+            ValidatePositive(current, nameof(current));
+            ValidatePositive(resistance, nameof(resistance));
             return Math.Pow(current, 2) * resistance;
         }
 
         public double CalculatePowerVI(double voltage, double current)
         {
-            EnsurePositive(voltage, nameof(voltage));
-            EnsurePositive(current, nameof(current));
+            ValidatePositive(voltage, nameof(voltage));
+            ValidatePositive(current, nameof(current));
             return voltage * current;
         }
 
         #endregion
 
         #region Расчеты переменного тока и мощности
+
+        /// Рассчитывает ёмкостное реактивное сопротивление.
 
         public double CalculateCapacitiveReactance(double capacitance, double frequency)
         {
@@ -72,6 +71,8 @@ namespace RadioEngineerCalculator.Services
             return 1 / (2 * Math.PI * frequency * capacitance);
         }
 
+        /// Рассчитывает индуктивное реактивное сопротивление.
+
         public double CalculateInductiveReactance(double inductance, double frequency)
         {
             EnsurePositive(inductance, nameof(inductance));
@@ -79,28 +80,36 @@ namespace RadioEngineerCalculator.Services
             return 2 * Math.PI * frequency * inductance;
         }
 
+        /// Рассчитывает реактивное сопротивление.
+
         public double CalculateReactance(double value, double frequency, bool isCapacitive)
         {
             EnsurePositive(value, nameof(value));
             EnsurePositive(frequency, nameof(frequency));
-            return isCapacitive ? CalculateCapacitiveReactance(value, frequency) : CalculateInductiveReactance(value, frequency);
+            return isCapacitive
+                ? CalculateCapacitiveReactance(value, frequency)
+                : CalculateInductiveReactance(value, frequency);
         }
+
+        /// Рассчитывает коэффициент мощности.
 
         public double CalculatePowerFactor(double realPower, double apparentPower)
         {
             EnsurePositive(realPower, nameof(realPower));
             EnsurePositive(apparentPower, nameof(apparentPower));
             if (realPower > apparentPower)
-                throw new ArgumentException("Real power cannot be greater than apparent power.");
+                throw new ArgumentException("Реальная мощность не может быть больше кажущейся мощности.");
             return realPower / apparentPower;
         }
+
+        /// Рассчитывает реактивную мощность.
 
         public double CalculateReactivePower(double apparentPower, double realPower)
         {
             EnsurePositive(apparentPower, nameof(apparentPower));
             EnsurePositive(realPower, nameof(realPower));
             if (realPower > apparentPower)
-                throw new ArgumentException("Real power cannot be greater than apparent power.");
+                throw new ArgumentException("Реальная мощность не может быть больше кажущейся мощности.");
             return Math.Sqrt(Math.Pow(apparentPower, 2) - Math.Pow(realPower, 2));
         }
 
@@ -110,78 +119,69 @@ namespace RadioEngineerCalculator.Services
 
         public double CalculateGain(double powerIn, double powerOut)
         {
-            EnsurePositive(powerIn, nameof(powerIn));
-            EnsurePositive(powerOut, nameof(powerOut));
+            ValidatePositive(powerIn);
+            ValidatePositive(powerOut);
             return 10 * Math.Log10(powerOut / powerIn);
         }
 
         public double CalculateWavelength(double frequency)
         {
-            EnsurePositive(frequency, nameof(frequency));
+            ValidatePositive(frequency);
             return SpeedOfLight / frequency;
         }
 
         public double CalculateQFactor(double resonantFrequency, double bandwidth)
         {
-            EnsurePositive(resonantFrequency, nameof(resonantFrequency));
-            EnsurePositive(bandwidth, nameof(bandwidth));
+            ValidatePositive(resonantFrequency);
+            ValidatePositive(bandwidth);
             return resonantFrequency / bandwidth;
         }
 
         public double CalculateNoiseFigure(double noiseFactor)
         {
-            EnsurePositive(noiseFactor, nameof(noiseFactor));
+            ValidatePositive(noiseFactor);
             return 10 * Math.Log10(noiseFactor);
         }
 
         public double CalculateSkinDepth(double frequency, double resistivity, double relativePermeability)
         {
-            EnsurePositive(frequency, nameof(frequency));
-            EnsurePositive(resistivity, nameof(resistivity));
-            EnsurePositive(relativePermeability, nameof(relativePermeability));
+            ValidatePositive(frequency);
+            ValidatePositive(resistivity);
+            ValidatePositive(relativePermeability);
             return Math.Sqrt(resistivity / (Math.PI * frequency * Mu0 * relativePermeability));
         }
 
         public double CalculateReflectionCoefficient(double sourceImpedance, double loadImpedance)
         {
-            ValidatePositive(sourceImpedance, nameof(sourceImpedance));
-            ValidatePositive(loadImpedance, nameof(loadImpedance));
-
+            ValidatePositive(sourceImpedance);
+            ValidatePositive(loadImpedance);
             return Math.Abs((loadImpedance - sourceImpedance) / (loadImpedance + sourceImpedance));
         }
 
         public double CalculateVSWR(double sourceImpedance, double loadImpedance)
         {
-            double reflectionCoefficient = CalculateReflectionCoefficient(sourceImpedance, loadImpedance);
+            var reflectionCoefficient = CalculateReflectionCoefficient(sourceImpedance, loadImpedance);
             return (1 + reflectionCoefficient) / (1 - reflectionCoefficient);
-        }
-
-        private void ValidatePositive(double value, string paramName)
-        {
-            if (value <= 0)
-            {
-                throw new ArgumentException($"{paramName} должно быть положительным числом.", paramName);
-            }
         }
 
         public double CalculateImpedanceMatching(double sourceImpedance, double loadImpedance)
         {
-            EnsurePositive(sourceImpedance, nameof(sourceImpedance));
-            EnsurePositive(loadImpedance, nameof(loadImpedance));
+            ValidatePositive(sourceImpedance);
+            ValidatePositive(loadImpedance);
             return Math.Sqrt(sourceImpedance * loadImpedance);
         }
 
         public double CalculateAttenuator(double inputVoltage, double outputVoltage)
         {
-            EnsurePositive(inputVoltage, nameof(inputVoltage));
-            EnsurePositive(outputVoltage, nameof(outputVoltage));
+            ValidatePositive(inputVoltage);
+            ValidatePositive(outputVoltage);
             return 20 * Math.Log10(inputVoltage / outputVoltage);
         }
 
         public double CalculateCoaxialCable(double innerDiameter, double outerDiameter)
         {
-            EnsurePositive(innerDiameter, nameof(innerDiameter));
-            EnsurePositive(outerDiameter, nameof(outerDiameter));
+            ValidatePositive(innerDiameter);
+            ValidatePositive(outerDiameter);
             return 138 * Math.Log10(outerDiameter / innerDiameter);
         }
 
@@ -189,6 +189,7 @@ namespace RadioEngineerCalculator.Services
 
         #region Расчеты для усилителей
 
+        // Расчет эффективности усилителя
         public double CalculateAmplifierEfficiency(double outputPower, double inputDCPower)
         {
             EnsurePositive(outputPower, nameof(outputPower));
@@ -196,6 +197,7 @@ namespace RadioEngineerCalculator.Services
             return (outputPower / inputDCPower) * 100;
         }
 
+        // Расчет точки сжатия на 1 дБ
         public double Calculate1dBCompressionPoint(double inputPower, double outputPower, double smallSignalGain)
         {
             EnsurePositive(inputPower, nameof(inputPower));
@@ -206,6 +208,7 @@ namespace RadioEngineerCalculator.Services
             return inputPower;
         }
 
+        // Расчет третьего интермодуляционного пересечения (IP3)
         public double CalculateIP3(double fundamentalPower, double thirdOrderPower)
         {
             EnsurePositive(fundamentalPower, nameof(fundamentalPower));
@@ -215,6 +218,7 @@ namespace RadioEngineerCalculator.Services
             return fundamentalPower + (fundamentalPower - thirdOrderPower) / 2;
         }
 
+        // Расчет трансадмиттанса (transconductance)
         public double CalculateTransconductance(double drainCurrent, double gateVoltage)
         {
             EnsurePositive(drainCurrent, nameof(drainCurrent));
@@ -222,6 +226,7 @@ namespace RadioEngineerCalculator.Services
             return drainCurrent / gateVoltage;
         }
 
+        // Расчет усиления по напряжению
         public double CalculateVoltageGain(double transconductance, double loadResistance)
         {
             EnsurePositive(transconductance, nameof(transconductance));
@@ -233,6 +238,7 @@ namespace RadioEngineerCalculator.Services
 
         #region Расчеты для модуляции
 
+        // Расчет индекса амплитудной модуляции (AM)
         public double CalculateAMIndex(double carrierAmplitude, double modulatingAmplitude)
         {
             if (carrierAmplitude <= 0 || modulatingAmplitude <= 0)
@@ -242,6 +248,7 @@ namespace RadioEngineerCalculator.Services
             return modulatingAmplitude / carrierAmplitude;
         }
 
+        // Расчет индекса частотной модуляции (FM)
         public double CalculateFMIndex(double carrierFrequency, double frequencyDeviation)
         {
             if (carrierFrequency <= 0 || frequencyDeviation <= 0)
@@ -251,6 +258,7 @@ namespace RadioEngineerCalculator.Services
             return frequencyDeviation / carrierFrequency;
         }
 
+        // Расчет индекса фазовой модуляции (PM)
         public double CalculatePMIndex(double carrierPhase, double phaseDeviation)
         {
             if (carrierPhase <= 0 || phaseDeviation <= 0)
@@ -260,6 +268,7 @@ namespace RadioEngineerCalculator.Services
             return phaseDeviation / carrierPhase;
         }
 
+        // Расчет ширины полосы для амплитудной модуляции (AM)
         public double CalculateAMBandwidth(double modulationFrequency)
         {
             if (modulationFrequency <= 0)
@@ -269,6 +278,7 @@ namespace RadioEngineerCalculator.Services
             return 2 * modulationFrequency;
         }
 
+        // Расчет ширины полосы для частотной модуляции (FM)
         public double CalculateFMBandwidth(double modulationIndex, double modulationFrequency)
         {
             if (modulationIndex <= 0 || modulationFrequency <= 0)
@@ -277,21 +287,40 @@ namespace RadioEngineerCalculator.Services
             }
             return 2 * (modulationIndex + 1) * modulationFrequency;
         }
+
         #endregion
 
         #region Расчеты для длинных линий
 
+        // Расчет характеристического импеданса длинной линии с проверкой входных параметров
         public double CalculateCharacteristicImpedance(double inductancePerUnit, double capacitancePerUnit)
-            => Math.Sqrt(inductancePerUnit / capacitancePerUnit);
+        {
+            if (inductancePerUnit <= 0 || capacitancePerUnit <= 0)
+                throw new ArgumentException("Индуктивность и ёмкость на единицу длины должны быть положительными.");
+
+            // Расчет характеристического импеданса
+            return Math.Sqrt(inductancePerUnit / capacitancePerUnit);
+        }
 
         #endregion
 
         #region Расчеты для микрополосковых линий
 
+        // Расчет волнового сопротивления микрополосковой линии с проверкой входных параметров
         public double CalculateMicrostripImpedance(double width, double height, double dielectricConstant)
         {
+            if (width <= 0 || height <= 0)
+                throw new ArgumentException("Ширина и высота должны быть положительными.");
+            if (dielectricConstant <= 1)
+                throw new ArgumentException("Диэлектрическая проницаемость должна быть больше 1.");
+
+            // Эффективная ширина полоски
             var effectiveWidth = width + (1.25 * height / Math.PI) * (1 + Math.Log(4 * Math.PI * width / height));
+
+            // Эффективная диэлектрическая проницаемость
             var effectiveDielectricConstant = (dielectricConstant + 1) / 2 + (dielectricConstant - 1) / (2 * Math.Sqrt(1 + 12 * height / width));
+
+            // Расчет импеданса микрополосковой линии
             return (60 / Math.Sqrt(effectiveDielectricConstant)) * Math.Log((8 * height / effectiveWidth) + (effectiveWidth / (4 * height)));
         }
 
@@ -299,50 +328,92 @@ namespace RadioEngineerCalculator.Services
 
         #region Расчеты для антенн
 
+        // Расчет коэффициента усиления антенны с проверкой эффективности и направленности
         public double CalculateAntennaGain(double efficiency, double directivity)
-            => efficiency * directivity;
+        {
+            if (efficiency <= 0 || efficiency > 1)
+                throw new ArgumentException("Эффективность должна быть в пределах от 0 до 1.");
+            if (directivity <= 0)
+                throw new ArgumentException("Направленность должна быть положительной.");
 
+            return efficiency * directivity;
+        }
+
+        // Расчет эффективной площади антенны с проверкой коэффициента усиления и длины волны
         public double CalculateAntennaEffectiveArea(double gain, double wavelength)
-            => (gain * Math.Pow(wavelength, 2)) / (4 * Math.PI);
+        {
+            if (gain <= 0)
+                throw new ArgumentException("Коэффициент усиления должен быть положительным.");
+            if (wavelength <= 0)
+                throw new ArgumentException("Длина волны должна быть положительной.");
+
+            return (gain * Math.Pow(wavelength, 2)) / (4 * Math.PI);
+        }
 
         #endregion
 
         #region Расчеты для цифровой обработки сигналов
 
+        // Расчет частоты Найквиста с валидацией максимальной частоты
         public double CalculateNyquistRate(double maxFrequency)
-            => 2 * maxFrequency;
+        {
+            if (maxFrequency <= 0)
+                throw new ArgumentException("Максимальная частота должна быть положительной.");
 
+            return 2 * maxFrequency;
+        }
+
+        // Расчет шума квантования с проверкой количества бит на отсчет
         public double CalculateQuantizationNoise(int bitsPerSample)
-            => Math.Pow(2, -bitsPerSample) / Math.Sqrt(12);
+        {
+            if (bitsPerSample <= 0)
+                throw new ArgumentException("Количество бит на отсчет должно быть положительным.");
+
+            return Math.Pow(2, -bitsPerSample) / Math.Sqrt(12);
+        }
 
         #endregion
 
         #region Расчеты для смесителей (Mixers)
 
+        // Расчет коэффициента преобразования с валидацией входных данных
         public double CalculateConversionGain(double outputPower, double inputPower)
-            => 10 * Math.Log10(outputPower / inputPower);
+        {
+            if (outputPower <= 0 || inputPower <= 0)
+                throw new ArgumentException("Выходная и входная мощность должны быть положительными.");
 
+            return 10 * Math.Log10(outputPower / inputPower);
+        }
+
+        // Расчет коэффициента подавления зеркальной частоты с валидацией входных данных
         public double CalculateImageRejectionRatio(double desiredSignalPower, double imageSignalPower)
-            => 10 * Math.Log10(desiredSignalPower / imageSignalPower);
+        {
+            if (desiredSignalPower <= 0 || imageSignalPower <= 0)
+                throw new ArgumentException("Мощности желаемого и зеркального сигналов должны быть положительными.");
+
+            return 10 * Math.Log10(desiredSignalPower / imageSignalPower);
+        }
 
         #endregion
 
         #region Расчеты для систем связи (Communication Systems)
 
+        // Расчет битовой ошибки с валидацией
         public double CalculateBitErrorRate(double energyPerBit, double noisePowerDensity)
         {
+            if (energyPerBit <= 0 || noisePowerDensity <= 0)
+                throw new ArgumentException("Энергия на бит и мощность шума должны быть положительными.");
+
             var snr = energyPerBit / noisePowerDensity;
             return 0.5 * Erfc(Math.Sqrt(snr / 2));
         }
 
-        private double Erfc(double x)
-        {
-            return 1 - Erf(x);
-        }
+        // Вычисление комплементарной функции ошибок с использованием expression-bodied метода
+        private double Erfc(double x) => 1 - Erf(x);
 
+        // Аппроксимация функции ошибок с валидацией параметров
         private double Erf(double x)
         {
-            // Аппроксимация функции ошибок
             const double a1 = 0.254829592;
             const double a2 = -0.284496736;
             const double a3 = 1.421413741;
@@ -350,43 +421,42 @@ namespace RadioEngineerCalculator.Services
             const double a5 = 1.061405429;
             const double p = 0.3275911;
 
+            if (double.IsNaN(x) || double.IsInfinity(x))
+                throw new ArgumentException("Недопустимое значение для функции ошибок.");
+
             int sign = (x < 0) ? -1 : 1;
             x = Math.Abs(x);
 
             double t = 1.0 / (1.0 + p * x);
 
-            // Упрощенное для чтения выражение
-            double y = 1.0 - (
-                (
-                    (
-                        (
-                            (a5 * t + a4) * t + a3
-                        ) * t + a2
-                    ) * t + a1
-                ) * t * Math.Exp(-x * x)
-            );
+            // Более читаемая запись аппроксимации
+            double y = 1.0 - (((((a5 * t + a4) * t + a3) * t + a2) * t + a1) * t * Math.Exp(-x * x));
 
             return sign * y;
         }
-
 
         #endregion
 
         #region Расчеты для колебательных контуров (Oscillators)
 
-        // Расчет резонансной частоты с улучшенной валидацией
-        public double CalculateResonanceFrequency(double inductance, double capacitance)
-        {
-            if (inductance <= 0 || capacitance <= 0)
-                throw new ArgumentException("Индуктивность и ёмкость должны быть положительными.");
-            return 1 / (2 * Math.PI * Math.Sqrt(inductance * capacitance));
-        }
+        // Расчет резонансной частоты с улучшенной валидацией и expression-bodied методом
+        public double CalculateResonanceFrequency(double inductance, double capacitance) =>
+            (inductance, capacitance) switch
+            {
+                ( > 0, > 0) => 1 / (2 * Math.PI * Math.Sqrt(inductance * capacitance)),
+                _ => throw new ArgumentException("Индуктивность и ёмкость должны быть положительными.")
+            };
 
-        // Добавление более явной обработки ошибок для импеданса
+        // Добавление более явной обработки ошибок с использованием switch expression
         public Complex CalculateSeriesImpedance(double resistance, double inductance, double capacitance, double frequency)
         {
-            if (resistance < 0 || inductance <= 0 || capacitance <= 0 || frequency <= 0)
-                throw new ArgumentException("Все параметры должны быть положительными, а индуктивность, ёмкость и частота должны быть строго больше нуля.");
+            EnsurePositiveValues(new (double, string)[]
+            {
+        (resistance, nameof(resistance)),
+        (inductance, nameof(inductance)),
+        (capacitance, nameof(capacitance)),
+        (frequency, nameof(frequency))
+            });
 
             var inductiveReactance = 2 * Math.PI * frequency * inductance;
             var capacitiveReactance = 1 / (2 * Math.PI * frequency * capacitance);
@@ -394,47 +464,54 @@ namespace RadioEngineerCalculator.Services
             return new Complex(resistance, inductiveReactance - capacitiveReactance);
         }
 
-        // Расчет индекса паралельного контура
+        // Расчет импеданса для параллельного контура
         public Complex CalculateParallelImpedance(double resistance, double inductance, double capacitance, double frequency)
         {
-            if (resistance <= 0 || inductance <= 0 || capacitance <= 0 || frequency <= 0)
-                throw new ArgumentException("Все параметры должны быть строго больше нуля.");
+            EnsurePositiveValues(new (double, string)[]
+            {
+        (resistance, nameof(resistance)),
+        (inductance, nameof(inductance)),
+        (capacitance, nameof(capacitance)),
+        (frequency, nameof(frequency))
+            });
 
-            // Индуктивное и емкостное сопротивление
-            var inductiveReactance = 2 * Math.PI * frequency * inductance;  // X_L = ωL
-            var capacitiveReactance = 1 / (2 * Math.PI * frequency * capacitance);  // X_C = 1 / (ωC)
+            var inductiveReactance = 2 * Math.PI * frequency * inductance;
+            var capacitiveReactance = 1 / (2 * Math.PI * frequency * capacitance);
 
-            // Преобразуем в комплексные числа для импеданса
-            Complex Z_R = new Complex(resistance, 0);  // Сопротивление
-            Complex Z_L = new Complex(0, inductiveReactance);  // Индуктивное сопротивление (чисто мнимая часть)
-            Complex Z_C = new Complex(0, -capacitiveReactance);  // Емкостное сопротивление (чисто мнимая часть)
+            Complex Z_R = new Complex(resistance, 0);
+            Complex Z_L = new Complex(0, inductiveReactance);
+            Complex Z_C = new Complex(0, -capacitiveReactance);
 
-            // Полный импеданс для параллельного контура: Z_parallel = 1 / (1/Z_R + 1/Z_L + 1/Z_C)
             return 1 / (1 / Z_R + 1 / Z_L + 1 / Z_C);
         }
 
         // Расчет добротности для последовательного контура
-        public double CalculateSeriesQFactor(double inductance, double resistance, double frequency)
-        {
-            if (inductance <= 0 || resistance <= 0 || frequency <= 0)
-                throw new ArgumentException("Parameters must be greater than zero.");
-
-            // Добротность Q = ωL / R
-            var inductiveReactance = 2 * Math.PI * frequency * inductance;  // X_L = ωL
-            return inductiveReactance / resistance;
-        }
+        public double CalculateSeriesQFactor(double inductance, double resistance, double frequency) =>
+            (inductance, resistance, frequency) switch
+            {
+                ( > 0, > 0, > 0) => (2 * Math.PI * frequency * inductance) / resistance,
+                _ => throw new ArgumentException("Parameters must be greater than zero.")
+            };
 
         // Расчет добротности для параллельного контура
-        public double CalculateParallelQFactor(double inductance, double resistance, double frequency)
+        public double CalculateParallelQFactor(double inductance, double resistance, double frequency) =>
+            (inductance, resistance, frequency) switch
+            {
+                ( > 0, > 0, > 0) => resistance / (2 * Math.PI * frequency * inductance),
+                _ => throw new ArgumentException("Parameters must be greater than zero.")
+            };
+
+        // Метод для проверки положительных значений
+        private void EnsurePositiveValues((double value, string name)[] values)
         {
-            if (inductance <= 0 || resistance <= 0 || frequency <= 0)
-                throw new ArgumentException("Parameters must be greater than zero.");
-
-            // Добротность Q = R / ωL
-            var inductiveReactance = 2 * Math.PI * frequency * inductance;  // X_L = ωL
-            return resistance / inductiveReactance;
+            foreach (var (value, name) in values)
+            {
+                if (value <= 0)
+                {
+                    throw new ArgumentException($"{name} должно быть положительным.");
+                }
+            }
         }
-
         #endregion
 
         #region Расчеты для коаксиального кабеля
@@ -448,16 +525,22 @@ namespace RadioEngineerCalculator.Services
         /// <returns>Волновое сопротивление в Омах</returns>
         public double CalculateCoaxialCableImpedance(double innerDiameter, double outerDiameter, double dielectricConstant)
         {
-            EnsurePositive(innerDiameter, nameof(innerDiameter));
-            EnsurePositive(outerDiameter, nameof(outerDiameter));
-            EnsurePositive(dielectricConstant, nameof(dielectricConstant));
-
-            if (innerDiameter >= outerDiameter)
-            {
-                throw new ArgumentException("Внутренний диаметр должен быть меньше внешнего диаметра");
-            }
+            EnsureValidParameters();
 
             return (60 / Math.Sqrt(dielectricConstant)) * Math.Log10(outerDiameter / innerDiameter);
+
+            // Локальная функция для проверки параметров
+            void EnsureValidParameters()
+            {
+                EnsurePositive(innerDiameter, nameof(innerDiameter));
+                EnsurePositive(outerDiameter, nameof(outerDiameter));
+                EnsurePositive(dielectricConstant, nameof(dielectricConstant));
+
+                if (innerDiameter >= outerDiameter)
+                {
+                    throw new ArgumentException("Внутренний диаметр должен быть меньше внешнего диаметра");
+                }
+            }
         }
 
         /// <summary>
@@ -471,22 +554,27 @@ namespace RadioEngineerCalculator.Services
         /// <returns>Затухание в дБ</returns>
         public double CalculateCoaxialCableAttenuation(double innerDiameter, double outerDiameter, double frequency, double dielectricConstant, double length)
         {
-            EnsurePositive(innerDiameter, nameof(innerDiameter));
-            EnsurePositive(outerDiameter, nameof(outerDiameter));
-            EnsurePositive(frequency, nameof(frequency));
-            EnsurePositive(dielectricConstant, nameof(dielectricConstant));
-            EnsurePositive(length, nameof(length));
-
-            if (innerDiameter >= outerDiameter)
-            {
-                throw new ArgumentException("Внутренний диаметр должен быть меньше внешнего диаметра");
-            }
+            EnsureValidParameters();
 
             double impedance = CalculateCoaxialCableImpedance(innerDiameter, outerDiameter, dielectricConstant);
             double conductorLoss = (1 / innerDiameter + 1 / outerDiameter) * Math.Sqrt(Math.PI * frequency * 4e-7 / (2 * 5.8e7));
-            double dielectricLoss = (Math.PI / 3e8) * frequency * Math.Sqrt(dielectricConstant) * Math.Tan(0.001); // предполагаем тангенс угла потерь 0.001
+            double dielectricLoss = (Math.PI / 3e8) * frequency * Math.Sqrt(dielectricConstant) * Math.Tan(0.001); // Тангенс угла потерь 0.001
 
             return (conductorLoss + dielectricLoss) * impedance * length * 8.686; // 8.686 для перевода из Np в дБ
+
+            void EnsureValidParameters()
+            {
+                EnsurePositive(innerDiameter, nameof(innerDiameter));
+                EnsurePositive(outerDiameter, nameof(outerDiameter));
+                EnsurePositive(frequency, nameof(frequency));
+                EnsurePositive(dielectricConstant, nameof(dielectricConstant));
+                EnsurePositive(length, nameof(length));
+
+                if (innerDiameter >= outerDiameter)
+                {
+                    throw new ArgumentException("Внутренний диаметр должен быть меньше внешнего диаметра");
+                }
+            }
         }
 
         /// <summary>
@@ -497,7 +585,6 @@ namespace RadioEngineerCalculator.Services
         public double CalculateVelocityFactor(double dielectricConstant)
         {
             EnsurePositive(dielectricConstant, nameof(dielectricConstant));
-
             return 1 / Math.Sqrt(dielectricConstant);
         }
 
@@ -511,21 +598,49 @@ namespace RadioEngineerCalculator.Services
         /// <returns>Емкость в Фарадах</returns>
         public double CalculateCoaxialCableCapacitance(double innerDiameter, double outerDiameter, double dielectricConstant, double length)
         {
-            EnsurePositive(innerDiameter, nameof(innerDiameter));
-            EnsurePositive(outerDiameter, nameof(outerDiameter));
-            EnsurePositive(dielectricConstant, nameof(dielectricConstant));
-            EnsurePositive(length, nameof(length));
-
-            if (innerDiameter >= outerDiameter)
-            {
-                throw new ArgumentException("Внутренний диаметр должен быть меньше внешнего диаметра");
-            }
+            EnsureValidParameters();
 
             return (2 * Math.PI * 8.854e-12 * dielectricConstant * length) / Math.Log(outerDiameter / innerDiameter);
+
+            void EnsureValidParameters()
+            {
+                EnsurePositive(innerDiameter, nameof(innerDiameter));
+                EnsurePositive(outerDiameter, nameof(outerDiameter));
+                EnsurePositive(dielectricConstant, nameof(dielectricConstant));
+                EnsurePositive(length, nameof(length));
+
+                if (innerDiameter >= outerDiameter)
+                {
+                    throw new ArgumentException("Внутренний диаметр должен быть меньше внешнего диаметра");
+                }
+            }
+        }
+        #endregion
+
+        #region Различные методы проверки
+
+        // Метод проверки на положительность
+        private void EnsurePositive(double value, string parameterName)
+        {
+            if (value <= 0)
+                throw new ArgumentException($"{parameterName} должен быть больше нуля.");
+        }
+
+        private void ValidatePositive(double value, string paramName = null)
+        {
+            if (value <= 0)
+            {
+                if (string.IsNullOrEmpty(paramName))
+                {
+                    throw new ArgumentOutOfRangeException(nameof(value), "Значение должно быть положительным.");
+                }
+                else
+                {
+                    throw new ArgumentException($"{paramName} должно быть положительным числом.", paramName);
+                }
+            }
         }
 
         #endregion
-
-
     }
 }

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Numerics;
 using System.Linq;
+using System.Numerics;
 using static RadioEngineerCalculator.Services.UnitC;
 
 namespace RadioEngineerCalculator.Services
@@ -22,22 +22,17 @@ namespace RadioEngineerCalculator.Services
             {
                 ValidateInputValues(inputValues);
 
-                // Конвертируем все значения в базовые единицы измерения
-                double capacitanceInFarads = Convert(inputValues.Capacitance, inputValues.CapacitanceUnit, "F", PhysicalQuantity.Capacitance);
-                double inductanceInHenries = Convert(inputValues.Inductance, inputValues.InductanceUnit, "H", PhysicalQuantity.Inductance);
-                double resistanceInOhms = Convert(inputValues.Resistance, inputValues.ResistanceUnit, "Ω", PhysicalQuantity.Resistance);
-                double frequencyInHz = Convert(inputValues.Frequency, inputValues.FrequencyUnit, "Hz", PhysicalQuantity.Frequency);
+                var (capacitanceInFarads, inductanceInHenries, resistanceInOhms, frequencyInHz) = (
+                    Convert(inputValues.Capacitance, inputValues.CapacitanceUnit, "F", PhysicalQuantity.Capacitance),
+                    Convert(inputValues.Inductance, inputValues.InductanceUnit, "H", PhysicalQuantity.Inductance),
+                    Convert(inputValues.Resistance, inputValues.ResistanceUnit, "Ω", PhysicalQuantity.Resistance),
+                    Convert(inputValues.Frequency, inputValues.FrequencyUnit, "Hz", PhysicalQuantity.Frequency)
+                );
 
                 var cutoffFrequency = CalculateCutoffFrequency(inductanceInHenries, capacitanceInFarads);
                 var qualityFactor = CalculateQualityFactor(resistanceInOhms, inductanceInHenries, capacitanceInFarads);
                 var bandwidth = CalculateBandwidth(cutoffFrequency, qualityFactor);
-
-                double safeFrequency = EnsureSafeFrequency(frequencyInHz, cutoffFrequency);
-
-                var impedance = CalculateImpedance(safeFrequency, resistanceInOhms, inductanceInHenries, capacitanceInFarads);
-                var phaseShift = CalculatePhaseShift(inputValues.FilterType, safeFrequency, cutoffFrequency, bandwidth);
-                var groupDelay = CalculateGroupDelay(inputValues.FilterType, safeFrequency, cutoffFrequency, bandwidth);
-                var attenuation = CalculateAttenuation(inputValues.FilterType, safeFrequency, cutoffFrequency, bandwidth);
+                var safeFrequency = EnsureSafeFrequency(frequencyInHz, cutoffFrequency);
 
                 return new FilterResults
                 {
@@ -45,14 +40,14 @@ namespace RadioEngineerCalculator.Services
                     CutoffFrequency = Convert(cutoffFrequency, "Hz", inputValues.FrequencyUnit, PhysicalQuantity.Frequency),
                     QualityFactor = qualityFactor,
                     Bandwidth = Convert(bandwidth, "Hz", inputValues.FrequencyUnit, PhysicalQuantity.Frequency),
-                    Impedance = impedance.Magnitude,
-                    PhaseShift = phaseShift,
-                    GroupDelay = groupDelay,
-                    Attenuation = attenuation,
+                    Impedance = CalculateImpedance(safeFrequency, resistanceInOhms, inductanceInHenries, capacitanceInFarads).Magnitude,
+                    PhaseShift = CalculatePhaseShift(inputValues.FilterType, safeFrequency, cutoffFrequency, bandwidth),
+                    GroupDelay = CalculateGroupDelay(inputValues.FilterType, safeFrequency, cutoffFrequency, bandwidth),
+                    Attenuation = CalculateAttenuation(inputValues.FilterType, safeFrequency, cutoffFrequency, bandwidth),
                     FrequencyResponse = CalculateFrequencyResponse(inputValues.FilterType, safeFrequency, cutoffFrequency, bandwidth, inputValues.FrequencyUnit)
                 };
             }
-            catch (Exception ex)
+            catch (ArgumentException ex)
             {
                 throw new ApplicationException($"Ошибка при расчете параметров фильтра: {ex.Message}", ex);
             }
@@ -89,85 +84,45 @@ namespace RadioEngineerCalculator.Services
             return frequency;
         }
 
-        public double CalculateMagnitudeResponse(FilterType filterType, double frequency, double cutoffFrequency, double bandwidth)
-        {
-            if (frequency <= 0 || cutoffFrequency <= 0 || bandwidth <= 0)
+        public double CalculateMagnitudeResponse(FilterType filterType, double frequency, double cutoffFrequency, double bandwidth) =>
+            (frequency, cutoffFrequency, bandwidth) switch
             {
-                throw new ArgumentException("Частота, частота среза и полоса пропускания должны быть положительными числами");
-            }
-
-            double normalizedFrequency = frequency / cutoffFrequency;
-            double response;
-
-            switch (filterType)
-            {
-                case FilterType.LowPass:
-                    response = 1 / Math.Sqrt(1 + Math.Pow(normalizedFrequency, 2));
-                    break;
-                case FilterType.HighPass:
-                    response = normalizedFrequency / Math.Sqrt(1 + Math.Pow(normalizedFrequency, 2));
-                    break;
-                case FilterType.BandPass:
-                    response = CalculateBandPassMagnitude(normalizedFrequency, cutoffFrequency, bandwidth);
-                    break;
-                case FilterType.BandStop:
-                    response = CalculateBandStopMagnitude(normalizedFrequency, cutoffFrequency, bandwidth);
-                    break;
-                default:
-                    throw new ArgumentException("Неподдерживаемый тип фильтра", nameof(filterType));
-            }
-
-            return response;
-        }
+                ( < 0, _, _) => throw new ArgumentException("Частота должна быть положительным числом"),
+                (_, <= 0, _) => throw new ArgumentException("Частота среза должна быть положительным числом"),
+                (_, _, <= 0) => throw new ArgumentException("Полоса пропускания должна быть положительным числом"),
+                _ => filterType switch
+                {
+                    FilterType.LowPass => 1 / Math.Sqrt(1 + Math.Pow(frequency / cutoffFrequency, 2)),
+                    FilterType.HighPass => (frequency / cutoffFrequency) / Math.Sqrt(1 + Math.Pow(frequency / cutoffFrequency, 2)),
+                    FilterType.BandPass => CalculateBandPassMagnitude(frequency / cutoffFrequency, cutoffFrequency, bandwidth),
+                    FilterType.BandStop => CalculateBandStopMagnitude(frequency / cutoffFrequency, cutoffFrequency, bandwidth),
+                    _ => throw new ArgumentException("Неподдерживаемый тип фильтра", nameof(filterType))
+                }
+            };
 
         public double CalculatePhaseShift(FilterType filterType, double frequency, double cutoffFrequency, double bandwidth)
         {
             double normalizedFrequency = frequency / cutoffFrequency;
-            double phase;
-
-            switch (filterType)
+            return filterType switch
             {
-                case FilterType.LowPass:
-                    phase = -Math.Atan(normalizedFrequency);
-                    break;
-                case FilterType.HighPass:
-                    phase = Math.PI / 2 - Math.Atan(1 / normalizedFrequency);
-                    break;
-                case FilterType.BandPass:
-                    phase = CalculateBandPassPhase(normalizedFrequency, cutoffFrequency, bandwidth);
-                    break;
-                case FilterType.BandStop:
-                    phase = CalculateBandStopPhase(normalizedFrequency, cutoffFrequency, bandwidth);
-                    break;
-                default:
-                    throw new ArgumentException("Неподдерживаемый тип фильтра", nameof(filterType));
-            }
-
-            return phase;
+                FilterType.LowPass => -Math.Atan(normalizedFrequency),
+                FilterType.HighPass => Math.PI / 2 - Math.Atan(1 / normalizedFrequency),
+                FilterType.BandPass => CalculateBandPassPhase(normalizedFrequency, cutoffFrequency, bandwidth),
+                FilterType.BandStop => CalculateBandStopPhase(normalizedFrequency, cutoffFrequency, bandwidth),
+                _ => throw new ArgumentException("Неподдерживаемый тип фильтра", nameof(filterType))
+            };
         }
 
         public double CalculateGroupDelay(FilterType filterType, double frequency, double cutoffFrequency, double bandwidth)
         {
             double normalizedFrequency = frequency / cutoffFrequency;
-            double delay;
-
-            switch (filterType)
+            return filterType switch
             {
-                case FilterType.LowPass:
-                    delay = 1 / (2 * Math.PI * frequency * (1 + Math.Pow(normalizedFrequency, 2)));
-                    break;
-                case FilterType.HighPass:
-                    delay = 1 / (2 * Math.PI * frequency * (1 + Math.Pow(1 / normalizedFrequency, 2)));
-                    break;
-                case FilterType.BandPass:
-                case FilterType.BandStop:
-                    delay = CalculateBandGroupDelay(normalizedFrequency, cutoffFrequency, bandwidth);
-                    break;
-                default:
-                    throw new ArgumentException("Неподдерживаемый тип фильтра", nameof(filterType));
-            }
-
-            return delay;
+                FilterType.LowPass => 1 / (2 * Math.PI * frequency * (1 + Math.Pow(normalizedFrequency, 2))),
+                FilterType.HighPass => 1 / (2 * Math.PI * frequency * (1 + Math.Pow(1 / normalizedFrequency, 2))),
+                FilterType.BandPass or FilterType.BandStop => CalculateBandGroupDelay(normalizedFrequency, cutoffFrequency, bandwidth),
+                _ => throw new ArgumentException("Неподдерживаемый тип фильтра", nameof(filterType))
+            };
         }
 
         public double CalculateAttenuation(FilterType filterType, double frequency, double cutoffFrequency, double bandwidth)
@@ -210,25 +165,23 @@ namespace RadioEngineerCalculator.Services
             const int pointCount = 1000;
             double startFreq = Math.Max(frequency / 100, 1e-6 * cutoffFrequency);
             double endFreq = Math.Min(frequency * 100, 1e6 * cutoffFrequency);
-            var response = new List<Point>(pointCount);
 
-            for (int i = 0; i < pointCount; i++)
-            {
-                double freq = Math.Pow(10, Math.Log10(startFreq) + (Math.Log10(endFreq) - Math.Log10(startFreq)) * i / (pointCount - 1));
-                double gain = CalculateMagnitudeResponse(filterType, freq, cutoffFrequency, bandwidth);
-                response.Add(new Point
+            return Enumerable.Range(0, pointCount)
+                .Select(i =>
                 {
-                    X = Convert(freq, "Hz", frequencyUnit, PhysicalQuantity.Frequency),
-                    Y = 20 * Math.Log10(gain)
-                });
-            }
-
-            return response;
+                    double freq = Math.Pow(10, Math.Log10(startFreq) + (Math.Log10(endFreq) - Math.Log10(startFreq)) * i / (pointCount - 1));
+                    double gain = CalculateMagnitudeResponse(filterType, freq, cutoffFrequency, bandwidth);
+                    return new Point
+                    {
+                        X = Convert(freq, "Hz", frequencyUnit, PhysicalQuantity.Frequency),
+                        Y = 20 * Math.Log10(gain)
+                    };
+                }).ToList();
         }
 
-        private static void ValidateUnit(string unit, PhysicalQuantity quantity)
+        private static void ValidateUnit(string? unit, PhysicalQuantity quantity)
         {
-            if (!UnitFactors[quantity].ContainsKey(unit))
+            if (unit is null || !UnitFactors[quantity].ContainsKey(unit))
                 throw new ArgumentException($"Недопустимая единица измерения для {quantity}: {unit}");
         }
 
@@ -264,8 +217,7 @@ namespace RadioEngineerCalculator.Services
 
         private static void ValidateInputValues(FilterInputValues inputValues)
         {
-            if (inputValues == null)
-                throw new ArgumentNullException(nameof(inputValues));
+            _ = inputValues ?? throw new ArgumentNullException(nameof(inputValues));
 
             if (inputValues.Capacitance <= 0 || inputValues.Inductance <= 0 || inputValues.Resistance <= 0 || inputValues.Frequency <= 0)
                 throw new ArgumentException("Все значения должны быть положительными.");
@@ -273,11 +225,16 @@ namespace RadioEngineerCalculator.Services
             if (string.IsNullOrEmpty(inputValues.FrequencyUnit))
                 throw new ArgumentException("Единица измерения частоты не указана.");
 
-            // Проверка допустимости единиц измерения
-            ValidateUnit(inputValues.CapacitanceUnit, PhysicalQuantity.Capacitance);
-            ValidateUnit(inputValues.InductanceUnit, PhysicalQuantity.Inductance);
-            ValidateUnit(inputValues.ResistanceUnit, PhysicalQuantity.Resistance);
-            ValidateUnit(inputValues.FrequencyUnit, PhysicalQuantity.Frequency);
+            foreach (var (unit, quantity) in new[]
+            {
+        (inputValues.CapacitanceUnit, PhysicalQuantity.Capacitance),
+        (inputValues.InductanceUnit, PhysicalQuantity.Inductance),
+        (inputValues.ResistanceUnit, PhysicalQuantity.Resistance),
+        (inputValues.FrequencyUnit, PhysicalQuantity.Frequency)
+    })
+            {
+                ValidateUnit(unit, quantity);
+            }
         }
     }
 

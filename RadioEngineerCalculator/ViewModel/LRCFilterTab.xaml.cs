@@ -27,13 +27,11 @@ namespace RadioEngineerCalculator.ViewModel
         private bool _canCalculate;
 
         public ICommand CalculateCommand { get; }
-        public ObservableCollection<string> CapacitanceUnits { get; } = new ObservableCollection<string>(GetUnits("Capacitance"));
-        public ObservableCollection<string> InductanceUnits { get; } = new ObservableCollection<string>(GetUnits("Inductance"));
-        public ObservableCollection<string> ResistanceUnits { get; } = new ObservableCollection<string>(GetUnits("Resistance"));
-        public ObservableCollection<string> FrequencyUnits { get; } = new ObservableCollection<string>(GetUnits("Frequency"));
+        public ObservableCollection<string> CapacitanceUnits { get; } = new(GetUnits("Capacitance").ToList());
+        public ObservableCollection<string> InductanceUnits { get; } = new(GetUnits("Inductance").ToList());
+        public ObservableCollection<string> ResistanceUnits { get; } = new(GetUnits("Resistance").ToList());
+        public ObservableCollection<string> FrequencyUnits { get; } = new(GetUnits("Frequency").ToList());
         public ObservableCollection<string> FilterTypes { get; } = new ObservableCollection<string> { "LowPass", "HighPass", "BandPass", "BandStop" };
-
-
 
         public bool CanCalculate
         {
@@ -199,40 +197,29 @@ namespace RadioEngineerCalculator.ViewModel
             }
         }
 
-        private void UpdateCanCalculate()
-        {
+        private void UpdateCanCalculate() =>
             CanCalculate = InputsAreValid(_parameters.Capacitance, _parameters.Inductance, _parameters.Resistance, _parameters.Frequency) &&
-                           !string.IsNullOrWhiteSpace(_selectedUnits.FilterType) &&
-                           !string.IsNullOrWhiteSpace(_selectedUnits.CapacitanceUnit) &&
-                           !string.IsNullOrWhiteSpace(_selectedUnits.InductanceUnit) &&
-                           !string.IsNullOrWhiteSpace(_selectedUnits.ResistanceUnit) &&
-                           !string.IsNullOrWhiteSpace(_selectedUnits.FrequencyUnit);
-        }
+                           _selectedUnits.FilterType is not null &&
+                           _selectedUnits.CapacitanceUnit is not null &&
+                           _selectedUnits.InductanceUnit is not null &&
+                           _selectedUnits.ResistanceUnit is not null &&
+                           _selectedUnits.FrequencyUnit is not null;
 
         private void CalculateStopband(FilterResults results)
         {
-            double stopbandFrequency = 0;
-            double stopbandAttenuation = 0;
-
-            switch (results.FilterType)
+            double stopbandFrequency = results.FilterType switch
             {
-                case FilterType.LowPass:
-                    stopbandFrequency = results.CutoffFrequency * 10;
-                    stopbandAttenuation = _filtersCalculationService.CalculateAttenuation(
-                        results.FilterType, stopbandFrequency, results.CutoffFrequency, results.Bandwidth);
-                    break;
-                case FilterType.HighPass:
-                    stopbandFrequency = results.CutoffFrequency / 10;
-                    stopbandAttenuation = _filtersCalculationService.CalculateAttenuation(
-                        results.FilterType, stopbandFrequency, results.CutoffFrequency, results.Bandwidth);
-                    break;
-                case FilterType.BandPass:
-                case FilterType.BandStop:
-                    StopbandResult = "Расчет полосы заграждения не применим для полосовых фильтров";
-                    return;
-            }
+                FilterType.LowPass => results.CutoffFrequency * 10,
+                FilterType.HighPass => results.CutoffFrequency / 10,
+                _ => 0
+            };
 
-            StopbandResult = $"Полоса заграждения: частота {Form.Frequency(stopbandFrequency)}, затухание {stopbandAttenuation:F2} дБ";
+            double stopbandAttenuation = _filtersCalculationService.CalculateAttenuation(
+                results.FilterType, stopbandFrequency, results.CutoffFrequency, results.Bandwidth);
+
+            StopbandResult = stopbandAttenuation > 0
+                ? $"Полоса заграждения: частота {Form.Frequency(stopbandFrequency)}, затухание {stopbandAttenuation:F2} дБ"
+                : "Расчет полосы заграждения не применим для полосовых фильтров";
         }
 
         private void CalculateFilterParameters()
@@ -244,18 +231,20 @@ namespace RadioEngineerCalculator.ViewModel
                 var inputValues = new FilterInputValues
                 {
                     FilterType = (FilterType)Enum.Parse(typeof(FilterType), _selectedUnits.FilterType),
-                    Capacitance = _parameters.Capacitance,
-                    Inductance = _parameters.Inductance,
-                    Resistance = _parameters.Resistance,
-                    Frequency = _parameters.Frequency,
-                    CapacitanceUnit = _selectedUnits.CapacitanceUnit,
-                    InductanceUnit = _selectedUnits.InductanceUnit,
-                    ResistanceUnit = _selectedUnits.ResistanceUnit,
-                    FrequencyUnit = _selectedUnits.FrequencyUnit
+                    Capacitance = Convert(_parameters.Capacitance, _selectedUnits.CapacitanceUnit, "F", PhysicalQuantity.Capacitance),
+                    Inductance = Convert(_parameters.Inductance, _selectedUnits.InductanceUnit, "H", PhysicalQuantity.Inductance),
+                    Resistance = Convert(_parameters.Resistance, _selectedUnits.ResistanceUnit, "Ω", PhysicalQuantity.Resistance),
+                    Frequency = Convert(_parameters.Frequency, _selectedUnits.FrequencyUnit, "Hz", PhysicalQuantity.Frequency),
+                    CapacitanceUnit = "F",
+                    InductanceUnit = "H",
+                    ResistanceUnit = "Ω",
+                    FrequencyUnit = "Hz"
                 };
 
                 var results = _filtersCalculationService.CalculateFilterResults(inputValues);
                 UpdateUIWithResults(results);
+                CalculateStopband(results);
+                CalculateRollOff(results);
             }
             catch (Exception ex)
             {
@@ -295,20 +284,12 @@ namespace RadioEngineerCalculator.ViewModel
 
         private void CalculateRollOff(FilterResults results)
         {
-            double rollOff = 0;
-            switch (results.FilterType)
+            double rollOff = results.FilterType switch
             {
-                case FilterType.LowPass:
-                case FilterType.HighPass:
-                    // Для фильтров первого порядка крутизна спада обычно составляет -20 дБ/декаду
-                    rollOff = -20;
-                    break;
-                case FilterType.BandPass:
-                case FilterType.BandStop:
-                    // Для полосовых фильтров второго порядка крутизна спада обычно составляет -40 дБ/декаду
-                    rollOff = -40;
-                    break;
-            }
+                FilterType.LowPass => -20,
+                FilterType.HighPass => -20,
+                _ => -40 // dB/decade для BandPass и BandStop
+            };
 
             RollOffResult = $"Крутизна спада АЧХ: {rollOff} дБ/декаду";
         }
@@ -325,11 +306,8 @@ namespace RadioEngineerCalculator.ViewModel
 
             CalculateStopband(results);
             CalculateRollOff(results);
-
-            // Передаем два аргумента: results и значения Stopband и RollOff
             UpdateFilterResponsePlot(results);
         }
-
 
         private void UpdateFilterResponsePlot(FilterResults results)
         {
@@ -353,11 +331,11 @@ namespace RadioEngineerCalculator.ViewModel
             return true;
         }
 
-        private void SetSelectedUnit(ref string field, string value, Action additionalAction = null)
+        private void SetSelectedUnit(ref string field, string value, Action? additionalAction = null)
         {
             if (field != value)
             {
-                field = value;
+                field = value ?? throw new ArgumentNullException(nameof(value));
                 additionalAction?.Invoke();
                 OnPropertyChanged();
             }

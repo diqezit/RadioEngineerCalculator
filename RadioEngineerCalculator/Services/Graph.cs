@@ -11,38 +11,50 @@ namespace RadioEngineerCalculator.Services
 {
     public class Graph
     {
+        #region Fields
         private readonly PlotModel _plotModel;
         private readonly FiltersCalculationService _filtersCalculationService;
+        #endregion
 
+        #region Constructor
         public Graph(PlotModel plotModel, FiltersCalculationService filtersCalculationService)
         {
             _plotModel = plotModel ?? throw new ArgumentNullException(nameof(plotModel));
             _filtersCalculationService = filtersCalculationService ?? throw new ArgumentNullException(nameof(filtersCalculationService));
         }
+        #endregion
 
+        #region Public Methods
         public void UpdateFilterResponsePlot(FilterResults results, string stopbandResult, string rollOffResult)
         {
-            if (results == null) throw new ArgumentNullException(nameof(results));
+            if (results is null) throw new ArgumentNullException(nameof(results));
 
             _plotModel.Series.Clear();
             _plotModel.Axes.Clear();
 
             AddAxes();
             AddSeries(results);
-
-            // Добавление полосы заграждения (Stopband)
             AddStopbandSeries(results, stopbandResult);
-
-            // Добавление крутизны спада (RollOff)
             AddRollOffSeries(results, rollOffResult);
 
             _plotModel.InvalidatePlot(true);
         }
+        #endregion
 
+        #region Private Methods
         private void AddStopbandSeries(FilterResults results, string stopbandResult)
         {
-            if (string.IsNullOrEmpty(stopbandResult))
-                return;
+            if (string.IsNullOrEmpty(stopbandResult)) return;
+
+            double stopbandFrequency = results.FilterType switch
+            {
+                FilterType.LowPass => results.CutoffFrequency * 10,
+                FilterType.HighPass => results.CutoffFrequency / 10,
+                _ => throw new ArgumentOutOfRangeException()
+            };
+
+            double stopbandAttenuation = _filtersCalculationService.CalculateAttenuation(
+                results.FilterType, stopbandFrequency, results.CutoffFrequency, results.Bandwidth);
 
             var stopbandSeries = new LineSeries
             {
@@ -50,12 +62,6 @@ namespace RadioEngineerCalculator.Services
                 Color = OxyColors.Green,
                 LineStyle = LineStyle.Dash
             };
-
-            double stopbandFrequency = results.FilterType == FilterType.LowPass
-                ? results.CutoffFrequency * 10
-                : results.CutoffFrequency / 10;
-            double stopbandAttenuation = _filtersCalculationService.CalculateAttenuation(
-                results.FilterType, stopbandFrequency, results.CutoffFrequency, results.Bandwidth);
 
             stopbandSeries.Points.Add(new DataPoint(stopbandFrequency, stopbandAttenuation));
             stopbandSeries.Points.Add(new DataPoint(stopbandFrequency, -60)); // Линия до -60 дБ
@@ -65,8 +71,14 @@ namespace RadioEngineerCalculator.Services
 
         private void AddRollOffSeries(FilterResults results, string rollOffResult)
         {
-            if (string.IsNullOrEmpty(rollOffResult))
-                return;
+            if (string.IsNullOrEmpty(rollOffResult)) return;
+
+            double rollOff = results.FilterType switch
+            {
+                FilterType.LowPass => -20,
+                FilterType.HighPass => -20,
+                _ => -40 // dB/decade для BandPass и BandStop
+            };
 
             var rollOffSeries = new LineSeries
             {
@@ -77,9 +89,6 @@ namespace RadioEngineerCalculator.Services
 
             double startFrequency = results.CutoffFrequency / 2;
             double endFrequency = results.CutoffFrequency * 2;
-            double rollOff = results.FilterType == FilterType.LowPass || results.FilterType == FilterType.HighPass
-                ? -20 // dB/decade для фильтров первого порядка
-                : -40; // dB/decade для фильтров второго порядка
 
             rollOffSeries.Points.Add(new DataPoint(startFrequency, 0));
             rollOffSeries.Points.Add(new DataPoint(endFrequency, rollOff));
@@ -87,17 +96,16 @@ namespace RadioEngineerCalculator.Services
             _plotModel.Series.Add(rollOffSeries);
         }
 
-
         private void AddSeries(FilterResults results)
         {
-            var magnitudeSeries = CreateSeries("Magnitude", OxyColors.Blue);
-            var phaseSeries = CreateSeries("Phase", OxyColors.Red, "PhaseAxis");
-
             const int pointCount = 1000;
             double minFreq = results.CutoffFrequency / 100;
             double maxFreq = results.CutoffFrequency * 100;
 
             var points = GeneratePoints(results, minFreq, maxFreq, pointCount);
+
+            var magnitudeSeries = CreateSeries("Magnitude", OxyColors.Blue);
+            var phaseSeries = CreateSeries("Phase", OxyColors.Red, "PhaseAxis");
 
             magnitudeSeries.Points.AddRange(points.Select(p => new DataPoint(p.Frequency, p.Magnitude)));
             phaseSeries.Points.AddRange(points.Select(p => new DataPoint(p.Frequency, p.Phase)));
@@ -148,9 +156,7 @@ namespace RadioEngineerCalculator.Services
                 MajorGridlineStyle = LineStyle.Solid,
                 MinorGridlineStyle = LineStyle.Dot,
                 Base = 10,
-                MajorStep = 1,
-                MinorStep = 0.1,
-                StringFormat = "1E0"
+                StringFormat = "0.0E0"
             };
         }
 
@@ -184,5 +190,6 @@ namespace RadioEngineerCalculator.Services
                 MinorStep = 30
             };
         }
+        #endregion
     }
 }

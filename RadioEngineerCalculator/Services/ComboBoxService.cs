@@ -5,7 +5,9 @@ namespace RadioEngineerCalculator.Services
 {
     public static class ComboBoxService
     {
-        private static readonly Dictionary<string, ObservableCollection<string>> units = new Dictionary<string, ObservableCollection<string>>
+        #region Приватные поля
+
+        private static readonly Dictionary<string, ObservableCollection<string>> units = new()
         {
             { "Current", new ObservableCollection<string> { "pA", "nA", "μA", "mA", "A" } },
             { "Resistance", new ObservableCollection<string> { "μΩ", "mΩ", "Ω", "kΩ", "MΩ" } },
@@ -41,13 +43,15 @@ namespace RadioEngineerCalculator.Services
             { "SoundLevel", new ObservableCollection<string> { "dB", "dB(A)", "dB(B)", "dB(C)" } },
         };
 
+        #endregion
+
+        #region Публичные методы
+
         public static ObservableCollection<string> GetUnits(string quantity)
         {
-            if (units.TryGetValue(quantity, out var unitCollection))
-            {
-                return unitCollection;
-            }
-            return new ObservableCollection<string>();
+            return units.TryGetValue(quantity, out var unitCollection) ? unitCollection : new ObservableCollection<string>();
         }
+
+        #endregion
     }
 }

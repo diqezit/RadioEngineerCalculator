@@ -7,71 +7,60 @@ namespace RadioEngineerCalculator.Services
 {
     public static class Validate
     {
+        #region Object Validation
+
         public static void ValidateObject<T>(T obj) where T : class
         {
-            if (obj == null)
-            {
-                throw new ArgumentNullException(nameof(obj));
-            }
+            _ = obj ?? throw new ArgumentNullException(nameof(obj));
 
             var properties = typeof(T).GetProperties(BindingFlags.Public | BindingFlags.Instance);
             foreach (var property in properties)
             {
-                var value = property.GetValue(obj);
-                ValidateProperty(property.Name, value);
+                ValidateProperty(property.Name, property.GetValue(obj));
             }
         }
 
         public static void ValidateProperty(string propertyName, object value)
         {
-            if (value == null)
-            {
+            if (value is null)
                 throw new ArgumentNullException(propertyName);
-            }
 
-            if (value is double doubleValue)
+            switch (value)
             {
-                EnsurePositive(doubleValue, propertyName);
-            }
-            else if (value is string stringValue)
-            {
-                if (string.IsNullOrWhiteSpace(stringValue))
-                {
-                    throw new ArgumentException($"{propertyName} не может быть пустым или состоять только из пробелов.");
-                }
+                case double doubleValue:
+                    EnsurePositive(doubleValue, propertyName);
+                    break;
+                case string stringValue:
+                    ValidateStringNotEmpty(stringValue, propertyName);
+                    break;
             }
         }
 
+        #endregion
+
+        #region Input Validation
+
         public static void InputValues(FilterInputValues inputValues)
         {
-            if (inputValues == null)
-            {
-                throw new ArgumentNullException(nameof(inputValues));
-            }
+            _ = inputValues ?? throw new ArgumentNullException(nameof(inputValues));
             EnsurePositive(inputValues.Capacitance, nameof(inputValues.Capacitance));
             EnsurePositive(inputValues.Inductance, nameof(inputValues.Inductance));
             EnsurePositive(inputValues.Resistance, nameof(inputValues.Resistance));
             EnsurePositive(inputValues.Frequency, nameof(inputValues.Frequency));
         }
 
-        public static bool ValidateInputs(params string[] inputs)
-        {
-            return inputs.All(input =>
-                double.TryParse(input, out var value) &&
-                value > 0);
-        }
+        public static bool ValidateInputs(params string[] inputs) =>
+            inputs.All(input => double.TryParse(input, out var value) && value > 0);
 
+        public static bool InputsAreValid(params double[] values) =>
+            values.All(value => value > 0 && !double.IsNaN(value) && !double.IsInfinity(value));
 
-        public static bool InputsAreValid(params double[] values)
-        {
-            // Все значения должны быть больше нуля
-            return values.All(value => value > 0 && !double.IsNaN(value) && !double.IsInfinity(value));
-        }
+        public static bool InputsAreValid(double capacitance, double inductance, double resistance, double frequency) =>
+            capacitance > 0 && inductance > 0 && resistance > 0 && frequency > 0;
 
-        public static bool InputsAreValid(double capacitance, double inductance, double resistance, double frequency)
-        {
-            return capacitance > 0 && inductance > 0 && resistance > 0 && frequency > 0;
-        }
+        #endregion
+
+        #region Value Validation
 
         public static void EnsurePositive(double value, string paramName)
         {
@@ -79,10 +68,8 @@ namespace RadioEngineerCalculator.Services
                 throw new ArgumentException($"{paramName} должен быть положительным числом");
         }
 
-        public static bool IsInRange(double value, double min, double max)
-        {
-            return value >= min && value <= max;
-        }
+        public static bool IsInRange(double value, double min, double max) =>
+            value >= min && value <= max;
 
         public static void ValidateRange(double value, double min, double max, string paramName)
         {
@@ -112,8 +99,10 @@ namespace RadioEngineerCalculator.Services
 
         public static void ValidateListNotEmpty<T>(IEnumerable<T> list, string paramName)
         {
-            if (list == null || !list.Any())
+            if (list is null || !list.Any())
                 throw new ArgumentException($"{paramName} не может быть пустым или null.");
         }
+
+        #endregion
     }
 }
