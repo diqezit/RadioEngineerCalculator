@@ -1,5 +1,4 @@
-﻿using RadioEngineerCalculator.Infos;
-using RadioEngineerCalculator.Services;
+﻿using RadioEngineerCalculator.Services;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -7,6 +6,7 @@ using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Windows.Controls;
 using System.Windows.Input;
+using static RadioEngineerCalculator.Services.ComboBoxService;
 using static RadioEngineerCalculator.Services.UnitC;
 using static RadioEngineerCalculator.Services.Validate;
 
@@ -116,7 +116,7 @@ namespace RadioEngineerCalculator.ViewModel
         {
             return new Dictionary<string, ObservableCollection<string>>
             {
-                ["Voltage"] = new ObservableCollection<string>(ComboBoxService.GetUnits("Voltage"))
+                ["Voltage"] = new ObservableCollection<string>(GetUnits("Voltage"))
             };
         }
 

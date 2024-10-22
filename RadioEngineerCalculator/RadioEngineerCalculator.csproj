@@ -86,7 +86,6 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Infos\ErrorMSG.cs" />
-    <Compile Include="Infos\Info.cs" />
     <Compile Include="Infos\Tooltips.cs" />
     <Compile Include="Infos\Validation.cs" />
     <Compile Include="Services\ComboBoxService.cs" />

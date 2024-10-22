@@ -9,6 +9,8 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using static RadioEngineerCalculator.Services.UnitC;
 using static RadioEngineerCalculator.Services.Validate;
+using static RadioEngineerCalculator.Services.ComboBoxService;
+using static RadioEngineerCalculator.Infos.ErrorMessages;
 
 namespace RadioEngineerCalculator.ViewModel
 {
@@ -233,9 +235,9 @@ namespace RadioEngineerCalculator.ViewModel
         {
             return new Dictionary<string, ObservableCollection<string>>
             {
-                ["Voltage"] = new ObservableCollection<string>(ComboBoxService.GetUnits("Voltage")),
-                ["Frequency"] = new ObservableCollection<string>(ComboBoxService.GetUnits("Frequency")),
-                ["Angle"] = new ObservableCollection<string>(ComboBoxService.GetUnits("Angle"))
+                ["Voltage"] = new ObservableCollection<string>(GetUnits("Voltage")),
+                ["Frequency"] = new ObservableCollection<string>(GetUnits("Frequency")),
+                ["Angle"] = new ObservableCollection<string>(GetUnits("Angle"))
             };
         }
 
@@ -316,7 +318,7 @@ namespace RadioEngineerCalculator.ViewModel
         {
             if (!InputsAreValid(CarrierAmplitude, ModulatingAmplitude))
             {
-                throw new ArgumentException(ErrorMessages.InvalidInput);
+                throw new ArgumentException(InvalidInput);
             }
         }
 
@@ -324,7 +326,7 @@ namespace RadioEngineerCalculator.ViewModel
         {
             if (!InputsAreValid(CarrierFrequency, FrequencyDeviation))
             {
-                throw new ArgumentException(ErrorMessages.InvalidInput);
+                throw new ArgumentException(InvalidInput);
             }
         }
 
@@ -332,7 +334,7 @@ namespace RadioEngineerCalculator.ViewModel
         {
             if (!InputsAreValid(CarrierPhase, PhaseDeviation))
             {
-                throw new ArgumentException(ErrorMessages.InvalidInput);
+                throw new ArgumentException(InvalidInput);
             }
         }
 

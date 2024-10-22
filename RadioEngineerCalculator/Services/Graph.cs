@@ -2,6 +2,10 @@
 using OxyPlot.Axes;
 using OxyPlot.Series;
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using RadioEngineerCalculator.Services;
+using static RadioEngineerCalculator.Services.FiltersCalculationService;
 
 namespace RadioEngineerCalculator.Services
 {
@@ -12,46 +16,132 @@ namespace RadioEngineerCalculator.Services
 
         public Graph(PlotModel plotModel, FiltersCalculationService filtersCalculationService)
         {
-            _plotModel = plotModel;
-            _filtersCalculationService = filtersCalculationService;
+            _plotModel = plotModel ?? throw new ArgumentNullException(nameof(plotModel));
+            _filtersCalculationService = filtersCalculationService ?? throw new ArgumentNullException(nameof(filtersCalculationService));
         }
 
-        public void UpdateFilterResponsePlot(FilterResults results)
+        public void UpdateFilterResponsePlot(FilterResults results, string stopbandResult, string rollOffResult)
         {
             if (results == null) throw new ArgumentNullException(nameof(results));
+
             _plotModel.Series.Clear();
             _plotModel.Axes.Clear();
+
             AddAxes();
             AddSeries(results);
+
+            // Добавление полосы заграждения (Stopband)
+            AddStopbandSeries(results, stopbandResult);
+
+            // Добавление крутизны спада (RollOff)
+            AddRollOffSeries(results, rollOffResult);
+
             _plotModel.InvalidatePlot(true);
         }
 
+        private void AddStopbandSeries(FilterResults results, string stopbandResult)
+        {
+            if (string.IsNullOrEmpty(stopbandResult))
+                return;
+
+            var stopbandSeries = new LineSeries
+            {
+                Title = "Полоса заграждения",
+                Color = OxyColors.Green,
+                LineStyle = LineStyle.Dash
+            };
+
+            double stopbandFrequency = results.FilterType == FilterType.LowPass
+                ? results.CutoffFrequency * 10
+                : results.CutoffFrequency / 10;
+            double stopbandAttenuation = _filtersCalculationService.CalculateAttenuation(
+                results.FilterType, stopbandFrequency, results.CutoffFrequency, results.Bandwidth);
+
+            stopbandSeries.Points.Add(new DataPoint(stopbandFrequency, stopbandAttenuation));
+            stopbandSeries.Points.Add(new DataPoint(stopbandFrequency, -60)); // Линия до -60 дБ
+
+            _plotModel.Series.Add(stopbandSeries);
+        }
+
+        private void AddRollOffSeries(FilterResults results, string rollOffResult)
+        {
+            if (string.IsNullOrEmpty(rollOffResult))
+                return;
+
+            var rollOffSeries = new LineSeries
+            {
+                Title = "Крутизна спада",
+                Color = OxyColors.Purple,
+                LineStyle = LineStyle.Dot
+            };
+
+            double startFrequency = results.CutoffFrequency / 2;
+            double endFrequency = results.CutoffFrequency * 2;
+            double rollOff = results.FilterType == FilterType.LowPass || results.FilterType == FilterType.HighPass
+                ? -20 // dB/decade для фильтров первого порядка
+                : -40; // dB/decade для фильтров второго порядка
+
+            rollOffSeries.Points.Add(new DataPoint(startFrequency, 0));
+            rollOffSeries.Points.Add(new DataPoint(endFrequency, rollOff));
+
+            _plotModel.Series.Add(rollOffSeries);
+        }
+
+
         private void AddSeries(FilterResults results)
         {
-            var magnitudeSeries = new LineSeries { Title = "Magnitude", Color = OxyColors.Blue };
-            var phaseSeries = new LineSeries { Title = "Phase", Color = OxyColors.Red, YAxisKey = "PhaseAxis" };
+            var magnitudeSeries = CreateSeries("Magnitude", OxyColors.Blue);
+            var phaseSeries = CreateSeries("Phase", OxyColors.Red, "PhaseAxis");
 
             const int pointCount = 1000;
             double minFreq = results.CutoffFrequency / 100;
             double maxFreq = results.CutoffFrequency * 100;
 
-            for (int i = 0; i < pointCount; i++)
-            {
-                double freq = minFreq * Math.Pow(maxFreq / minFreq, (double)i / (pointCount - 1));
-                double magnitude = _filtersCalculationService.CalculateFilterMagnitudeResponse(results.FilterType, freq, results.CutoffFrequency, results.Bandwidth);
-                double phase = _filtersCalculationService.CalculateFilterPhaseResponse(results.FilterType, freq, results.CutoffFrequency, results.Bandwidth);
+            var points = GeneratePoints(results, minFreq, maxFreq, pointCount);
 
-                magnitudeSeries.Points.Add(new DataPoint(freq, 20 * Math.Log10(magnitude)));
-                phaseSeries.Points.Add(new DataPoint(freq, phase * 180 / Math.PI));
-            }
+            magnitudeSeries.Points.AddRange(points.Select(p => new DataPoint(p.Frequency, p.Magnitude)));
+            phaseSeries.Points.AddRange(points.Select(p => new DataPoint(p.Frequency, p.Phase)));
 
             _plotModel.Series.Add(magnitudeSeries);
             _plotModel.Series.Add(phaseSeries);
         }
 
+        private LineSeries CreateSeries(string title, OxyColor color, string yAxisKey = null)
+        {
+            return new LineSeries
+            {
+                Title = title,
+                Color = color,
+                YAxisKey = yAxisKey
+            };
+        }
+
+        private IEnumerable<(double Frequency, double Magnitude, double Phase)> GeneratePoints(FilterResults results, double minFreq, double maxFreq, int pointCount)
+        {
+            for (int i = 0; i < pointCount; i++)
+            {
+                double freq = minFreq * Math.Pow(maxFreq / minFreq, (double)i / (pointCount - 1));
+                double magnitude = _filtersCalculationService.CalculateMagnitudeResponse(results.FilterType, freq, results.CutoffFrequency, results.Bandwidth);
+                double phase = _filtersCalculationService.CalculatePhaseShift(results.FilterType, freq, results.CutoffFrequency, results.Bandwidth);
+
+                yield return (
+                    Frequency: freq,
+                    Magnitude: 20 * Math.Log10(magnitude),
+                    Phase: phase * 180 / Math.PI
+                );
+            }
+        }
+
         private void AddAxes()
         {
-            _plotModel.Axes.Add(new LogarithmicAxis
+            _plotModel.Axes.Add(CreateFrequencyAxis());
+            _plotModel.Axes.Add(CreateMagnitudeAxis());
+            _plotModel.Axes.Add(CreatePhaseAxis());
+        }
+
+        private Axis CreateFrequencyAxis()
+        {
+            return new LogarithmicAxis
             {
                 Position = AxisPosition.Bottom,
                 Title = "Частота (Гц)",
@@ -61,9 +151,12 @@ namespace RadioEngineerCalculator.Services
                 MajorStep = 1,
                 MinorStep = 0.1,
                 StringFormat = "1E0"
-            });
+            };
+        }
 
-            _plotModel.Axes.Add(new LinearAxis
+        private Axis CreateMagnitudeAxis()
+        {
+            return new LinearAxis
             {
                 Position = AxisPosition.Left,
                 Title = "Амплитуда (дБ)",
@@ -73,9 +166,12 @@ namespace RadioEngineerCalculator.Services
                 MinorGridlineStyle = LineStyle.Dot,
                 MajorStep = 20,
                 MinorStep = 5
-            });
+            };
+        }
 
-            _plotModel.Axes.Add(new LinearAxis
+        private Axis CreatePhaseAxis()
+        {
+            return new LinearAxis
             {
                 Key = "PhaseAxis",
                 Position = AxisPosition.Right,
@@ -86,8 +182,7 @@ namespace RadioEngineerCalculator.Services
                 MinorGridlineStyle = LineStyle.Dot,
                 MajorStep = 90,
                 MinorStep = 30
-            });
+            };
         }
     }
-
 }

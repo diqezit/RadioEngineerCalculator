@@ -7,6 +7,8 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using static RadioEngineerCalculator.Services.UnitC;
 using static RadioEngineerCalculator.Services.Validate;
+using static RadioEngineerCalculator.Services.ComboBoxService;
+using static RadioEngineerCalculator.Infos.ErrorMessages;
 
 namespace RadioEngineerCalculator.ViewModel
 {
@@ -190,8 +192,8 @@ namespace RadioEngineerCalculator.ViewModel
             InitializeComponent();
             DataContext = this;
             _calculationService = new CalculationService();
-            LengthUnits = new ObservableCollection<string>(ComboBoxService.GetUnits("Length"));
-            FrequencyUnits = new ObservableCollection<string>(ComboBoxService.GetUnits("Frequency"));
+            LengthUnits = new ObservableCollection<string>(GetUnits("Length"));
+            FrequencyUnits = new ObservableCollection<string>(GetUnits("Frequency"));
             CalculateCommand = new RelayCommand(Calculate, () => CanCalculate);
             InitializeDefaultUnits();
         }

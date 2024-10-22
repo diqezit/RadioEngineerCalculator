@@ -86,20 +86,6 @@
                                Style="{StaticResource ResultTextBlockStyle}"/>
                 </StackPanel>
             </GroupBox>
-
-            <GroupBox Header="Информация" Style="{StaticResource ModernGroupBox}" Margin="0,20,0,0">
-                <StackPanel Margin="10">
-                    <TextBlock TextWrapping="Wrap" Margin="0,0,0,10">
-                        Согласование импедансов важно для максимальной передачи мощности и минимизации отражений в радиочастотных системах.
-                    </TextBlock>
-                    <TextBlock TextWrapping="Wrap" Margin="0,0,0,10">
-                        Коэффициент отражения показывает, какая часть сигнала отражается обратно из-за несогласованности импедансов.
-                    </TextBlock>
-                    <TextBlock TextWrapping="Wrap">
-                        КСВН (Коэффициент стоячей волны по напряжению) - это мера согласования линии передачи с нагрузкой. Идеальное значение КСВН равно 1.
-                    </TextBlock>
-                </StackPanel>
-            </GroupBox>
         </StackPanel>
     </ScrollViewer>
 </UserControl>

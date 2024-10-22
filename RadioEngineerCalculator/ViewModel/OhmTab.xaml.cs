@@ -10,6 +10,8 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using static RadioEngineerCalculator.Services.UnitC;
 using static RadioEngineerCalculator.Services.Validate;
+using static RadioEngineerCalculator.Services.ComboBoxService;
+using static RadioEngineerCalculator.Infos.ErrorMessages;
 
 namespace RadioEngineerCalculator.ViewModel
 {
@@ -43,9 +45,9 @@ namespace RadioEngineerCalculator.ViewModel
         {
             return new Dictionary<string, ObservableCollection<string>>
             {
-                ["Resistance"] = new ObservableCollection<string>(ComboBoxService.GetUnits("Resistance")),
-                ["Current"] = new ObservableCollection<string>(ComboBoxService.GetUnits("Current")),
-                ["Voltage"] = new ObservableCollection<string>(ComboBoxService.GetUnits("Voltage"))
+                ["Resistance"] = new ObservableCollection<string>(GetUnits("Resistance")),
+                ["Current"] = new ObservableCollection<string>(GetUnits("Current")),
+                ["Voltage"] = new ObservableCollection<string>(GetUnits("Voltage"))
             };
         }
 
@@ -74,7 +76,7 @@ namespace RadioEngineerCalculator.ViewModel
             get => _resistance;
             set
             {
-                if (double.TryParse(value.ToString(), out double parsedValue))
+                if (double.TryParse(ToString(), out double parsedValue))
                 {
                     SetProperty(ref _resistance, parsedValue);
                 }
@@ -91,7 +93,7 @@ namespace RadioEngineerCalculator.ViewModel
             get => _current;
             set
             {
-                if (double.TryParse(value.ToString(), out double parsedValue))
+                if (double.TryParse(ToString(), out double parsedValue))
                 {
                     SetProperty(ref _current, parsedValue);
                 }
@@ -108,7 +110,7 @@ namespace RadioEngineerCalculator.ViewModel
             get => _voltage;
             set
             {
-                if (double.TryParse(value.ToString(), out double parsedValue))
+                if (double.TryParse(ToString(), out double parsedValue))
                 {
                     SetProperty(ref _voltage, parsedValue);
                 }
@@ -195,7 +197,7 @@ namespace RadioEngineerCalculator.ViewModel
                 string emptyField = GetEmptyField();
                 if (string.IsNullOrEmpty(emptyField))
                 {
-                    ResultText = Info.FieldAreFull;
+                    ResultText = FieldsAreEmpty;
                     return;
                 }
 

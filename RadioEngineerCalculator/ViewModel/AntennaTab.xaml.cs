@@ -9,6 +9,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using static RadioEngineerCalculator.Services.UnitC;
 using static RadioEngineerCalculator.Services.Validate;
+using static RadioEngineerCalculator.Services.ComboBoxService;
 
 namespace RadioEngineerCalculator.ViewModel
 {
@@ -152,9 +153,9 @@ namespace RadioEngineerCalculator.ViewModel
         {
             return new Dictionary<string, ObservableCollection<string>>
             {
-                ["Frequency"] = new ObservableCollection<string>(ComboBoxService.GetUnits("Frequency")),
-                ["Power"] = new ObservableCollection<string>(ComboBoxService.GetUnits("Power")),
-                ["Length"] = new ObservableCollection<string>(ComboBoxService.GetUnits("Length"))
+                ["Frequency"] = new ObservableCollection<string>(GetUnits("Frequency")),
+                ["Power"] = new ObservableCollection<string>(GetUnits("Power")),
+                ["Length"] = new ObservableCollection<string>(GetUnits("Length"))
             };
         }
 
