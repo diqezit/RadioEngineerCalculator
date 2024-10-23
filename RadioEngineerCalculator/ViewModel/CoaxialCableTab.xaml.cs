@@ -5,7 +5,7 @@ using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Windows.Controls;
 using System.Windows.Input;
-using static RadioEngineerCalculator.Services.UnitC;
+using static RadioEngineerCalculator.Services.UnitConverter;
 using static RadioEngineerCalculator.Services.Validate;
 using static RadioEngineerCalculator.Services.ComboBoxService;
 using static RadioEngineerCalculator.Infos.ErrorMessages;
@@ -38,137 +38,19 @@ namespace RadioEngineerCalculator.ViewModel
         public ObservableCollection<string> LengthUnits { get; }
         public ObservableCollection<string> FrequencyUnits { get; }
 
-        public double InnerDiameter
-        {
-            get => _innerDiameter;
-            set
-            {
-                if (SetProperty(ref _innerDiameter, value))
-                {
-                    OnPropertyChanged(nameof(CanCalculate));
-                }
-            }
-        }
-
-        public double OuterDiameter
-        {
-            get => _outerDiameter;
-            set
-            {
-                if (SetProperty(ref _outerDiameter, value))
-                {
-                    OnPropertyChanged(nameof(CanCalculate));
-                }
-            }
-        }
-
-        public double CableLength
-        {
-            get => _cableLength;
-            set
-            {
-                if (SetProperty(ref _cableLength, value))
-                {
-                    OnPropertyChanged(nameof(CanCalculate));
-                }
-            }
-        }
-
-        public double Frequency
-        {
-            get => _frequency;
-            set
-            {
-                if (SetProperty(ref _frequency, value))
-                {
-                    OnPropertyChanged(nameof(CanCalculate));
-                }
-            }
-        }
-
-        public double DielectricConstant
-        {
-            get => _dielectricConstant;
-            set
-            {
-                if (SetProperty(ref _dielectricConstant, value))
-                {
-                    OnPropertyChanged(nameof(CanCalculate));
-                }
-            }
-        }
-
-        public string SelectedInnerDiameterUnit
-        {
-            get => _selectedInnerDiameterUnit;
-            set
-            {
-                if (SetProperty(ref _selectedInnerDiameterUnit, value))
-                {
-                    ConvertInnerDiameter();
-                }
-            }
-        }
-
-        public string SelectedOuterDiameterUnit
-        {
-            get => _selectedOuterDiameterUnit;
-            set
-            {
-                if (SetProperty(ref _selectedOuterDiameterUnit, value))
-                {
-                    ConvertOuterDiameter();
-                }
-            }
-        }
-
-        public string SelectedCableLengthUnit
-        {
-            get => _selectedCableLengthUnit;
-            set
-            {
-                if (SetProperty(ref _selectedCableLengthUnit, value))
-                {
-                    ConvertCableLength();
-                }
-            }
-        }
-
-        public string SelectedFrequencyUnit
-        {
-            get => _selectedFrequencyUnit;
-            set
-            {
-                if (SetProperty(ref _selectedFrequencyUnit, value))
-                {
-                    ConvertFrequency();
-                }
-            }
-        }
-
-        public string ImpedanceResult
-        {
-            get => _impedanceResult;
-            set => SetProperty(ref _impedanceResult, value);
-        }
-
-        public string AttenuationResult
-        {
-            get => _attenuationResult;
-            set => SetProperty(ref _attenuationResult, value);
-        }
-
-        public string VelocityFactorResult
-        {
-            get => _velocityFactorResult;
-            set => SetProperty(ref _velocityFactorResult, value);
-        }
-
-        public string CapacitanceResult
-        {
-            get => _capacitanceResult;
-            set => SetProperty(ref _capacitanceResult, value);
-        }
+        public double InnerDiameter { get => _innerDiameter; set { if (SetProperty(ref _innerDiameter, value)) OnPropertyChanged(nameof(CanCalculate)); } }
+        public double OuterDiameter { get => _outerDiameter; set { if (SetProperty(ref _outerDiameter, value)) OnPropertyChanged(nameof(CanCalculate)); } }
+        public double CableLength { get => _cableLength; set { if (SetProperty(ref _cableLength, value)) OnPropertyChanged(nameof(CanCalculate)); } }
+        public double Frequency { get => _frequency; set { if (SetProperty(ref _frequency, value)) OnPropertyChanged(nameof(CanCalculate)); } }
+        public double DielectricConstant { get => _dielectricConstant; set { if (SetProperty(ref _dielectricConstant, value)) OnPropertyChanged(nameof(CanCalculate)); } }
+        public string SelectedInnerDiameterUnit { get => _selectedInnerDiameterUnit; set { if (SetProperty(ref _selectedInnerDiameterUnit, value)) ConvertInnerDiameter(); } }
+        public string SelectedOuterDiameterUnit { get => _selectedOuterDiameterUnit; set { if (SetProperty(ref _selectedOuterDiameterUnit, value)) ConvertOuterDiameter(); } }
+        public string SelectedCableLengthUnit { get => _selectedCableLengthUnit; set { if (SetProperty(ref _selectedCableLengthUnit, value)) ConvertCableLength(); } }
+        public string SelectedFrequencyUnit { get => _selectedFrequencyUnit; set { if (SetProperty(ref _selectedFrequencyUnit, value)) ConvertFrequency(); } }
+        public string ImpedanceResult { get => _impedanceResult; set => SetProperty(ref _impedanceResult, value); }
+        public string AttenuationResult { get => _attenuationResult; set => SetProperty(ref _attenuationResult, value); }
+        public string VelocityFactorResult { get => _velocityFactorResult; set => SetProperty(ref _velocityFactorResult, value); }
+        public string CapacitanceResult { get => _capacitanceResult; set => SetProperty(ref _capacitanceResult, value); }
 
         public bool CanCalculate =>
             InputsAreValid(InnerDiameter, OuterDiameter, CableLength, Frequency, DielectricConstant) &&

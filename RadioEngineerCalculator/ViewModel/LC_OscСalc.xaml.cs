@@ -6,7 +6,7 @@ using System.ComponentModel;
 using System.Windows.Controls;
 using System.Numerics;
 using System.Windows.Input;
-using static RadioEngineerCalculator.Services.UnitC;
+using static RadioEngineerCalculator.Services.UnitConverter;
 using static RadioEngineerCalculator.Services.Validate;
 using static RadioEngineerCalculator.Services.ComboBoxService;
 using static RadioEngineerCalculator.Infos.ErrorMessages;
@@ -36,42 +36,13 @@ namespace RadioEngineerCalculator.ViewModel
         private string _seriesQFactorResult;
         private string _parallelQFactorResult;
 
-        public double Inductance
-        {
-            get => _inductance;
-            set => SetProperty(ref _inductance, value);
-        }
-
-        public double Capacitance
-        {
-            get => _capacitance;
-            set => SetProperty(ref _capacitance, value);
-        }
-
-        public double Resistance
-        {
-            get => _resistance;
-            set => SetProperty(ref _resistance, value);
-        }
-
-        public double Frequency
-        {
-            get => _frequency;
-            set => SetProperty(ref _frequency, value);
-        }
-
-        public string SelectedInductanceUnit
-        {
-            get => _selectedInductanceUnit;
-            set
-            {
-                if (SetProperty(ref _selectedInductanceUnit, value))
-                {
-                    ConvertInductance();
-                }
-            }
-        }
-
+        public double Capacitance { get => _capacitance; set => SetProperty(ref _capacitance, value); }
+        public string ParallelImpedanceResult { get => _parallelImpedanceResult; set => SetProperty(ref _parallelImpedanceResult, value); }
+        public string ParallelQFactorResult { get => _parallelQFactorResult; set => SetProperty(ref _parallelQFactorResult, value); }
+        public double Frequency { get => _frequency; set => SetProperty(ref _frequency, value); }
+        public double Inductance { get => _inductance; set => SetProperty(ref _inductance, value); }
+        public double Resistance { get => _resistance; set => SetProperty(ref _resistance, value); }
+        public string ResonanceFrequencyResult { get => _resonanceFrequencyResult; set => SetProperty(ref _resonanceFrequencyResult, value); }
         public string SelectedCapacitanceUnit
         {
             get => _selectedCapacitanceUnit;
@@ -83,19 +54,6 @@ namespace RadioEngineerCalculator.ViewModel
                 }
             }
         }
-
-        public string SelectedResistanceUnit
-        {
-            get => _selectedResistanceUnit;
-            set
-            {
-                if (SetProperty(ref _selectedResistanceUnit, value))
-                {
-                    ConvertResistance();
-                }
-            }
-        }
-
         public string SelectedFrequencyUnit
         {
             get => _selectedFrequencyUnit;
@@ -107,36 +65,31 @@ namespace RadioEngineerCalculator.ViewModel
                 }
             }
         }
-
-        public string ResonanceFrequencyResult
+        public string SelectedInductanceUnit
         {
-            get => _resonanceFrequencyResult;
-            set => SetProperty(ref _resonanceFrequencyResult, value);
+            get => _selectedInductanceUnit;
+            set
+            {
+                if (SetProperty(ref _selectedInductanceUnit, value))
+                {
+                    ConvertInductance();
+                }
+            }
         }
-
-        public string SeriesImpedanceResult
+        public string SelectedResistanceUnit
         {
-            get => _seriesImpedanceResult;
-            set => SetProperty(ref _seriesImpedanceResult, value);
+            get => _selectedResistanceUnit;
+            set
+            {
+                if (SetProperty(ref _selectedResistanceUnit, value))
+                {
+                    ConvertResistance();
+                }
+            }
         }
+        public string SeriesImpedanceResult { get => _seriesImpedanceResult; set => SetProperty(ref _seriesImpedanceResult, value); }
+        public string SeriesQFactorResult { get => _seriesQFactorResult; set => SetProperty(ref _seriesQFactorResult, value); }
 
-        public string ParallelImpedanceResult
-        {
-            get => _parallelImpedanceResult;
-            set => SetProperty(ref _parallelImpedanceResult, value);
-        }
-
-        public string SeriesQFactorResult
-        {
-            get => _seriesQFactorResult;
-            set => SetProperty(ref _seriesQFactorResult, value);
-        }
-
-        public string ParallelQFactorResult
-        {
-            get => _parallelQFactorResult;
-            set => SetProperty(ref _parallelQFactorResult, value);
-        }
 
         public ObservableCollection<string> InductanceUnits => _unitCollections["Inductance"];
         public ObservableCollection<string> CapacitanceUnits => _unitCollections["Capacitance"];
@@ -208,10 +161,10 @@ namespace RadioEngineerCalculator.ViewModel
         {
             try
             {
-                double inductanceH = UnitC.Convert(Inductance, SelectedInductanceUnit, "H", PhysicalQuantity.Inductance);
-                double capacitanceF = UnitC.Convert(Capacitance, SelectedCapacitanceUnit, "F", PhysicalQuantity.Capacitance);
+                double inductanceH = Convert(Inductance, SelectedInductanceUnit, "H", PhysicalQuantity.Inductance);
+                double capacitanceF = Convert(Capacitance, SelectedCapacitanceUnit, "F", PhysicalQuantity.Capacitance);
                 double result = _calculationService.CalculateResonanceFrequency(inductanceH, capacitanceF);
-                ResonanceFrequencyResult = $"Резонансная частота: {UnitC.Form.Frequency(result)}";
+                ResonanceFrequencyResult = $"Резонансная частота: {Formatter.Frequency(result)}";
             }
             catch (Exception ex)
             {
@@ -223,10 +176,10 @@ namespace RadioEngineerCalculator.ViewModel
         {
             try
             {
-                double resistanceOhm = UnitC.Convert(Resistance, SelectedResistanceUnit, "Ω", PhysicalQuantity.Resistance);
-                double inductanceH = UnitC.Convert(Inductance, SelectedInductanceUnit, "H", PhysicalQuantity.Inductance);
-                double capacitanceF = UnitC.Convert(Capacitance, SelectedCapacitanceUnit, "F", PhysicalQuantity.Capacitance);
-                double frequencyHz = UnitC.Convert(Frequency, SelectedFrequencyUnit, "Hz", PhysicalQuantity.Frequency);
+                double resistanceOhm = Convert(Resistance, SelectedResistanceUnit, "Ω", PhysicalQuantity.Resistance);
+                double inductanceH = Convert(Inductance, SelectedInductanceUnit, "H", PhysicalQuantity.Inductance);
+                double capacitanceF = Convert(Capacitance, SelectedCapacitanceUnit, "F", PhysicalQuantity.Capacitance);
+                double frequencyHz = Convert(Frequency, SelectedFrequencyUnit, "Hz", PhysicalQuantity.Frequency);
 
                 Complex seriesImpedance = _calculationService.CalculateSeriesImpedance(resistanceOhm, inductanceH, capacitanceF, frequencyHz);
                 Complex parallelImpedance = _calculationService.CalculateParallelImpedance(resistanceOhm, inductanceH, capacitanceF, frequencyHz);
@@ -245,9 +198,9 @@ namespace RadioEngineerCalculator.ViewModel
         {
             try
             {
-                double inductanceH = UnitC.Convert(Inductance, SelectedInductanceUnit, "H", PhysicalQuantity.Inductance);
-                double resistanceOhm = UnitC.Convert(Resistance, SelectedResistanceUnit, "Ω", PhysicalQuantity.Resistance);
-                double frequencyHz = UnitC.Convert(Frequency, SelectedFrequencyUnit, "Hz", PhysicalQuantity.Frequency);
+                double inductanceH = Convert(Inductance, SelectedInductanceUnit, "H", PhysicalQuantity.Inductance);
+                double resistanceOhm = Convert(Resistance, SelectedResistanceUnit, "Ω", PhysicalQuantity.Resistance);
+                double frequencyHz = Convert(Frequency, SelectedFrequencyUnit, "Hz", PhysicalQuantity.Frequency);
 
                 double seriesQFactor = _calculationService.CalculateSeriesQFactor(inductanceH, resistanceOhm, frequencyHz);
                 double parallelQFactor = _calculationService.CalculateParallelQFactor(inductanceH, resistanceOhm, frequencyHz);
@@ -275,12 +228,12 @@ namespace RadioEngineerCalculator.ViewModel
         {
             if (InputsAreValid(value) && !string.IsNullOrWhiteSpace(toUnit))
             {
-                value = UnitC.Convert(value, baseUnit, toUnit, quantity);
+                value = Convert(value, baseUnit, toUnit, quantity);
                 OnPropertyChanged(quantity.ToString());
             }
         }
 
-        private string FormatComplex(Complex complex) => $"{UnitC.Form.Resistance(complex.Real)} + {UnitC.Form.Resistance(complex.Imaginary)}j";
+        private string FormatComplex(Complex complex) => $"{Formatter.Resistance(complex.Real)} + {Formatter.Resistance(complex.Imaginary)}j";
 
         #endregion
 

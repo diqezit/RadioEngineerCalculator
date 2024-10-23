@@ -7,7 +7,7 @@ using System.Runtime.CompilerServices;
 using System.Windows.Controls;
 using System.Windows.Input;
 using static RadioEngineerCalculator.Services.ComboBoxService;
-using static RadioEngineerCalculator.Services.UnitC;
+using static RadioEngineerCalculator.Services.UnitConverter;
 using static RadioEngineerCalculator.Services.Validate;
 
 namespace RadioEngineerCalculator.ViewModel
@@ -50,61 +50,12 @@ namespace RadioEngineerCalculator.ViewModel
             !string.IsNullOrWhiteSpace(SelectedInputVoltageUnit) &&
             !string.IsNullOrWhiteSpace(SelectedOutputVoltageUnit);
 
-        public string AttenuationResult
-        {
-            get => _attenuationResult;
-            set => SetProperty(ref _attenuationResult, value);
-        }
+        public string AttenuationResult { get => _attenuationResult; set => SetProperty(ref _attenuationResult, value); }
+        public double InputVoltage { get => _inputVoltage; set { if (SetProperty(ref _inputVoltage, value)) OnPropertyChanged(nameof(CanCalculateAttenuation)); } }
+        public double OutputVoltage { get => _outputVoltage; set { if (SetProperty(ref _outputVoltage, value)) OnPropertyChanged(nameof(CanCalculateAttenuation)); } }
+        public string SelectedInputVoltageUnit { get => _selectedInputVoltageUnit; set { if (SetProperty(ref _selectedInputVoltageUnit, value)) { OnPropertyChanged(nameof(CanCalculateAttenuation)); ConvertInputVoltage(); } } }
+        public string SelectedOutputVoltageUnit { get => _selectedOutputVoltageUnit; set { if (SetProperty(ref _selectedOutputVoltageUnit, value)) { OnPropertyChanged(nameof(CanCalculateAttenuation)); ConvertOutputVoltage(); } } }
 
-        public double InputVoltage
-        {
-            get => _inputVoltage;
-            set
-            {
-                if (SetProperty(ref _inputVoltage, value))
-                {
-                    OnPropertyChanged(nameof(CanCalculateAttenuation));
-                }
-            }
-        }
-
-        public double OutputVoltage
-        {
-            get => _outputVoltage;
-            set
-            {
-                if (SetProperty(ref _outputVoltage, value))
-                {
-                    OnPropertyChanged(nameof(CanCalculateAttenuation));
-                }
-            }
-        }
-
-        public string SelectedInputVoltageUnit
-        {
-            get => _selectedInputVoltageUnit;
-            set
-            {
-                if (SetProperty(ref _selectedInputVoltageUnit, value))
-                {
-                    OnPropertyChanged(nameof(CanCalculateAttenuation));
-                    ConvertInputVoltage();
-                }
-            }
-        }
-
-        public string SelectedOutputVoltageUnit
-        {
-            get => _selectedOutputVoltageUnit;
-            set
-            {
-                if (SetProperty(ref _selectedOutputVoltageUnit, value))
-                {
-                    OnPropertyChanged(nameof(CanCalculateAttenuation));
-                    ConvertOutputVoltage();
-                }
-            }
-        }
 
         public ObservableCollection<string> VoltageUnits => _unitCollections["Voltage"];
 

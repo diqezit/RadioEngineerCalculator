@@ -22,8 +22,7 @@ namespace RadioEngineerCalculator.Services
 
         public static void ValidateProperty(string propertyName, object value)
         {
-            if (value is null)
-                throw new ArgumentNullException(propertyName);
+            _ = value ?? throw new ArgumentNullException(propertyName);
 
             switch (value)
             {
@@ -74,9 +73,7 @@ namespace RadioEngineerCalculator.Services
         public static void ValidateRange(double value, double min, double max, string paramName)
         {
             if (!IsInRange(value, min, max))
-            {
                 throw new ArgumentOutOfRangeException(paramName, $"{paramName} должен быть между {min} и {max}.");
-            }
         }
 
         public static void ValidateNonNegative(double value, string paramName)

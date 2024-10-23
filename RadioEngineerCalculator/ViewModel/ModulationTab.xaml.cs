@@ -7,7 +7,7 @@ using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Windows.Controls;
 using System.Windows.Input;
-using static RadioEngineerCalculator.Services.UnitC;
+using static RadioEngineerCalculator.Services.UnitConverter;
 using static RadioEngineerCalculator.Services.Validate;
 using static RadioEngineerCalculator.Services.ComboBoxService;
 using static RadioEngineerCalculator.Infos.ErrorMessages;
@@ -43,24 +43,13 @@ namespace RadioEngineerCalculator.ViewModel
 
         #region Публичные свойства
 
+        public string AMIndexResult { get => _amIndexResult; set => SetProperty(ref _amIndexResult, value); }
         public double CarrierAmplitude
         {
             get => _carrierAmplitude;
             set
             {
                 if (SetProperty(ref _carrierAmplitude, value))
-                {
-                    OnPropertyChanged(nameof(CanCalculateAMIndex));
-                }
-            }
-        }
-
-        public double ModulatingAmplitude
-        {
-            get => _modulatingAmplitude;
-            set
-            {
-                if (SetProperty(ref _modulatingAmplitude, value))
                 {
                     OnPropertyChanged(nameof(CanCalculateAMIndex));
                 }
@@ -79,36 +68,12 @@ namespace RadioEngineerCalculator.ViewModel
             }
         }
 
-        public double FrequencyDeviation
-        {
-            get => _frequencyDeviation;
-            set
-            {
-                if (SetProperty(ref _frequencyDeviation, value))
-                {
-                    OnPropertyChanged(nameof(CanCalculateFMIndex));
-                }
-            }
-        }
-
         public double CarrierPhase
         {
             get => _carrierPhase;
             set
             {
                 if (SetProperty(ref _carrierPhase, value))
-                {
-                    OnPropertyChanged(nameof(CanCalculatePMIndex));
-                }
-            }
-        }
-
-        public double PhaseDeviation
-        {
-            get => _phaseDeviation;
-            set
-            {
-                if (SetProperty(ref _phaseDeviation, value))
                 {
                     OnPropertyChanged(nameof(CanCalculatePMIndex));
                 }
@@ -127,18 +92,6 @@ namespace RadioEngineerCalculator.ViewModel
             }
         }
 
-        public string SelectedModulatingAmplitudeUnit
-        {
-            get => _selectedModulatingAmplitudeUnit;
-            set
-            {
-                if (SetProperty(ref _selectedModulatingAmplitudeUnit, value))
-                {
-                    ConvertModulatingAmplitude();
-                }
-            }
-        }
-
         public string SelectedCarrierFrequencyUnit
         {
             get => _selectedCarrierFrequencyUnit;
@@ -147,18 +100,6 @@ namespace RadioEngineerCalculator.ViewModel
                 if (SetProperty(ref _selectedCarrierFrequencyUnit, value))
                 {
                     ConvertCarrierFrequency();
-                }
-            }
-        }
-
-        public string SelectedFrequencyDeviationUnit
-        {
-            get => _selectedFrequencyDeviationUnit;
-            set
-            {
-                if (SetProperty(ref _selectedFrequencyDeviationUnit, value))
-                {
-                    ConvertFrequencyDeviation();
                 }
             }
         }
@@ -175,6 +116,66 @@ namespace RadioEngineerCalculator.ViewModel
             }
         }
 
+        public double FrequencyDeviation
+        {
+            get => _frequencyDeviation;
+            set
+            {
+                if (SetProperty(ref _frequencyDeviation, value))
+                {
+                    OnPropertyChanged(nameof(CanCalculateFMIndex));
+                }
+            }
+        }
+
+        public string SelectedFrequencyDeviationUnit
+        {
+            get => _selectedFrequencyDeviationUnit;
+            set
+            {
+                if (SetProperty(ref _selectedFrequencyDeviationUnit, value))
+                {
+                    ConvertFrequencyDeviation();
+                }
+            }
+        }
+
+        public double ModulatingAmplitude
+        {
+            get => _modulatingAmplitude;
+            set
+            {
+                if (SetProperty(ref _modulatingAmplitude, value))
+                {
+                    OnPropertyChanged(nameof(CanCalculateAMIndex));
+                }
+            }
+        }
+
+        public string SelectedModulatingAmplitudeUnit
+        {
+            get => _selectedModulatingAmplitudeUnit;
+            set
+            {
+                if (SetProperty(ref _selectedModulatingAmplitudeUnit, value))
+                {
+                    ConvertModulatingAmplitude();
+                }
+            }
+        }
+
+        public double PhaseDeviation
+        {
+            get => _phaseDeviation;
+            set
+            {
+                if (SetProperty(ref _phaseDeviation, value))
+                {
+                    OnPropertyChanged(nameof(CanCalculatePMIndex));
+                }
+            }
+        }
+
         public string SelectedPhaseDeviationUnit
         {
             get => _selectedPhaseDeviationUnit;
@@ -187,23 +188,9 @@ namespace RadioEngineerCalculator.ViewModel
             }
         }
 
-        public string AMIndexResult
-        {
-            get => _amIndexResult;
-            set => SetProperty(ref _amIndexResult, value);
-        }
+        public string FMIndexResult { get => _fmIndexResult; set => SetProperty(ref _fmIndexResult, value); }
+        public string PMIndexResult { get => _pmIndexResult; set => SetProperty(ref _pmIndexResult, value); }
 
-        public string FMIndexResult
-        {
-            get => _fmIndexResult;
-            set => SetProperty(ref _fmIndexResult, value);
-        }
-
-        public string PMIndexResult
-        {
-            get => _pmIndexResult;
-            set => SetProperty(ref _pmIndexResult, value);
-        }
 
         public ObservableCollection<string> AmplitudeUnits => _unitCollections["Voltage"];
         public ObservableCollection<string> FrequencyUnits => _unitCollections["Frequency"];

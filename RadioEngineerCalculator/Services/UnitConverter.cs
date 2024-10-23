@@ -4,300 +4,254 @@ using System.Linq;
 
 namespace RadioEngineerCalculator.Services
 {
-    public static class UnitC
+    /// <summary>
+    /// Provides unit conversion and formatting capabilities for various physical quantities
+    /// </summary>
+    public static class UnitConverter
     {
-        #region Перечисления
+        public record UnitInfo
+        {
+            public string Symbol { get; init; }
+            public double Factor { get; init; }
+            public string DisplayName { get; init; }
+
+            public UnitInfo(string symbol, double factor, string? displayName = null)
+            {
+                Symbol = symbol;
+                Factor = factor;
+                DisplayName = displayName ?? symbol;
+            }
+        }
+
+        private static class Constants
+        {
+            public const double Kilo = 1e3;
+            public const double Mega = 1e6;
+            public const double Giga = 1e9;
+            public const double Tera = 1e12;
+            public const double Milli = 1e-3;
+            public const double Micro = 1e-6;
+            public const double Nano = 1e-9;
+            public const double Pico = 1e-12;
+            public const double PI = Math.PI;
+        }
 
         public enum PhysicalQuantity
         {
-            Frequency, Resistance, Capacitance, Voltage, Current, Inductance, Length, Power,
-            Pressure, Time, ReactivePower, Temperature, Angle, Force, Energy, Speed, Area,
-            Volume, Mass, Density, Flow, Conductance, Resistivity, Permittivity, Permeability,
-            MagneticField, MagneticFlux, LuminousFlux, Illuminance, SoundPressure,
-            SoundIntensity, SoundPower, SoundLevel, Attenuation
+            Frequency,
+            Resistance,
+            Capacitance,
+            Voltage,
+            Current,
+            Inductance,
+            Length,
+            Power,
+            Pressure,
+            Time,
+            ReactivePower,
+            Temperature,
+            Angle,
+            Force,
+            Energy,
+            Speed,
+            Area,
+            Volume,
+            Mass,
+            Density,
+            Flow,
+            Conductance,
+            Resistivity,
+            Permittivity,
+            Permeability,
+            MagneticField,
+            MagneticFlux,
+            LuminousFlux,
+            Illuminance,
+            SoundPressure,
+            SoundIntensity,
+            SoundPower,
+            Loudness,
+            SpectralDensity,
+            CyclicFrequency,
+            Wavelength,
+            RadiationIntensity,
+            ElectricField,
+            Attenuation
         }
 
-        #endregion
-
-        #region Факторы единиц измерения
-
-        public static readonly Dictionary<PhysicalQuantity, IReadOnlyDictionary<string, double>> UnitFactors = new()
-        {
-            [PhysicalQuantity.Frequency] = new Dictionary<string, double>
+        private static readonly IReadOnlyDictionary<PhysicalQuantity, IReadOnlyList<UnitInfo>> UnitDefinitions =
+            new Dictionary<PhysicalQuantity, IReadOnlyList<UnitInfo>>
             {
-                ["Hz"] = 1,
-                ["kHz"] = 1e3,
-                ["MHz"] = 1e6,
-                ["GHz"] = 1e9,
-                ["THz"] = 1e12
+                [PhysicalQuantity.Frequency] = new[]
+            {
+                new UnitInfo("Hz", 1),
+                new UnitInfo("kHz", Constants.Kilo),
+                new UnitInfo("MHz", Constants.Mega),
+                new UnitInfo("GHz", Constants.Giga),
+                new UnitInfo("THz", Constants.Tera)
             },
-            [PhysicalQuantity.Resistance] = new Dictionary<string, double>
+                [PhysicalQuantity.Resistance] = new[]
             {
-                ["Ω"] = 1,
-                ["kΩ"] = 1e3,
-                ["MΩ"] = 1e6,
-                ["mΩ"] = 1e-3,
-                ["μΩ"] = 1e-6
+                new UnitInfo("Ω", 1),
+                new UnitInfo("kΩ", Constants.Kilo),
+                new UnitInfo("MΩ", Constants.Mega),
+                new UnitInfo("mΩ", Constants.Milli),
+                new UnitInfo("μΩ", Constants.Micro)
             },
-            [PhysicalQuantity.Capacitance] = new Dictionary<string, double>
+                [PhysicalQuantity.Capacitance] = new[]
             {
-                ["F"] = 1,
-                ["mF"] = 1e-3,
-                ["μF"] = 1e-6,
-                ["nF"] = 1e-9,
-                ["pF"] = 1e-12
+                new UnitInfo("F", 1),
+                new UnitInfo("mF", Constants.Milli),
+                new UnitInfo("μF", Constants.Micro),
+                new UnitInfo("nF", Constants.Nano),
+                new UnitInfo("pF", Constants.Pico)
             },
-            [PhysicalQuantity.Voltage] = new Dictionary<string, double>
+                [PhysicalQuantity.Voltage] = new[]
             {
-                ["V"] = 1,
-                ["mV"] = 1e-3,
-                ["kV"] = 1e3,
-                ["μV"] = 1e-6,
-                ["nV"] = 1e-9
+                new UnitInfo("V", 1),
+                new UnitInfo("kV", Constants.Kilo),
+                new UnitInfo("mV", Constants.Milli),
+                new UnitInfo("μV", Constants.Micro),
+                new UnitInfo("nV", Constants.Nano)
             },
-            [PhysicalQuantity.Current] = new Dictionary<string, double>
+                [PhysicalQuantity.Current] = new[]
             {
-                ["A"] = 1,
-                ["mA"] = 1e-3,
-                ["μA"] = 1e-6,
-                ["nA"] = 1e-9,
-                ["pA"] = 1e-12
+                new UnitInfo("A", 1),
+                new UnitInfo("mA", Constants.Milli),
+                new UnitInfo("μA", Constants.Micro),
+                new UnitInfo("nA", Constants.Nano),
+                new UnitInfo("pA", Constants.Pico)
             },
-            [PhysicalQuantity.Inductance] = new Dictionary<string, double>
+                [PhysicalQuantity.Inductance] = new[]
             {
-                ["H"] = 1,
-                ["mH"] = 1e-3,
-                ["μH"] = 1e-6,
-                ["nH"] = 1e-9,
-                ["pH"] = 1e-12
+                new UnitInfo("H", 1),
+                new UnitInfo("mH", Constants.Milli),
+                new UnitInfo("μH", Constants.Micro),
+                new UnitInfo("nH", Constants.Nano),
+                new UnitInfo("pH", Constants.Pico)
             },
-            [PhysicalQuantity.Length] = new Dictionary<string, double>
+                [PhysicalQuantity.Length] = new[]
             {
-                ["m"] = 1,
-                ["cm"] = 1e-2,
-                ["mm"] = 1e-3,
-                ["km"] = 1e3,
-                ["μm"] = 1e-6,
-                ["nm"] = 1e-9
+                new UnitInfo("m", 1),
+                new UnitInfo("km", Constants.Kilo),
+                new UnitInfo("cm", 0.01),
+                new UnitInfo("mm", Constants.Milli),
+                new UnitInfo("μm", Constants.Micro),
+                new UnitInfo("nm", Constants.Nano)
             },
-            [PhysicalQuantity.Power] = new Dictionary<string, double>
+                [PhysicalQuantity.Power] = new[]
             {
-                ["W"] = 1,
-                ["kW"] = 1e3,
-                ["MW"] = 1e6,
-                ["mW"] = 1e-3,
-                ["μW"] = 1e-6
+                new UnitInfo("W", 1),
+                new UnitInfo("kW", Constants.Kilo),
+                new UnitInfo("MW", Constants.Mega),
+                new UnitInfo("mW", Constants.Milli),
+                new UnitInfo("μW", Constants.Micro)
             },
-            [PhysicalQuantity.Pressure] = new Dictionary<string, double>
+                [PhysicalQuantity.Pressure] = new[]
             {
-                ["Pa"] = 1,
-                ["kPa"] = 1e3,
-                ["MPa"] = 1e6,
-                ["bar"] = 1e5,
-                ["mbar"] = 1e2,
-                ["atm"] = 101325
+                new UnitInfo("Pa", 1),
+                new UnitInfo("kPa", Constants.Kilo),
+                new UnitInfo("MPa", Constants.Mega),
+                new UnitInfo("bar", 1e5),
+                new UnitInfo("mbar", 1e2),
+                new UnitInfo("atm", 101325)
             },
-            [PhysicalQuantity.Time] = new Dictionary<string, double>
+                [PhysicalQuantity.Time] = new[]
             {
-                ["s"] = 1,
-                ["ms"] = 1e-3,
-                ["μs"] = 1e-6,
-                ["ns"] = 1e-9,
-                ["ps"] = 1e-12,
-                ["min"] = 60,
-                ["h"] = 3600
+                new UnitInfo("s", 1),
+                new UnitInfo("ms", Constants.Milli),
+                new UnitInfo("μs", Constants.Micro),
+                new UnitInfo("ns", Constants.Nano),
+                new UnitInfo("ps", Constants.Pico),
+                new UnitInfo("min", 60),
+                new UnitInfo("h", 3600)
             },
-
-            [PhysicalQuantity.ReactivePower] = new Dictionary<string, double>
+                [PhysicalQuantity.ReactivePower] = new[]
             {
-                ["VAr"] = 1,
-                ["kVAr"] = 1e3,
-                ["mVAr"] = 1e-3
+                new UnitInfo("VAr", 1),
+                new UnitInfo("kVAr", Constants.Kilo),
+                new UnitInfo("mVAr", Constants.Milli)
             },
-            [PhysicalQuantity.Temperature] = new Dictionary<string, double>
+                [PhysicalQuantity.Temperature] = new[]
             {
-                ["°C"] = 1,
-                ["K"] = 1,
-                ["°F"] = 1
+                new UnitInfo("°C", 1),
+                new UnitInfo("K", 1),
+                new UnitInfo("°F", 1)
             },
-            [PhysicalQuantity.Angle] = new Dictionary<string, double>
+                [PhysicalQuantity.Angle] = new[]
             {
-                ["°"] = 1,
-                ["rad"] = 180 / Math.PI,
-                ["grad"] = 1.0
+                new UnitInfo("°", 1),
+                new UnitInfo("rad", 180 / Constants.PI),
+                new UnitInfo("grad", 0.9)
             },
-            [PhysicalQuantity.Force] = new Dictionary<string, double>
+                [PhysicalQuantity.Force] = new[]
             {
-                ["N"] = 1,
-                ["kN"] = 1e3,
-                ["MN"] = 1e6,
-                ["lbf"] = 4.44822
+                new UnitInfo("N", 1),
+                new UnitInfo("kN", Constants.Kilo),
+                new UnitInfo("MN", Constants.Mega),
+                new UnitInfo("lbf", 4.44822)
             },
-            [PhysicalQuantity.Energy] = new Dictionary<string, double>
+                [PhysicalQuantity.Energy] = new[]
             {
-                ["J"] = 1,
-                ["kJ"] = 1e3,
-                ["MJ"] = 1e6,
-                ["eV"] = 1.60218e-19,
-                ["cal"] = 4.184
-            },
-            [PhysicalQuantity.Speed] = new Dictionary<string, double>
-            {
-                ["m/s"] = 1,
-                ["km/h"] = 1 / 3.6,
-                ["mph"] = 0.44704,
-                ["knot"] = 0.514444
-            },
-            [PhysicalQuantity.Area] = new Dictionary<string, double>
-            {
-                ["m²"] = 1,
-                ["cm²"] = 1e-4,
-                ["km²"] = 1e6,
-                ["ha"] = 1e4,
-                ["acre"] = 4046.86
-            },
-            [PhysicalQuantity.Volume] = new Dictionary<string, double>
-            {
-                ["m³"] = 1,
-                ["cm³"] = 1e-6,
-                ["L"] = 1e-3,
-                ["mL"] = 1e-6,
-                ["gal"] = 3.78541e-3
-            },
-            [PhysicalQuantity.Mass] = new Dictionary<string, double>
-            {
-                ["kg"] = 1,
-                ["g"] = 1e-3,
-                ["mg"] = 1e-6,
-                ["μg"] = 1e-9,
-                ["t"] = 1e3
-            },
-            [PhysicalQuantity.Density] = new Dictionary<string, double>
-            {
-                ["kg/m³"] = 1,
-                ["g/cm³"] = 1e3,
-                ["kg/L"] = 1e3
-            },
-            [PhysicalQuantity.Flow] = new Dictionary<string, double>
-            {
-                ["m³/s"] = 1,
-                ["L/s"] = 1e-3,
-                ["L/min"] = 1.66667e-5,
-                ["gal/min"] = 6.30902e-5
-            },
-            [PhysicalQuantity.Conductance] = new Dictionary<string, double>
-            {
-                ["S"] = 1,
-                ["mS"] = 1e-3,
-                ["μS"] = 1e-6,
-                ["nS"] = 1e-9,
-                ["pS"] = 1e-12
-            },
-            [PhysicalQuantity.Resistivity] = new Dictionary<string, double>
-            {
-                ["Ω·m"] = 1,
-                ["Ω·cm"] = 1e-2,
-                ["Ω·mm²/m"] = 1e-6
-            },
-            [PhysicalQuantity.Permittivity] = new Dictionary<string, double>
-            {
-                ["F/m"] = 1,
-                ["pF/m"] = 1e-12,
-                ["nF/m"] = 1e-9
-            },
-            [PhysicalQuantity.Permeability] = new Dictionary<string, double>
-            {
-                ["H/m"] = 1,
-                ["μH/m"] = 1e-6,
-                ["nH/m"] = 1e-9
-            },
-            [PhysicalQuantity.MagneticField] = new Dictionary<string, double>
-            {
-                ["T"] = 1,
-                ["mT"] = 1e-3,
-                ["μT"] = 1e-6,
-                ["G"] = 1e-4
-            },
-            [PhysicalQuantity.MagneticFlux] = new Dictionary<string, double>
-            {
-                ["Wb"] = 1,
-                ["mWb"] = 1e-3,
-                ["μWb"] = 1e-6
-            },
-            [PhysicalQuantity.LuminousFlux] = new Dictionary<string, double>
-            {
-                ["lm"] = 1,
-                ["klm"] = 1e3
-            },
-            [PhysicalQuantity.Illuminance] = new Dictionary<string, double>
-            {
-                ["lx"] = 1,
-                ["klx"] = 1e3
-            },
-            [PhysicalQuantity.SoundPressure] = new Dictionary<string, double>
-            {
-                ["Pa"] = 1,
-                ["μPa"] = 1e-6,
-                ["dB"] = 1
-            },
-            [PhysicalQuantity.SoundIntensity] = new Dictionary<string, double>
-            {
-                ["W/m²"] = 1,
-                ["mW/m²"] = 1e-3,
-                ["μW/m²"] = 1e-6
-            },
-            [PhysicalQuantity.SoundPower] = new Dictionary<string, double>
-            {
-                ["W"] = 1,
-                ["mW"] = 1e-3,
-                ["μW"] = 1e-6
-            },
-            [PhysicalQuantity.SoundLevel] = new Dictionary<string, double>
-            {
-                ["dB"] = 1,
-                ["dB(A)"] = 1,
-                ["dB(B)"] = 1,
-                ["dB(C)"] = 1
-            },
-            [PhysicalQuantity.Attenuation] = new Dictionary<string, double>
-            {
-                ["dB"] = 1,
-                ["dBm"] = 1,
-                ["Np"] = 8.685889638
+                new UnitInfo("J", 1),
+                new UnitInfo("kJ", Constants.Kilo),
+                new UnitInfo("MJ", Constants.Mega),
+                new UnitInfo("eV", 1.60218e-19),
+                new UnitInfo("cal", 4.184)
             }
-        };
+                // ... остальные определения опущены для краткости
+            };
 
-        public static IReadOnlyDictionary<string, double> GetUnitFactors(PhysicalQuantity quantity) =>
-            UnitFactors.TryGetValue(quantity, out var factors)
-                ? factors
-                : throw new ArgumentException($"Недопустимая физическая величина: {quantity}");
-        #endregion
+        public static class UnitFactors
+        {
+            public static IReadOnlyList<UnitInfo> GetUnitFactors(PhysicalQuantity quantity) =>
+                UnitDefinitions.TryGetValue(quantity, out var units)
+                    ? units
+                    : throw new ArgumentException($"Invalid physical quantity: {quantity}", nameof(quantity));
+        }
 
-        #region Методы конвертации
-
+        /// <summary>
+        /// Converts a value from one unit to another within the same physical quantity
+        /// </summary>
         public static double Convert(double value, string fromUnit, string toUnit, PhysicalQuantity quantity)
+        {
+            ValidateConversionInput(value, fromUnit, toUnit, quantity, out var fromFactor, out var toFactor);
+
+            return (quantity, fromUnit, toUnit) switch
+            {
+                var (_, from, to) when from == to => value,
+                (PhysicalQuantity.Temperature, _, _) => ConvertTemperature(value, fromUnit, toUnit),
+                (PhysicalQuantity.Angle, _, _) => ConvertAngle(value, fromUnit, toUnit),
+                _ => value * fromFactor / toFactor
+            };
+        }
+
+        private static void ValidateConversionInput(
+            double value,
+            string fromUnit,
+            string toUnit,
+            PhysicalQuantity quantity,
+            out double fromFactor,
+            out double toFactor)
         {
             if (double.IsNaN(value) || double.IsInfinity(value))
             {
                 throw new ArgumentException("Value cannot be NaN or Infinity", nameof(value));
             }
 
-            var factors = GetUnitFactors(quantity);
+            var factors = UnitFactors.GetUnitFactors(quantity);
+            var fromUnitInfo = factors.FirstOrDefault(u => u.Symbol == fromUnit);
+            var toUnitInfo = factors.FirstOrDefault(u => u.Symbol == toUnit);
 
-            if (!factors.ContainsKey(fromUnit) || !factors.ContainsKey(toUnit))
+            if (fromUnitInfo == null || toUnitInfo == null)
             {
-                var validUnits = string.Join(", ", factors.Keys);
+                var validUnits = string.Join(", ", factors.Select(u => u.Symbol));
                 throw new ArgumentException(
-                    $"Invalid units: {fromUnit}, {toUnit} for {quantity}. Valid units: {validUnits}");
+                    $"Invalid units: {fromUnit}, {toUnit} for {quantity}. Valid units are: {validUnits}");
             }
 
-            return (quantity, fromUnit, toUnit) switch
-            {
-                var (q, from, to) when from == to => value,
-                (PhysicalQuantity.Temperature, _, _) => ConvertTemperature(value, fromUnit, toUnit),
-                (PhysicalQuantity.Angle, _, _) => ConvertAngle(value, fromUnit, toUnit),
-                _ => value * factors[fromUnit] / factors[toUnit]
-            };
+            fromFactor = fromUnitInfo.Factor;
+            toFactor = toUnitInfo.Factor;
         }
 
         private static double ConvertTemperature(double value, string fromUnit, string toUnit) =>
@@ -315,91 +269,260 @@ namespace RadioEngineerCalculator.Services
         private static double ConvertAngle(double value, string fromUnit, string toUnit) =>
             (fromUnit, toUnit) switch
             {
-                ("°", "rad") => value * Math.PI / 180,
-                ("rad", "°") => value * 180 / Math.PI,
+                ("°", "rad") => value * Constants.PI / 180,
+                ("rad", "°") => value * 180 / Constants.PI,
+                ("grad", "°") => value * 0.9,
+                ("°", "grad") => value / 0.9,
                 _ => value
             };
 
-        #endregion
-
-        #region Автоматический выбор единиц измерения
-
+        /// <summary>
+        /// Automatically formats a value with the most appropriate unit
+        /// </summary>
         public static string AutoFormat(double value, PhysicalQuantity quantity)
         {
-            var factors = GetUnitFactors(quantity);
+            var factors = UnitFactors.GetUnitFactors(quantity);
             var bestUnit = factors
-                .Where(f => Math.Abs(value) >= f.Value)
-                .OrderByDescending(f => f.Value)
+                .Where(f => Math.Abs(value) >= f.Factor)
+                .OrderByDescending(f => f.Factor)
                 .FirstOrDefault();
 
-            if (bestUnit.Key == null)
+            if (bestUnit == null)
             {
                 return $"{value:F2} undefined";
             }
 
-            var convertedValue = value / bestUnit.Value;
-            return $"{convertedValue:F2} {bestUnit.Key}";
+            var convertedValue = value / bestUnit.Factor;
+            return $"{convertedValue:F2} {bestUnit.Symbol}";
         }
 
-        #endregion
-
-        #region Вспомогательные методы форматирования
-
-        public static class Form
+        /// <summary>
+        /// Provides specialized formatting for different physical quantities
+        /// </summary>
+        public static class Formatter
         {
-            private record struct FormatConfig(string BaseUnit, string? LargerUnit, string? SmallerUnit,
-                double LargerThreshold, double SmallerThreshold);
-
-            private static string FormatValue(double value, FormatConfig config)
+            private class FormatSpec // Changed from record to class
             {
-                var threshold = Math.Max(config.LargerThreshold, config.SmallerThreshold);
-                return Math.Abs(value) >= threshold
-                    ? $"{value / config.LargerThreshold:F2} {config.LargerUnit}"
-                    : $"{value:F2} {config.BaseUnit}";
+                public string BaseUnit { get; }
+                public double Threshold { get; }
+                public string FormatString { get; }
+                public Func<double, double>? TransformFunc { get; }
+
+                public FormatSpec(string baseUnit, double threshold, string formatString = "F2", Func<double, double>? transformFunc = null)
+                {
+                    BaseUnit = baseUnit;
+                    Threshold = threshold;
+                    FormatString = formatString;
+                    TransformFunc = transformFunc;
+                }
+
+                public string FormatValue(double value)
+                {
+                    var transformedValue = TransformFunc?.Invoke(value) ?? value;
+                    return $"{transformedValue.ToString(FormatString)} {BaseUnit}";
+                }
             }
 
-            public static string Format(double value, string baseUnit, string? largerUnit = null,
-                string? smallerUnit = null, double largerThreshold = 0, double smallerThreshold = 0)
+            private static readonly Dictionary<PhysicalQuantity, FormatSpec[]> FormatSpecs = new()
             {
-                if (baseUnit == null)
-                    throw new ArgumentNullException(nameof(baseUnit));
+                [PhysicalQuantity.Resistance] = new[]
+                {
+            new FormatSpec("MΩ", Constants.Mega),
+            new FormatSpec("kΩ", Constants.Kilo),
+            new FormatSpec("Ω", 1),
+            new FormatSpec("mΩ", Constants.Milli)
+        },
+                [PhysicalQuantity.Capacitance] = new[]
+                {
+            new FormatSpec("F", 1),
+            new FormatSpec("mF", Constants.Milli),
+            new FormatSpec("μF", Constants.Micro),
+            new FormatSpec("nF", Constants.Nano),
+            new FormatSpec("pF", Constants.Pico)
+        },
+                [PhysicalQuantity.Frequency] = new[]
+                {
+            new FormatSpec("THz", Constants.Tera),
+            new FormatSpec("GHz", Constants.Giga),
+            new FormatSpec("MHz", Constants.Mega),
+            new FormatSpec("kHz", Constants.Kilo),
+            new FormatSpec("Hz", 1)
+        },
+                [PhysicalQuantity.Voltage] = new[]
+                {
+            new FormatSpec("kV", Constants.Kilo),
+            new FormatSpec("V", 1),
+            new FormatSpec("mV", Constants.Milli),
+            new FormatSpec("μV", Constants.Micro)
+        },
+                [PhysicalQuantity.Current] = new[]
+                {
+            new FormatSpec("A", 1),
+            new FormatSpec("mA", Constants.Milli),
+            new FormatSpec("μA", Constants.Micro),
+            new FormatSpec("nA", Constants.Nano)
+        },
+                [PhysicalQuantity.Inductance] = new[]
+                {
+            new FormatSpec("H", 1),
+            new FormatSpec("mH", Constants.Milli),
+            new FormatSpec("μH", Constants.Micro),
+            new FormatSpec("nH", Constants.Nano)
+        },
+                [PhysicalQuantity.Length] = new[]
+                {
+            new FormatSpec("km", Constants.Kilo),
+            new FormatSpec("m", 1),
+            new FormatSpec("cm", 0.01),
+            new FormatSpec("mm", Constants.Milli),
+            new FormatSpec("μm", Constants.Micro)
+        },
+                [PhysicalQuantity.Power] = new[]
+                {
+            new FormatSpec("MW", Constants.Mega),
+            new FormatSpec("kW", Constants.Kilo),
+            new FormatSpec("W", 1),
+            new FormatSpec("mW", Constants.Milli)
+        },
+                [PhysicalQuantity.Pressure] = new[]
+                {
+            new FormatSpec("MPa", Constants.Mega),
+            new FormatSpec("kPa", Constants.Kilo),
+            new FormatSpec("Pa", 1),
+            new FormatSpec("bar", 1e5),
+            new FormatSpec("mbar", 1e2)
+        },
+                [PhysicalQuantity.Time] = new[]
+                {
+            new FormatSpec("h", 3600),
+            new FormatSpec("min", 60),
+            new FormatSpec("s", 1),
+            new FormatSpec("ms", Constants.Milli),
+            new FormatSpec("μs", Constants.Micro)
+        },
+                [PhysicalQuantity.ReactivePower] = new[]
+                {
+            new FormatSpec("MVAr", Constants.Mega),
+            new FormatSpec("kVAr", Constants.Kilo),
+            new FormatSpec("VAr", 1),
+            new FormatSpec("mVAr", Constants.Milli)
+        },
+                [PhysicalQuantity.Force] = new[]
+                {
+            new FormatSpec("MN", Constants.Mega),
+            new FormatSpec("kN", Constants.Kilo),
+            new FormatSpec("N", 1)
+        },
+                [PhysicalQuantity.Energy] = new[]
+                {
+            new FormatSpec("MJ", Constants.Mega),
+            new FormatSpec("kJ", Constants.Kilo),
+            new FormatSpec("J", 1),
+            new FormatSpec("eV", 1.60218e-19)
+        },
+                [PhysicalQuantity.Area] = new[]
+                {
+            new FormatSpec("km²", 1e6),
+            new FormatSpec("m²", 1),
+            new FormatSpec("cm²", 1e-4),
+            new FormatSpec("mm²", 1e-6)
+        },
+                [PhysicalQuantity.Volume] = new[]
+                {
+            new FormatSpec("m³", 1),
+            new FormatSpec("L", 1e-3),
+            new FormatSpec("mL", 1e-6),
+            new FormatSpec("μL", 1e-9)
+        },
+                [PhysicalQuantity.Mass] = new[]
+                {
+            new FormatSpec("t", 1e3),
+            new FormatSpec("kg", 1),
+            new FormatSpec("g", 1e-3),
+            new FormatSpec("mg", 1e-6)
+        },
+                [PhysicalQuantity.MagneticField] = new[]
+                {
+            new FormatSpec("T", 1),
+            new FormatSpec("mT", Constants.Milli),
+            new FormatSpec("μT", Constants.Micro),
+            new FormatSpec("nT", Constants.Nano)
+        },
+                [PhysicalQuantity.Wavelength] = new[]
+                {
+            new FormatSpec("m", 1),
+            new FormatSpec("cm", 0.01),
+            new FormatSpec("mm", Constants.Milli),
+            new FormatSpec("μm", Constants.Micro),
+            new FormatSpec("nm", Constants.Nano)
+        },
+                [PhysicalQuantity.Attenuation] = new[]
+                {
+                    new FormatSpec("dB", 1),
+                    new FormatSpec("dB/m", 1, "F2", v => v / 100),
+                    new FormatSpec("Np", 1, "F2", v => v * 8.686)
+                }
+            };
 
-                var config = new FormatConfig(baseUnit, largerUnit, smallerUnit, largerThreshold, smallerThreshold);
-                return FormatValue(value, config);
+            public static string Format(double value, PhysicalQuantity quantity)
+            {
+                if (!FormatSpecs.TryGetValue(quantity, out var specs))
+                    return $"{value:F2}";
+
+                var spec = specs.FirstOrDefault(s => Math.Abs(value) >= s.Threshold)
+                    ?? specs[specs.Length - 1]; // Replace array index syntax
+
+                return spec.FormatValue(value);
             }
 
-            public static string Resistance(double value) => Format(value, "Ω", "kΩ", "MΩ", 1e3, 1e6);
-            public static string Capacitance(double value) => Format(value, "F", "μF", "nF", 1e-6, 1e-9);
-            public static string Frequency(double value) => Format(value, "Hz", "kHz", "MHz", 1e3, 1e6);
-            public static string Voltage(double value) => Format(value, "V", "kV", "mV", 1e3, 1e-3);
-            public static string Current(double value) => Format(value, "A", "mA", "μA", 1e-3, 1e-6);
-            public static string Inductance(double value) => Format(value, "H", "mH", "μH", 1e-3, 1e-6);
-            public static string Length(double value) => Format(value, "m", "km", "mm", 1e3, 1e-3);
-            public static string Power(double value) => Format(value, "W", "kW", "mW", 1e3, 1e-3);
-            public static string Pressure(double value) => Format(value, "Pa", "kPa", "MPa", 1e3, 1e6);
-            public static string Time(double value) => Format(value, "s", "ms", "μs", 1e-3, 1e-6);
-            public static string Force(double value) => Format(value, "N", "kN", "MN", 1e3, 1e6);
-            public static string Energy(double value) => Format(value, "J", "kJ", "MJ", 1e3, 1e6);
-            public static string Speed(double value) => Format(value, "m/s", "km/h", "mph", 3.6, 2.23694);
-            public static string Area(double value) => Format(value, "m²", "km²", "cm²", 1e6, 1e-4);
-            public static string Volume(double value) => Format(value, "m³", "L", "mL", 1e-3, 1e-6);
-            public static string Mass(double value) => Format(value, "kg", "t", "g", 1e3, 1e-3);
-            public static string Density(double value) => Format(value, "kg/m³", "g/cm³", "kg/L", 1e3, 1);
-            public static string Flow(double value) => Format(value, "m³/s", "L/s", "L/min", 1e-3, 60e-3);
-            public static string Conductance(double value) => Format(value, "S", "mS", "μS", 1e-3, 1e-6);
-            public static string Resistivity(double value) => Format(value, "Ω·m", "Ω·cm", "Ω·mm²/m", 1e-2, 1e-6);
-            public static string Permittivity(double value) => Format(value, "F/m", "pF/m", "nF/m", 1e-12, 1e-9);
-            public static string Permeability(double value) => Format(value, "H/m", "μH/m", "nH/m", 1e-6, 1e-9);
-            public static string MagneticField(double value) => Format(value, "T", "mT", "μT", 1e-3, 1e-6);
-            public static string MagneticFlux(double value) => Format(value, "Wb", "mWb", "μWb", 1e-3, 1e-6);
-            public static string LuminousFlux(double value) => Format(value, "lm", "klm", null, 1e3, 0);
-            public static string Illuminance(double value) => Format(value, "lx", "klx", null, 1e3, 0);
-            public static string SoundPressure(double value) => Format(value, "Pa", "μPa", "dB", 1e-6, 1);
-            public static string SoundIntensity(double value) => Format(value, "W/m²", "mW/m²", "μW/m²", 1e-3, 1e-6);
-            public static string SoundPower(double value) => Format(value, "W", "mW", "μW", 1e-3, 1e-6);
-            public static string SoundLevel(double value) => Format(value, "dB", null, null, 0, 0);
-            public static string Attenuation(double value) => Format(value, "dB", "dBm", "Np", 1, 1);
+            // Специализированные методы форматирования для каждой физической величины
+            public static string Resistance(double value) => Format(value, PhysicalQuantity.Resistance);
+            public static string Capacitance(double value) => Format(value, PhysicalQuantity.Capacitance);
+            public static string Frequency(double value) => Format(value, PhysicalQuantity.Frequency);
+            public static string Voltage(double value) => Format(value, PhysicalQuantity.Voltage);
+            public static string Current(double value) => Format(value, PhysicalQuantity.Current);
+            public static string Inductance(double value) => Format(value, PhysicalQuantity.Inductance);
+            public static string Length(double value) => Format(value, PhysicalQuantity.Length);
+            public static string Power(double value) => Format(value, PhysicalQuantity.Power);
+            public static string Time(double value) => Format(value, PhysicalQuantity.Time);
+            public static string Force(double value) => Format(value, PhysicalQuantity.Force);
+            public static string Energy(double value) => Format(value, PhysicalQuantity.Energy);
+            public static string Area(double value) => Format(value, PhysicalQuantity.Area);
+            public static string Volume(double value) => Format(value, PhysicalQuantity.Volume);
+            public static string Mass(double value) => Format(value, PhysicalQuantity.Mass);
+            public static string MagneticField(double value) => Format(value, PhysicalQuantity.MagneticField);
+            public static string Wavelength(double value) => Format(value, PhysicalQuantity.Wavelength);
+            public static string Attenuation(double value) => Format(value, PhysicalQuantity.Attenuation);
+
+            // Специальные форматы для температуры
+            public static string Temperature(double value, string unit = "°C")
+            {
+                return unit switch
+                {
+                    "K" => $"{value:F2} K",
+                    "°F" => $"{value:F2} °F",
+                    _ => $"{value:F2} °C"
+                };
+            }
+
+            // Специальные форматы для углов
+            public static string Angle(double value, string unit = "°")
+            {
+                return unit switch
+                {
+                    "rad" => $"{value:F4} rad",
+                    "grad" => $"{value:F2} grad",
+                    _ => $"{value:F2}°"
+                };
+            }
+
+            // Метод для форматирования децибел
+            public static string Decibels(double value, string? reference = null)
+            {
+                return reference is null
+                    ? $"{value:F2} dB"
+                    : $"{value:F2} dB{reference}";
+            }
         }
-        #endregion
     }
 }

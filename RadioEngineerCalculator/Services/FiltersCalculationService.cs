@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
-using static RadioEngineerCalculator.Services.UnitC;
+using static RadioEngineerCalculator.Services.UnitConverter;
 
 namespace RadioEngineerCalculator.Services
 {
@@ -44,7 +44,11 @@ namespace RadioEngineerCalculator.Services
                     PhaseShift = CalculatePhaseShift(inputValues.FilterType, safeFrequency, cutoffFrequency, bandwidth),
                     GroupDelay = CalculateGroupDelay(inputValues.FilterType, safeFrequency, cutoffFrequency, bandwidth),
                     Attenuation = CalculateAttenuation(inputValues.FilterType, safeFrequency, cutoffFrequency, bandwidth),
-                    FrequencyResponse = CalculateFrequencyResponse(inputValues.FilterType, safeFrequency, cutoffFrequency, bandwidth, inputValues.FrequencyUnit)
+                    FrequencyResponse = CalculateFrequencyResponse(inputValues.FilterType, safeFrequency, cutoffFrequency, bandwidth, inputValues.FrequencyUnit),
+                    FrequencyUnit = inputValues.FrequencyUnit,
+                    StopbandFrequency = CalculateStopbandFrequency(inputValues.FilterType, cutoffFrequency),
+                    StopbandAttenuation = CalculateStopbandAttenuation(inputValues.FilterType, cutoffFrequency, bandwidth),
+                    RollOff = CalculateRollOff(inputValues.FilterType)
                 };
             }
             catch (ArgumentException ex)
@@ -99,6 +103,32 @@ namespace RadioEngineerCalculator.Services
                     _ => throw new ArgumentException("Неподдерживаемый тип фильтра", nameof(filterType))
                 }
             };
+
+        private double CalculateStopbandFrequency(FilterType filterType, double cutoffFrequency)
+        {
+            return filterType switch
+            {
+                FilterType.LowPass => cutoffFrequency * 10,
+                FilterType.HighPass => cutoffFrequency / 10,
+                _ => 0 
+            };
+        }
+
+        private double CalculateStopbandAttenuation(FilterType filterType, double cutoffFrequency, double bandwidth)
+        {
+            var stopbandFreq = CalculateStopbandFrequency(filterType, cutoffFrequency);
+            return stopbandFreq > 0 ? CalculateAttenuation(filterType, stopbandFreq, cutoffFrequency, bandwidth) : 0;
+        }
+
+        private double CalculateRollOff(FilterType filterType)
+        {
+            return filterType switch
+            {
+                FilterType.LowPass => -20,
+                FilterType.HighPass => -20,
+                _ => -40 
+            };
+        }
 
         public double CalculatePhaseShift(FilterType filterType, double frequency, double cutoffFrequency, double bandwidth)
         {
@@ -181,7 +211,7 @@ namespace RadioEngineerCalculator.Services
 
         private static void ValidateUnit(string? unit, PhysicalQuantity quantity)
         {
-            if (unit is null || !UnitFactors[quantity].ContainsKey(unit))
+            if (unit is null || !UnitFactors.GetUnitFactors(quantity).Any(u => u.Symbol == unit))
                 throw new ArgumentException($"Недопустимая единица измерения для {quantity}: {unit}");
         }
 
@@ -250,7 +280,6 @@ namespace RadioEngineerCalculator.Services
         public string FrequencyUnit { get; set; }
         public string CapacitanceUnit { get; set; }
     }
-
     public class FilterResults
     {
         public FiltersCalculationService.FilterType FilterType { get; set; }
@@ -261,7 +290,11 @@ namespace RadioEngineerCalculator.Services
         public double PhaseShift { get; set; }
         public double GroupDelay { get; set; }
         public double Attenuation { get; set; }
-        public List<Point> FrequencyResponse { get; set; }
+        public List<Point> FrequencyResponse { get; set; } = new List<Point>(); 
+        public string FrequencyUnit { get; set; }
+        public double StopbandFrequency { get; set; } 
+        public double StopbandAttenuation { get; set; }
+        public double RollOff { get; set; } 
     }
 
     public struct Point

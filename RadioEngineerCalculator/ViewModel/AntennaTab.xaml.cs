@@ -7,7 +7,7 @@ using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Windows.Controls;
 using System.Windows.Input;
-using static RadioEngineerCalculator.Services.UnitC;
+using static RadioEngineerCalculator.Services.UnitConverter;
 using static RadioEngineerCalculator.Services.Validate;
 using static RadioEngineerCalculator.Services.ComboBoxService;
 
@@ -46,104 +46,16 @@ namespace RadioEngineerCalculator.ViewModel
                                         !string.IsNullOrWhiteSpace(SelectedForwardPowerUnit) &&
                                         !string.IsNullOrWhiteSpace(SelectedReflectedPowerUnit);
 
-        public string WavelengthResult
-        {
-            get => _wavelengthResult;
-            set => SetProperty(ref _wavelengthResult, value);
-        }
+        public string WavelengthResult { get => _wavelengthResult; set => SetProperty(ref _wavelengthResult, value); }
+        public string VSWRResult { get => _vswrResult; set => SetProperty(ref _vswrResult, value); }
+        public double Frequency { get => _frequency; set { if (SetProperty(ref _frequency, value)) OnPropertyChanged(nameof(CanCalculateWavelength)); } }
+        public double ForwardPower { get => _forwardPower; set { if (SetProperty(ref _forwardPower, value)) OnPropertyChanged(nameof(CanCalculateVSWR)); } }
+        public double ReflectedPower { get => _reflectedPower; set { if (SetProperty(ref _reflectedPower, value)) OnPropertyChanged(nameof(CanCalculateVSWR)); } }
+        public string SelectedFrequencyUnit { get => _selectedFrequencyUnit; set { if (SetProperty(ref _selectedFrequencyUnit, value)) { OnPropertyChanged(nameof(CanCalculateWavelength)); ConvertFrequency(); } } }
+        public string SelectedForwardPowerUnit { get => _selectedForwardPowerUnit; set { if (SetProperty(ref _selectedForwardPowerUnit, value)) { OnPropertyChanged(nameof(CanCalculateVSWR)); ConvertForwardPower(); } } }
+        public string SelectedReflectedPowerUnit { get => _selectedReflectedPowerUnit; set { if (SetProperty(ref _selectedReflectedPowerUnit, value)) { OnPropertyChanged(nameof(CanCalculateVSWR)); ConvertReflectedPower(); } } }
+        public string SelectedWavelengthUnit { get => _selectedWavelengthUnit; set { if (SetProperty(ref _selectedWavelengthUnit, value)) UpdateWavelengthResult(); } }
 
-        public string VSWRResult
-        {
-            get => _vswrResult;
-            set => SetProperty(ref _vswrResult, value);
-        }
-
-        public double Frequency
-        {
-            get => _frequency;
-            set
-            {
-                if (SetProperty(ref _frequency, value))
-                {
-                    OnPropertyChanged(nameof(CanCalculateWavelength));
-                }
-            }
-        }
-
-        public double ForwardPower
-        {
-            get => _forwardPower;
-            set
-            {
-                if (SetProperty(ref _forwardPower, value))
-                {
-                    OnPropertyChanged(nameof(CanCalculateVSWR));
-                }
-            }
-        }
-
-        public double ReflectedPower
-        {
-            get => _reflectedPower;
-            set
-            {
-                if (SetProperty(ref _reflectedPower, value))
-                {
-                    OnPropertyChanged(nameof(CanCalculateVSWR));
-                }
-            }
-        }
-
-        public string SelectedFrequencyUnit
-        {
-            get => _selectedFrequencyUnit;
-            set
-            {
-                if (SetProperty(ref _selectedFrequencyUnit, value))
-                {
-                    OnPropertyChanged(nameof(CanCalculateWavelength));
-                    ConvertFrequency();
-                }
-            }
-        }
-
-        public string SelectedForwardPowerUnit
-        {
-            get => _selectedForwardPowerUnit;
-            set
-            {
-                if (SetProperty(ref _selectedForwardPowerUnit, value))
-                {
-                    OnPropertyChanged(nameof(CanCalculateVSWR));
-                    ConvertForwardPower();
-                }
-            }
-        }
-
-        public string SelectedReflectedPowerUnit
-        {
-            get => _selectedReflectedPowerUnit;
-            set
-            {
-                if (SetProperty(ref _selectedReflectedPowerUnit, value))
-                {
-                    OnPropertyChanged(nameof(CanCalculateVSWR));
-                    ConvertReflectedPower();
-                }
-            }
-        }
-
-        public string SelectedWavelengthUnit
-        {
-            get => _selectedWavelengthUnit;
-            set
-            {
-                if (SetProperty(ref _selectedWavelengthUnit, value))
-                {
-                    UpdateWavelengthResult();
-                }
-            }
-        }
 
         public ObservableCollection<string> FrequencyUnits => _unitCollections["Frequency"];
         public ObservableCollection<string> PowerUnits => _unitCollections["Power"];
@@ -179,7 +91,7 @@ namespace RadioEngineerCalculator.ViewModel
             {
                 double frequencyHz = Convert(Frequency, SelectedFrequencyUnit, "Hz", PhysicalQuantity.Frequency);
                 double wavelength = _calculationService.CalculateWavelength(frequencyHz);
-                WavelengthResult = $"Длина волны: {Form.Length(wavelength)}";
+                WavelengthResult = $"Длина волны: {Formatter.Length(wavelength)}";
             }
             catch (Exception ex)
             {
@@ -217,7 +129,7 @@ namespace RadioEngineerCalculator.ViewModel
             if (valueParts.Length != 2 || !double.TryParse(valueParts[0], out double value)) return;
 
             double convertedWavelength = Convert(value, valueParts[1], SelectedWavelengthUnit, PhysicalQuantity.Length);
-            WavelengthResult = $"Длина волны: {Form.Length(convertedWavelength)}";
+            WavelengthResult = $"Длина волны: {Formatter.Length(convertedWavelength)}";
         }
 
         public event PropertyChangedEventHandler PropertyChanged;

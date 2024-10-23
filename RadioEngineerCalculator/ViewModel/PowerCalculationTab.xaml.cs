@@ -6,7 +6,7 @@ using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Windows.Controls;
 using System.Windows.Input;
-using static RadioEngineerCalculator.Services.UnitC;
+using static RadioEngineerCalculator.Services.UnitConverter;
 using static RadioEngineerCalculator.Services.Validate;
 
 namespace RadioEngineerCalculator.ViewModel
@@ -240,30 +240,10 @@ namespace RadioEngineerCalculator.ViewModel
                 }
             }
         }
-
-        public string PowerResult
-        {
-            get => _powerResult;
-            set => SetProperty(ref _powerResult, value);
-        }
-
-        public string PowerResultVI
-        {
-            get => _powerResultVI;
-            set => SetProperty(ref _powerResultVI, value);
-        }
-
-        public string PowerFactorResult
-        {
-            get => _powerFactorResult;
-            set => SetProperty(ref _powerFactorResult, value);
-        }
-
-        public string ReactivePowerResult
-        {
-            get => _reactivePowerResult;
-            set => SetProperty(ref _reactivePowerResult, value);
-        }
+        public string PowerResult { get => _powerResult; set => SetProperty(ref _powerResult, value); }
+        public string PowerResultVI { get => _powerResultVI; set => SetProperty(ref _powerResultVI, value); }
+        public string PowerFactorResult { get => _powerFactorResult; set => SetProperty(ref _powerFactorResult, value); }
+        public string ReactivePowerResult { get => _reactivePowerResult; set => SetProperty(ref _reactivePowerResult, value); }
 
         #endregion
 
@@ -352,7 +332,7 @@ namespace RadioEngineerCalculator.ViewModel
             }
         }
 
-        private string FormatResult(double value, PhysicalQuantity quantity) => UnitC.AutoFormat(value, quantity);
+        private string FormatResult(double value, PhysicalQuantity quantity) => AutoFormat(value, quantity);
 
         #endregion
 

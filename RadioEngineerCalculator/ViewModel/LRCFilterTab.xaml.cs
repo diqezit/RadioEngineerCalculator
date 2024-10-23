@@ -1,5 +1,4 @@
 ﻿using OxyPlot;
-using RadioEngineerCalculator.Infos;
 using RadioEngineerCalculator.Services;
 using System;
 using System.Collections.ObjectModel;
@@ -9,11 +8,10 @@ using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using static RadioEngineerCalculator.Services.FiltersCalculationService;
-using static RadioEngineerCalculator.Services.UnitC;
-using static RadioEngineerCalculator.Services.Validate;
 using static RadioEngineerCalculator.Services.ComboBoxService;
-using static RadioEngineerCalculator.Infos.ErrorMessages;
+using static RadioEngineerCalculator.Services.FiltersCalculationService;
+using static RadioEngineerCalculator.Services.UnitConverter;
+using static RadioEngineerCalculator.Services.Validate;
 
 namespace RadioEngineerCalculator.ViewModel
 {
@@ -21,144 +19,128 @@ namespace RadioEngineerCalculator.ViewModel
     {
         private readonly FiltersCalculationService _filtersCalculationService;
         private PlotModel _filterResponseModel;
-        private (double Capacitance, double Inductance, double Resistance, double Frequency) _parameters = (1, 1, 1, 1000);
-        private (string CapacitanceUnit, string InductanceUnit, string ResistanceUnit, string FrequencyUnit, string FilterType) _selectedUnits;
+
+        // Replace records with classes for mutable state
+        private class FilterParameters
+        {
+            public double Capacitance { get; set; }
+            public double Inductance { get; set; }
+            public double Resistance { get; set; }
+            public double Frequency { get; set; }
+        }
+
+        private class UnitParameters
+        {
+            public string CapacitanceUnit { get; set; }
+            public string InductanceUnit { get; set; }
+            public string ResistanceUnit { get; set; }
+            public string FrequencyUnit { get; set; }
+            public string FilterType { get; set; }
+        }
+
+        private (string CapacitanceUnit, string InductanceUnit, string ResistanceUnit, string FrequencyUnit, string FilterType) _selectedUnitsRecord;
         private (string CutoffFrequency, string QualityFactor, string Bandwidth, string Impedance, string PhaseShift, string GroupDelay, string Attenuation) _results;
         private bool _canCalculate;
+        private readonly FilterParameters _parameters;
+        private readonly UnitParameters _selectedUnits;
 
         public ICommand CalculateCommand { get; }
-        public ObservableCollection<string> CapacitanceUnits { get; } = new(GetUnits("Capacitance").ToList());
-        public ObservableCollection<string> InductanceUnits { get; } = new(GetUnits("Inductance").ToList());
-        public ObservableCollection<string> ResistanceUnits { get; } = new(GetUnits("Resistance").ToList());
-        public ObservableCollection<string> FrequencyUnits { get; } = new(GetUnits("Frequency").ToList());
-        public ObservableCollection<string> FilterTypes { get; } = new ObservableCollection<string> { "LowPass", "HighPass", "BandPass", "BandStop" };
+        public ObservableCollection<string> CapacitanceUnits { get; init; } = new(GetUnits("Capacitance"));
+        public ObservableCollection<string> InductanceUnits { get; init; } = new(GetUnits("Inductance"));
+        public ObservableCollection<string> ResistanceUnits { get; init; } = new(GetUnits("Resistance"));
+        public ObservableCollection<string> FrequencyUnits { get; init; } = new(GetUnits("Frequency"));
+        public ObservableCollection<string> FilterTypes { get; init; } = new() { "LowPass", "HighPass", "BandPass", "BandStop" };
 
-        public bool CanCalculate
-        {
-            get => _canCalculate;
-            set => SetProperty(ref _canCalculate, value);
-        }
+        public bool CanCalculate { get => _canCalculate; set => SetProperty(ref _canCalculate, value); }
 
         public string SelectedCapacitanceUnit
         {
             get => _selectedUnits.CapacitanceUnit;
-            set => SetSelectedUnit(ref _selectedUnits.CapacitanceUnit, value);
+            set { _selectedUnits.CapacitanceUnit = value; OnPropertyChanged(); }
         }
 
         public string SelectedFilterType
         {
             get => _selectedUnits.FilterType;
-            set => SetSelectedUnit(ref _selectedUnits.FilterType, value);
+            set { _selectedUnits.FilterType = value; OnPropertyChanged(); }
         }
 
         public string SelectedFrequencyUnit
         {
             get => _selectedUnits.FrequencyUnit;
-            set => SetSelectedUnit(ref _selectedUnits.FrequencyUnit, value, UpdateCanCalculate);
+            set { _selectedUnits.FrequencyUnit = value; OnPropertyChanged(); UpdateCanCalculate(); }
         }
 
         public string SelectedInductanceUnit
         {
             get => _selectedUnits.InductanceUnit;
-            set => SetSelectedUnit(ref _selectedUnits.InductanceUnit, value);
+            set { _selectedUnits.InductanceUnit = value; OnPropertyChanged(); }
         }
 
         public string SelectedResistanceUnit
         {
             get => _selectedUnits.ResistanceUnit;
-            set => SetSelectedUnit(ref _selectedUnits.ResistanceUnit, value);
+            set { _selectedUnits.ResistanceUnit = value; OnPropertyChanged(); }
         }
 
         public double Capacitance
         {
             get => _parameters.Capacitance;
-            set => SetParameter(ref _parameters.Capacitance, value);
+            set { _parameters.Capacitance = value; OnPropertyChanged(); UpdateCanCalculate(); }
         }
 
         public double Inductance
         {
             get => _parameters.Inductance;
-            set => SetParameter(ref _parameters.Inductance, value);
+            set { _parameters.Inductance = value; OnPropertyChanged(); UpdateCanCalculate(); }
         }
 
         public double Frequency
         {
             get => _parameters.Frequency;
-            set => SetParameter(ref _parameters.Frequency, value);
+            set { _parameters.Frequency = value; OnPropertyChanged(); UpdateCanCalculate(); }
         }
 
         public double Resistance
         {
             get => _parameters.Resistance;
-            set => SetParameter(ref _parameters.Resistance, value);
+            set { _parameters.Resistance = value; OnPropertyChanged(); UpdateCanCalculate(); }
         }
 
-        public PlotModel FilterResponseModel
-        {
-            get => _filterResponseModel;
-            set => SetProperty(ref _filterResponseModel, value);
-        }
-
-        public string CutoffFrequencyResult
-        {
-            get => _results.CutoffFrequency;
-            set => SetProperty(ref _results.CutoffFrequency, value);
-        }
-
-        public string QualityFactorResult
-        {
-            get => _results.QualityFactor;
-            set => SetProperty(ref _results.QualityFactor, value);
-        }
-
-        public string BandwidthResult
-        {
-            get => _results.Bandwidth;
-            set => SetProperty(ref _results.Bandwidth, value);
-        }
-
-        public string ImpedanceResult
-        {
-            get => _results.Impedance;
-            set => SetProperty(ref _results.Impedance, value);
-        }
-
-        public string PhaseShiftResult
-        {
-            get => _results.PhaseShift;
-            set => SetProperty(ref _results.PhaseShift, value);
-        }
-
-        public string GroupDelayResult
-        {
-            get => _results.GroupDelay;
-            set => SetProperty(ref _results.GroupDelay, value);
-        }
-
-        public string AttenuationResult
-        {
-            get => _results.Attenuation;
-            set => SetProperty(ref _results.Attenuation, value);
-        }
-
+        public PlotModel FilterResponseModel { get => _filterResponseModel; set => SetProperty(ref _filterResponseModel, value); }
+        public string CutoffFrequencyResult { get => _results.CutoffFrequency; set => SetProperty(ref _results.CutoffFrequency, value); }
+        public string QualityFactorResult { get => _results.QualityFactor; set => SetProperty(ref _results.QualityFactor, value); }
+        public string BandwidthResult { get => _results.Bandwidth; set => SetProperty(ref _results.Bandwidth, value); }
+        public string ImpedanceResult { get => _results.Impedance; set => SetProperty(ref _results.Impedance, value); }
+        public string PhaseShiftResult { get => _results.PhaseShift; set => SetProperty(ref _results.PhaseShift, value); }
+        public string GroupDelayResult { get => _results.GroupDelay; set => SetProperty(ref _results.GroupDelay, value); }
+        public string AttenuationResult { get => _results.Attenuation; set => SetProperty(ref _results.Attenuation, value); }
         private string _stopbandResult;
-        public string StopbandResult
-        {
-            get => _stopbandResult;
-            set => SetProperty(ref _stopbandResult, value);
-        }
-
+        public string StopbandResult { get => _stopbandResult; set => SetProperty(ref _stopbandResult, value); }
         private string _rollOffResult;
-        public string RollOffResult
-        {
-            get => _rollOffResult;
-            set => SetProperty(ref _rollOffResult, value);
-        }
-
+        public string RollOffResult { get => _rollOffResult; set => SetProperty(ref _rollOffResult, value); }
         public LRCFilterTab()
         {
             InitializeComponent();
             _filtersCalculationService = new FiltersCalculationService();
+
+            _parameters = new FilterParameters
+            {
+                Capacitance = 1,
+                Inductance = 1,
+                Resistance = 1,
+                Frequency = 1000
+            };
+
+            _selectedUnits = new UnitParameters
+            {
+                CapacitanceUnit = "uF",
+                InductanceUnit = "μH",
+                ResistanceUnit = "kΩ",
+                FrequencyUnit = "kHz",
+                FilterType = "LowPass"
+            };
+
             InitializeDefaultValues();
             CalculateCommand = new RelayCommand(CalculateFilterParameters, () => CanCalculate);
             DataContext = this;
@@ -166,7 +148,7 @@ namespace RadioEngineerCalculator.ViewModel
 
         private void InitializeDefaultValues()
         {
-            _selectedUnits = (
+            _selectedUnitsRecord = (
                 CapacitanceUnits.FirstOrDefault(),
                 InductanceUnits.FirstOrDefault(),
                 ResistanceUnits.FirstOrDefault(),
@@ -198,12 +180,16 @@ namespace RadioEngineerCalculator.ViewModel
         }
 
         private void UpdateCanCalculate() =>
-            CanCalculate = InputsAreValid(_parameters.Capacitance, _parameters.Inductance, _parameters.Resistance, _parameters.Frequency) &&
-                           _selectedUnits.FilterType is not null &&
-                           _selectedUnits.CapacitanceUnit is not null &&
-                           _selectedUnits.InductanceUnit is not null &&
-                           _selectedUnits.ResistanceUnit is not null &&
-                           _selectedUnits.FrequencyUnit is not null;
+            CanCalculate = (_parameters, _selectedUnitsRecord) switch
+            {
+                ({ } p, { } u) when InputsAreValid(p.Capacitance, p.Inductance, p.Resistance, p.Frequency)
+                    && !string.IsNullOrEmpty(u.FilterType)
+                    && !string.IsNullOrEmpty(u.CapacitanceUnit)
+                    && !string.IsNullOrEmpty(u.InductanceUnit)
+                    && !string.IsNullOrEmpty(u.ResistanceUnit)
+                    && !string.IsNullOrEmpty(u.FrequencyUnit) => true,
+                _ => false
+            };
 
         private void CalculateStopband(FilterResults results)
         {
@@ -211,14 +197,14 @@ namespace RadioEngineerCalculator.ViewModel
             {
                 FilterType.LowPass => results.CutoffFrequency * 10,
                 FilterType.HighPass => results.CutoffFrequency / 10,
-                _ => 0
+                _ => throw new InvalidOperationException("Неподдерживаемый тип фильтра")
             };
 
             double stopbandAttenuation = _filtersCalculationService.CalculateAttenuation(
                 results.FilterType, stopbandFrequency, results.CutoffFrequency, results.Bandwidth);
 
             StopbandResult = stopbandAttenuation > 0
-                ? $"Полоса заграждения: частота {Form.Frequency(stopbandFrequency)}, затухание {stopbandAttenuation:F2} дБ"
+                ? $"Полоса заграждения: частота {Formatter.Frequency(stopbandFrequency)}, затухание {stopbandAttenuation:F2} дБ"
                 : "Расчет полосы заграждения не применим для полосовых фильтров";
         }
 
@@ -230,21 +216,16 @@ namespace RadioEngineerCalculator.ViewModel
 
                 var inputValues = new FilterInputValues
                 {
-                    FilterType = (FilterType)Enum.Parse(typeof(FilterType), _selectedUnits.FilterType),
-                    Capacitance = Convert(_parameters.Capacitance, _selectedUnits.CapacitanceUnit, "F", PhysicalQuantity.Capacitance),
-                    Inductance = Convert(_parameters.Inductance, _selectedUnits.InductanceUnit, "H", PhysicalQuantity.Inductance),
-                    Resistance = Convert(_parameters.Resistance, _selectedUnits.ResistanceUnit, "Ω", PhysicalQuantity.Resistance),
-                    Frequency = Convert(_parameters.Frequency, _selectedUnits.FrequencyUnit, "Hz", PhysicalQuantity.Frequency),
-                    CapacitanceUnit = "F",
-                    InductanceUnit = "H",
-                    ResistanceUnit = "Ω",
-                    FrequencyUnit = "Hz"
+                    FilterType = Enum.TryParse<FilterType>(_selectedUnits.FilterType, out var filterType) ? filterType : 
+                    throw new InvalidOperationException("Некорректный тип фильтра"),
+                    Capacitance = Convert(_parameters.Capacitance, _selectedUnitsRecord.CapacitanceUnit, "F", PhysicalQuantity.Capacitance),
+                    Inductance = Convert(_parameters.Inductance, _selectedUnitsRecord.InductanceUnit, "H", PhysicalQuantity.Inductance),
+                    Resistance = Convert(_parameters.Resistance, _selectedUnitsRecord.ResistanceUnit, "Ω", PhysicalQuantity.Resistance),
+                    Frequency = Convert(_parameters.Frequency, _selectedUnitsRecord.FrequencyUnit, "Hz", PhysicalQuantity.Frequency)
                 };
 
                 var results = _filtersCalculationService.CalculateFilterResults(inputValues);
                 UpdateUIWithResults(results);
-                CalculateStopband(results);
-                CalculateRollOff(results);
             }
             catch (Exception ex)
             {
@@ -296,16 +277,21 @@ namespace RadioEngineerCalculator.ViewModel
 
         private void UpdateUIWithResults(FilterResults results)
         {
-            CutoffFrequencyResult = $"Частота среза: {Form.Frequency(results.CutoffFrequency)}";
+            CutoffFrequencyResult = $"Частота среза: {Formatter.Frequency(results.CutoffFrequency)}";
             QualityFactorResult = $"Добротность (Q): {results.QualityFactor:F2}";
-            BandwidthResult = $"Полоса пропускания: {Form.Frequency(results.Bandwidth)}";
-            ImpedanceResult = $"Импеданс: {Form.Resistance(results.Impedance)}";
+            BandwidthResult = $"Полоса пропускания: {Formatter.Frequency(results.Bandwidth)}";
+            ImpedanceResult = $"Импеданс: {Formatter.Resistance(results.Impedance)}";
             PhaseShiftResult = $"Фазовый сдвиг: {results.PhaseShift:F2}°";
-            GroupDelayResult = $"Групповая задержка: {Form.Time(results.GroupDelay)}";
-            AttenuationResult = $"Затухание: {results.Attenuation:F2} дБ";
+            GroupDelayResult = $"Групповая задержка: {Formatter.Time(results.GroupDelay)}";
+            AttenuationResult = $"Затухание: {Formatter.Attenuation(results.Attenuation)}";
 
-            CalculateStopband(results);
-            CalculateRollOff(results);
+            if (results.StopbandFrequency > 0)
+            {
+                StopbandResult = $"Полоса заграждения: частота {Formatter.Frequency(results.StopbandFrequency)}, затухание {results.StopbandAttenuation:F2} дБ";
+            }
+
+            RollOffResult = $"Крутизна спада АЧХ: {results.RollOff} дБ/декаду";
+
             UpdateFilterResponsePlot(results);
         }
 

@@ -102,7 +102,13 @@ namespace RadioEngineerCalculator.Services
             double minFreq = results.CutoffFrequency / 100;
             double maxFreq = results.CutoffFrequency * 100;
 
-            var points = GeneratePoints(results, minFreq, maxFreq, pointCount);
+            var points = GeneratePoints(results, minFreq, maxFreq, pointCount).ToList();
+
+            // Проверка на наличие точек перед добавлением
+            if (!points.Any())
+            {
+                throw new InvalidOperationException("Не удалось сгенерировать точки для графика.");
+            }
 
             var magnitudeSeries = CreateSeries("Magnitude", OxyColors.Blue);
             var phaseSeries = CreateSeries("Phase", OxyColors.Red, "PhaseAxis");
@@ -142,9 +148,27 @@ namespace RadioEngineerCalculator.Services
 
         private void AddAxes()
         {
-            _plotModel.Axes.Add(CreateFrequencyAxis());
-            _plotModel.Axes.Add(CreateMagnitudeAxis());
-            _plotModel.Axes.Add(CreatePhaseAxis());
+            var frequencyAxis = CreateFrequencyAxis();
+            var magnitudeAxis = CreateMagnitudeAxis();
+            var phaseAxis = CreatePhaseAxis();
+
+            // Установка ограничений для осей
+            SetAxisLimits(frequencyAxis, magnitudeAxis, phaseAxis);
+
+            _plotModel.Axes.Add(frequencyAxis);
+            _plotModel.Axes.Add(magnitudeAxis);
+            _plotModel.Axes.Add(phaseAxis);
+        }
+
+        private void SetAxisLimits(Axis frequencyAxis, Axis magnitudeAxis, Axis phaseAxis)
+        {
+            // Mинимальные и максимальные значения для осей
+            frequencyAxis.Minimum = 0; 
+            frequencyAxis.Maximum = 1e4;
+            magnitudeAxis.Minimum = -60;
+            magnitudeAxis.Maximum = 20;
+            phaseAxis.Minimum = -180;
+            phaseAxis.Maximum = 180;
         }
 
         private Axis CreateFrequencyAxis()

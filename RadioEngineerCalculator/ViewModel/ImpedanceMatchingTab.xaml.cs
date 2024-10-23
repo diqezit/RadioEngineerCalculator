@@ -7,7 +7,7 @@ using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Windows.Controls;
 using System.Windows.Input;
-using static RadioEngineerCalculator.Services.UnitC;
+using static RadioEngineerCalculator.Services.UnitConverter;
 using static RadioEngineerCalculator.Services.Validate;
 using static RadioEngineerCalculator.Services.ComboBoxService;
 using static RadioEngineerCalculator.Infos.ErrorMessages;
@@ -87,23 +87,9 @@ namespace RadioEngineerCalculator.ViewModel
         public bool CanCalculateReflectionCoefficient => CanCalculateImpedanceMatching;
         public bool CanCalculateVSWR => CanCalculateImpedanceMatching;
 
-        public string ImpedanceMatchingResult
-        {
-            get => _impedanceMatchingResult;
-            set => SetProperty(ref _impedanceMatchingResult, value);
-        }
-
-        public string ReflectionCoefficientResult
-        {
-            get => _reflectionCoefficientResult;
-            set => SetProperty(ref _reflectionCoefficientResult, value);
-        }
-
-        public string VSWRResult
-        {
-            get => _vswrResult;
-            set => SetProperty(ref _vswrResult, value);
-        }
+        public string ImpedanceMatchingResult { get => _impedanceMatchingResult; set => SetProperty(ref _impedanceMatchingResult, value); }
+        public string ReflectionCoefficientResult { get => _reflectionCoefficientResult; set => SetProperty(ref _reflectionCoefficientResult, value); }
+        public string VSWRResult { get => _vswrResult; set => SetProperty(ref _vswrResult, value); }
 
         public double SourceImpedance
         {
@@ -229,7 +215,7 @@ namespace RadioEngineerCalculator.ViewModel
             }
         }
 
-        private string FormatResult(double value, PhysicalQuantity quantity) => UnitC.AutoFormat(value, quantity);
+        private string FormatResult(double value, PhysicalQuantity quantity) => AutoFormat(value, quantity);
 
         #endregion
 
