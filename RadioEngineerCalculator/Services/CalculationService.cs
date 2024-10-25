@@ -1,4 +1,6 @@
-﻿using System;
+﻿using RadioEngineerCalculator.ViewModel;
+using System;
+using System.Collections.Generic;
 using System.Numerics;
 using static RadioEngineerCalculator.Services.Validate;
 
@@ -618,96 +620,5 @@ namespace RadioEngineerCalculator.Services
         }
         #endregion
 
-        #region Расчеты операционных усилителей
-
-        // Константы для расчета ОУ
-
-        private const double DEFAULT_GBW = 1e6; // Типичное значение GBW (Gain-Bandwidth Product) в Гц
-        private const double DEFAULT_SLEW_RATE = 1; // Типичное значение Slew Rate в В/мкс
-        private const double DEFAULT_INPUT_IMPEDANCE = 1e6; // Типичное входное сопротивление в Ом
-        private const double DEFAULT_CMRR_DB = 90; // Типичное значение CMRR в дБ
-        private const double THERMAL_NOISE_CONSTANT = 1.38e-23; // Постоянная Больцмана
-        private const double ROOM_TEMPERATURE = 300; // Комнатная температура в Кельвинах
-
-        public double CalculateOutputVoltage(double inputVoltage, double gain, double supplyVoltage)
-        {
-            // Расчет выходного напряжения с учетом ограничений питания
-            double theoreticalOutput = inputVoltage * gain;
-            double maxOutput = supplyVoltage * 0.9; // 90% от напряжения питания как типичное ограничение
-
-            return Math.Min(Math.Abs(theoreticalOutput), maxOutput) * Math.Sign(theoreticalOutput);
-        }
-
-        public double CalculatePowerDissipation(double inputVoltage, double gain, double supplyVoltage)
-        {
-            // Расчет рассеиваемой мощности
-            double outputVoltage = CalculateOutputVoltage(inputVoltage, gain, supplyVoltage);
-            double quiescentCurrent = 0.002; // Типичный ток покоя 2мА
-            double outputCurrent = Math.Abs(outputVoltage) / 1000; // Предполагаем нагрузку 1кОм
-
-            return supplyVoltage * (quiescentCurrent + outputCurrent);
-        }
-
-        public double CalculateSlewRate(double gain)
-        {
-            // Расчет скорости нарастания с учетом коэффициента усиления
-            // SR обычно уменьшается с увеличением gain
-            return DEFAULT_SLEW_RATE * Math.Pow(0.9, Math.Log10(gain));
-        }
-
-        public double CalculateBandwidth(double gain)
-        {
-            // Расчет полосы пропускания на основе GBW
-            return DEFAULT_GBW / gain;
-        }
-
-        public double CalculateInputImpedance(double inputResistor)
-        {
-            // Расчет входного импеданса
-            return (DEFAULT_INPUT_IMPEDANCE * inputResistor) / (DEFAULT_INPUT_IMPEDANCE + inputResistor);
-        }
-
-        public double CalculateOutputImpedance(double gain, double loadResistor)
-        {
-            // Расчет выходного импеданса
-            double openLoopOutput = 100; // Типичное выходное сопротивление без ОС
-            return openLoopOutput / (1 + gain) + (loadResistor / gain);
-        }
-
-        public double CalculateCMRR(double gain, double frequency)
-        {
-            // Расчет CMRR с учетом частоты
-            double cmrrAtDC = DEFAULT_CMRR_DB;
-            // CMRR уменьшается с ростом частоты
-            double frequencyEffect = 20 * Math.Log10(1 + frequency / 1000);
-            return cmrrAtDC - frequencyEffect;
-        }
-
-        public double CalculateNoise(double inputResistor, double feedbackResistor, double frequency)
-        {
-            // Расчет шума
-            // Тепловой шум резисторов
-            double thermalNoise = Math.Sqrt(4 * THERMAL_NOISE_CONSTANT * ROOM_TEMPERATURE *
-                                          (inputResistor + feedbackResistor) * frequency);
-
-            // Шум операционного усилителя (типичное значение)
-            double opampNoise = 10e-9; // 10 нВ/√Гц
-
-            // Суммарный шум
-            return Math.Sqrt(Math.Pow(thermalNoise, 2) + Math.Pow(opampNoise, 2)) * 1e9; // Преобразование в нВ
-        }
-
-        public double CalculateTHD(double inputVoltage, double gain, double supplyVoltage)
-        {
-            // Расчет коэффициента нелинейных искажений
-            double outputVoltage = CalculateOutputVoltage(inputVoltage, gain, supplyVoltage);
-            double maxOutput = supplyVoltage * 0.9;
-
-            // THD увеличивается при приближении к максимальному выходному напряжению
-            double normalizedOutput = Math.Abs(outputVoltage) / maxOutput;
-            return 0.001 * Math.Pow(100, normalizedOutput); // 0.001% при малом сигнале
-        }
-
-        #endregion
     }
 }

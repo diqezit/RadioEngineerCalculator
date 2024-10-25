@@ -7,6 +7,17 @@
         public const string OpAmpTab_SupplyVoltageTooltip = "Введите напряжение питания в вольтах (V).";
         public const string OpAmpTab_GainTooltip = "Введите коэффициент усиления (безразмерный).";
         public const string OpAmpTab_FrequencyTooltip = "Введите частоту в герцах (Hz).";
+        public const string OpAmpTab_CalculateButtonTooltip = "Нажмите, чтобы рассчитать параметры операционного усилителя.";
+        public const string OpAmpTab_LoadResistorUnitTooltip = "Выберите единицу измерения для сопротивления нагрузки.";
+        public const string OpAmpTab_FrequencyUnitTooltip = "Выберите единицу измерения для частоты.";
+        public const string OpAmpTab_SupplyVoltageUnitTooltip = "Выберите единицу измерения для напряжения питания.";
+        public const string OpAmpTab_TemperatureTooltip = "Введите температуру в градусах Цельсия (°C).";
+        public const string OpAmpTab_ResistorUnitTooltip = "Выберите единицу измерения для сопротивления.";
+        public const string OpAmpTab_InputResistorTooltip = "Введите сопротивление входного резистора в омах (Ω).";
+        public const string OpAmpTab_VoltageUnitTooltip = "Выберите единицу измерения для напряжения.";
+        public const string OpAmpTab_InputVoltageTooltip = "Введите входное напряжение в вольтах (V).";
+        public const string OpAmpTab_OperatingModeTooltip = "Выберите режим работы операционного усилителя.";
+        public const string OpAmpTab_OpAmpTypeTooltip = "Выберите тип операционного усилителя.";
 
         // AmplifierTab Tooltips
         public const string AmplifierTab_PowerInTooltip = "Введите мощность на входе в ваттах (W) или других единицах.";

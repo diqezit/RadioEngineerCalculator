@@ -51,7 +51,7 @@ namespace RadioEngineerCalculator.ViewModel
     {
         #region Fields
 
-        private readonly CalculationService _calculationService;
+        private readonly OpAmpCalculationService _calculationService;
         private readonly Dictionary<OpAmpType, OpAmpSpecs> _opAmpSpecs;
 
         private OpAmpType _selectedOpAmpType = OpAmpType.GeneralPurpose;
@@ -275,11 +275,8 @@ namespace RadioEngineerCalculator.ViewModel
         public IEnumerable<OpAmpType> AvailableOpAmpTypes =>
             Enum.GetValues(typeof(OpAmpType)).Cast<OpAmpType>();
 
-
-
         public IEnumerable<OperatingMode> AvailableOperatingModes =>
             Enum.GetValues(typeof(OperatingMode)).Cast<OperatingMode>();
-
 
         #endregion
 
@@ -291,7 +288,7 @@ namespace RadioEngineerCalculator.ViewModel
             DataContext = this;
 
             _opAmpSpecs = InitializeOpAmpSpecs();
-            _calculationService = new CalculationService(_selectedOpAmpType);
+            _calculationService = new OpAmpCalculationService(_selectedOpAmpType, _opAmpSpecs);
 
             // Initialize collections
             VoltageUnits = new ObservableCollection<string>(ComboBoxService.GetUnits("Voltage"));
@@ -348,8 +345,77 @@ namespace RadioEngineerCalculator.ViewModel
                     QuiescentCurrent = 3,
                     CommonModeInputRange = 14,
                     PowerConsumptionMw = 100
+                },
+                [OpAmpType.HighSpeed] = new OpAmpSpecs
+                {
+                    InputOffsetVoltage = 1000,
+                    InputBiasCurrentTypical = 500,
+                    InputOffsetCurrentMax = 100,
+                    UnityGainBandwidth = 50,
+                    SlewRateTypical = 250,
+                    CMRRTypical = 80,
+                    PSRRTypical = 80,
+                    OutputCurrentMax = 50,
+                    QuiescentCurrent = 8,
+                    CommonModeInputRange = 10,
+                    PowerConsumptionMw = 200
+                },
+                [OpAmpType.LowNoise] = new OpAmpSpecs
+                {
+                    InputOffsetVoltage = 50,
+                    InputBiasCurrentTypical = 1,
+                    InputOffsetCurrentMax = 0.5,
+                    UnityGainBandwidth = 3,
+                    SlewRateTypical = 1,
+                    CMRRTypical = 110,
+                    PSRRTypical = 110,
+                    OutputCurrentMax = 25,
+                    QuiescentCurrent = 2.5,
+                    CommonModeInputRange = 13,
+                    PowerConsumptionMw = 75
+                },
+                [OpAmpType.RailToRail] = new OpAmpSpecs
+                {
+                    InputOffsetVoltage = 100,
+                    InputBiasCurrentTypical = 20,
+                    InputOffsetCurrentMax = 10,
+                    UnityGainBandwidth = 5,
+                    SlewRateTypical = 10,
+                    CMRRTypical = 90,
+                    PSRRTypical = 90,
+                    OutputCurrentMax = 35,
+                    QuiescentCurrent = 5,
+                    CommonModeInputRange = 15,
+                    PowerConsumptionMw = 120
+                },
+                [OpAmpType.Instrumentation] = new OpAmpSpecs
+                {
+                    InputOffsetVoltage = 10,
+                    InputBiasCurrentTypical = 0.2,
+                    InputOffsetCurrentMax = 0.1,
+                    UnityGainBandwidth = 1,
+                    SlewRateTypical = 0.2,
+                    CMRRTypical = 130,
+                    PSRRTypical = 130,
+                    OutputCurrentMax = 10,
+                    QuiescentCurrent = 1,
+                    CommonModeInputRange = 10,
+                    PowerConsumptionMw = 30
+                },
+                [OpAmpType.LowPower] = new OpAmpSpecs
+                {
+                    InputOffsetVoltage = 150,
+                    InputBiasCurrentTypical = 5,
+                    InputOffsetCurrentMax = 2,
+                    UnityGainBandwidth = 0.5,
+                    SlewRateTypical = 0.05,
+                    CMRRTypical = 75,
+                    PSRRTypical = 75,
+                    OutputCurrentMax = 5,
+                    QuiescentCurrent = 0.5,
+                    CommonModeInputRange = 12,
+                    PowerConsumptionMw = 10
                 }
-                // Add other OpAmp types similarly...
             };
         }
 
