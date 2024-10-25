@@ -29,7 +29,7 @@
     <UseApplicationTrust>false</UseApplicationTrust>
     <BootstrapperEnabled>true</BootstrapperEnabled>
     <TargetFrameworkProfile />
-    <LangVersion>10.0</LangVersion>
+    <LangVersion>12.0</LangVersion>
     <!-- Добавьте эту строку -->
     <NuGetPackageImportStamp>
     </NuGetPackageImportStamp>
@@ -116,12 +116,6 @@
     <Compile Include="ViewModel\LRCFilterTab.xaml.cs">
       <DependentUpon>LRCFilterTab.xaml</DependentUpon>
     </Compile>
-    <Compile Include="ViewModel\LinkBudgetTab.xaml.cs">
-      <DependentUpon>LinkBudgetTab.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="ViewModel\MicrowaveComponentsTab.xaml.cs">
-      <DependentUpon>MicrowaveComponentsTab.xaml</DependentUpon>
-    </Compile>
     <Compile Include="ViewModel\ModulationTab.xaml.cs">
       <DependentUpon>ModulationTab.xaml</DependentUpon>
     </Compile>
@@ -202,14 +196,6 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="ViewModel\LRCFilterTab.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="ViewModel\LinkBudgetTab.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="ViewModel\MicrowaveComponentsTab.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

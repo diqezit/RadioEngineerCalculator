@@ -1,8 +1,8 @@
 ﻿using RadioEngineerCalculator.Services;
-using RadioEngineerCalculator.Infos;
 using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -13,8 +13,7 @@ namespace RadioEngineerCalculator.ViewModel
 {
     public partial class PowerCalculationTab : UserControl, INotifyPropertyChanged
     {
-        #region Приватные поля
-
+        #region Private Fields
         private readonly CalculationService _calculationService;
         private double _current;
         private double _resistance;
@@ -32,11 +31,9 @@ namespace RadioEngineerCalculator.ViewModel
         private string _powerResultVI;
         private string _powerFactorResult;
         private string _reactivePowerResult;
-
         #endregion
 
-        #region Конструктор и инициализация
-
+        #region Constructor and Initialization
         public PowerCalculationTab()
         {
             InitializeComponent();
@@ -57,26 +54,29 @@ namespace RadioEngineerCalculator.ViewModel
 
         private void InitializeUnitCollections()
         {
-            CurrentUnits = new ObservableCollection<string>(ComboBoxService.GetUnits("Current"));
-            ResistanceUnits = new ObservableCollection<string>(ComboBoxService.GetUnits("Resistance"));
-            VoltageUnits = new ObservableCollection<string>(ComboBoxService.GetUnits("Voltage"));
-            PowerUnits = new ObservableCollection<string>(ComboBoxService.GetUnits("Power"));
+            CurrentUnits = new ObservableCollection<string>(
+                UnitFactors.GetUnitFactors(PhysicalQuantity.Current).Select(u => u.Symbol));
+            ResistanceUnits = new ObservableCollection<string>(
+                UnitFactors.GetUnitFactors(PhysicalQuantity.Resistance).Select(u => u.Symbol));
+            VoltageUnits = new ObservableCollection<string>(
+                UnitFactors.GetUnitFactors(PhysicalQuantity.Voltage).Select(u => u.Symbol));
+            PowerUnits = new ObservableCollection<string>(
+                UnitFactors.GetUnitFactors(PhysicalQuantity.Power).Select(u => u.Symbol));
         }
 
         private void InitializeDefaultUnits()
         {
-            SelectedCurrentUnit = CurrentUnits[0];
-            SelectedResistanceUnit = ResistanceUnits[0];
-            SelectedVoltageUnit = VoltageUnits[0];
-            SelectedCurrentVIUnit = CurrentUnits[0];
-            SelectedApparentPowerUnit = PowerUnits[0];
-            SelectedRealPowerUnit = PowerUnits[0];
+            // Используем базовые единицы из UnitConverter
+            SelectedCurrentUnit = "A";
+            SelectedResistanceUnit = "Ω";
+            SelectedVoltageUnit = "V";
+            SelectedCurrentVIUnit = "A";
+            SelectedApparentPowerUnit = "VA";
+            SelectedRealPowerUnit = "W";
         }
-
         #endregion
 
-        #region Свойства
-
+        #region Properties and Commands
         public ICommand CalculatePowerCommand { get; private set; }
         public ICommand CalculatePowerVICommand { get; private set; }
         public ICommand CalculatePowerFactorCommand { get; private set; }
@@ -87,6 +87,7 @@ namespace RadioEngineerCalculator.ViewModel
         public ObservableCollection<string> VoltageUnits { get; set; }
         public ObservableCollection<string> PowerUnits { get; set; }
 
+        // Value Properties with Validation
         public double Current
         {
             get => _current;
@@ -161,6 +162,7 @@ namespace RadioEngineerCalculator.ViewModel
             }
         }
 
+        // Unit Selection Properties
         public string SelectedCurrentUnit
         {
             get => _selectedCurrentUnit;
@@ -240,24 +242,24 @@ namespace RadioEngineerCalculator.ViewModel
                 }
             }
         }
+
+        // Result Properties
         public string PowerResult { get => _powerResult; set => SetProperty(ref _powerResult, value); }
         public string PowerResultVI { get => _powerResultVI; set => SetProperty(ref _powerResultVI, value); }
         public string PowerFactorResult { get => _powerFactorResult; set => SetProperty(ref _powerFactorResult, value); }
         public string ReactivePowerResult { get => _reactivePowerResult; set => SetProperty(ref _reactivePowerResult, value); }
-
         #endregion
 
-        #region Методы расчета
-
+        #region Calculation Methods
         private void CalculatePower()
         {
             try
             {
-                double currentA = Convert(Current, SelectedCurrentUnit, "A", PhysicalQuantity.Current);
-                double resistanceOhm = Convert(Resistance, SelectedResistanceUnit, "Ω", PhysicalQuantity.Resistance);
+                double currentA = UnitConverter.Convert(Current, SelectedCurrentUnit, "A", PhysicalQuantity.Current);
+                double resistanceOhm = UnitConverter.Convert(Resistance, SelectedResistanceUnit, "Ω", PhysicalQuantity.Resistance);
 
                 double result = _calculationService.CalculatePower(currentA, resistanceOhm);
-                PowerResult = $"Мощность: {FormatResult(result, PhysicalQuantity.Power)}";
+                PowerResult = $"Мощность: {UnitConverter.Formatter.Format(result, PhysicalQuantity.Power)}";
             }
             catch (Exception ex)
             {
@@ -269,11 +271,11 @@ namespace RadioEngineerCalculator.ViewModel
         {
             try
             {
-                double voltageV = Convert(Voltage, SelectedVoltageUnit, "V", PhysicalQuantity.Voltage);
-                double currentA = Convert(CurrentVI, SelectedCurrentVIUnit, "A", PhysicalQuantity.Current);
+                double voltageV = UnitConverter.Convert(Voltage, SelectedVoltageUnit, "V", PhysicalQuantity.Voltage);
+                double currentA = UnitConverter.Convert(CurrentVI, SelectedCurrentVIUnit, "A", PhysicalQuantity.Current);
 
                 double result = _calculationService.CalculatePowerVI(voltageV, currentA);
-                PowerResultVI = $"Мощность: {FormatResult(result, PhysicalQuantity.Power)}";
+                PowerResultVI = $"Мощность: {UnitConverter.Formatter.Format(result, PhysicalQuantity.Power)}";
             }
             catch (Exception ex)
             {
@@ -285,8 +287,8 @@ namespace RadioEngineerCalculator.ViewModel
         {
             try
             {
-                double apparentPowerVA = Convert(ApparentPower, SelectedApparentPowerUnit, "VA", PhysicalQuantity.Power);
-                double realPowerW = Convert(RealPower, SelectedRealPowerUnit, "W", PhysicalQuantity.Power);
+                double apparentPowerVA = UnitConverter.Convert(ApparentPower, SelectedApparentPowerUnit, "VA", PhysicalQuantity.Power);
+                double realPowerW = UnitConverter.Convert(RealPower, SelectedRealPowerUnit, "W", PhysicalQuantity.Power);
 
                 double powerFactor = _calculationService.CalculatePowerFactor(realPowerW, apparentPowerVA);
                 PowerFactorResult = $"Коэффициент мощности: {powerFactor:F4}";
@@ -301,63 +303,70 @@ namespace RadioEngineerCalculator.ViewModel
         {
             try
             {
-                double apparentPowerVA = Convert(ApparentPower, SelectedApparentPowerUnit, "VA", PhysicalQuantity.Power);
-                double realPowerW = Convert(RealPower, SelectedRealPowerUnit, "W", PhysicalQuantity.Power);
+                double apparentPowerVA = UnitConverter.Convert(ApparentPower, SelectedApparentPowerUnit, "VA", PhysicalQuantity.Power);
+                double realPowerW = UnitConverter.Convert(RealPower, SelectedRealPowerUnit, "W", PhysicalQuantity.Power);
 
                 double reactivePower = _calculationService.CalculateReactivePower(apparentPowerVA, realPowerW);
-                ReactivePowerResult = $"Реактивная мощность: {FormatResult(reactivePower, PhysicalQuantity.ReactivePower)}";
+                ReactivePowerResult = $"Реактивная мощность: {UnitConverter.Formatter.Format(reactivePower, PhysicalQuantity.ReactivePower)}";
             }
             catch (Exception ex)
             {
                 ReactivePowerResult = $"Ошибка: {ex.Message}";
             }
         }
-
         #endregion
 
-        #region Вспомогательные методы
+        #region Unit Conversion Methods
+        private void ConvertCurrent() =>
+            ConvertUnit(ref _current, "A", SelectedCurrentUnit, PhysicalQuantity.Current);
 
-        private void ConvertCurrent() => ConvertUnit(ref _current, "A", SelectedCurrentUnit, PhysicalQuantity.Current);
-        private void ConvertResistance() => ConvertUnit(ref _resistance, "Ω", SelectedResistanceUnit, PhysicalQuantity.Resistance);
-        private void ConvertVoltage() => ConvertUnit(ref _voltage, "V", SelectedVoltageUnit, PhysicalQuantity.Voltage);
-        private void ConvertCurrentVI() => ConvertUnit(ref _currentVI, "A", SelectedCurrentVIUnit, PhysicalQuantity.Current);
-        private void ConvertApparentPower() => ConvertUnit(ref _apparentPower, "VA", SelectedApparentPowerUnit, PhysicalQuantity.Power);
-        private void ConvertRealPower() => ConvertUnit(ref _realPower, "W", SelectedRealPowerUnit, PhysicalQuantity.Power);
+        private void ConvertResistance() =>
+            ConvertUnit(ref _resistance, "Ω", SelectedResistanceUnit, PhysicalQuantity.Resistance);
+
+        private void ConvertVoltage() =>
+            ConvertUnit(ref _voltage, "V", SelectedVoltageUnit, PhysicalQuantity.Voltage);
+
+        private void ConvertCurrentVI() =>
+            ConvertUnit(ref _currentVI, "A", SelectedCurrentVIUnit, PhysicalQuantity.Current);
+
+        private void ConvertApparentPower() =>
+            ConvertUnit(ref _apparentPower, "VA", SelectedApparentPowerUnit, PhysicalQuantity.Power);
+
+        private void ConvertRealPower() =>
+            ConvertUnit(ref _realPower, "W", SelectedRealPowerUnit, PhysicalQuantity.Power);
 
         private void ConvertUnit(ref double value, string fromUnit, string toUnit, PhysicalQuantity quantity)
         {
             if (InputsAreValid(value) && !string.IsNullOrWhiteSpace(toUnit))
             {
-                value = Convert(value, fromUnit, toUnit, quantity);
+                value = UnitConverter.Convert(value, fromUnit, toUnit, quantity);
             }
         }
-
-        private string FormatResult(double value, PhysicalQuantity quantity) => AutoFormat(value, quantity);
-
         #endregion
 
-        #region Валидация
+        #region Validation
+        public bool CanCalculatePower =>
+            InputsAreValid(Current, Resistance) &&
+            !string.IsNullOrWhiteSpace(SelectedCurrentUnit) &&
+            !string.IsNullOrWhiteSpace(SelectedResistanceUnit);
 
-        public bool CanCalculatePower => InputsAreValid(Current, Resistance) &&
-                                         !string.IsNullOrWhiteSpace(SelectedCurrentUnit) &&
-                                         !string.IsNullOrWhiteSpace(SelectedResistanceUnit);
+        public bool CanCalculatePowerVI =>
+            InputsAreValid(Voltage, CurrentVI) &&
+            !string.IsNullOrWhiteSpace(SelectedVoltageUnit) &&
+            !string.IsNullOrWhiteSpace(SelectedCurrentVIUnit);
 
-        public bool CanCalculatePowerVI => InputsAreValid(Voltage, CurrentVI) &&
-                                           !string.IsNullOrWhiteSpace(SelectedVoltageUnit) &&
-                                           !string.IsNullOrWhiteSpace(SelectedCurrentVIUnit);
+        public bool CanCalculatePowerFactor =>
+            InputsAreValid(ApparentPower, RealPower) &&
+            !string.IsNullOrWhiteSpace(SelectedApparentPowerUnit) &&
+            !string.IsNullOrWhiteSpace(SelectedRealPowerUnit);
 
-        public bool CanCalculatePowerFactor => InputsAreValid(ApparentPower, RealPower) &&
-                                               !string.IsNullOrWhiteSpace(SelectedApparentPowerUnit) &&
-                                               !string.IsNullOrWhiteSpace(SelectedRealPowerUnit);
-
-        public bool CanCalculateReactivePower => InputsAreValid(ApparentPower, RealPower) &&
-                                                 !string.IsNullOrWhiteSpace(SelectedApparentPowerUnit) &&
-                                                 !string.IsNullOrWhiteSpace(SelectedRealPowerUnit);
-
+        public bool CanCalculateReactivePower =>
+            InputsAreValid(ApparentPower, RealPower) &&
+            !string.IsNullOrWhiteSpace(SelectedApparentPowerUnit) &&
+            !string.IsNullOrWhiteSpace(SelectedRealPowerUnit);
         #endregion
 
-        #region INotifyPropertyChanged
-
+        #region INotifyPropertyChanged Implementation
         public event PropertyChangedEventHandler PropertyChanged;
 
         protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
@@ -372,7 +381,6 @@ namespace RadioEngineerCalculator.ViewModel
             OnPropertyChanged(propertyName);
             return true;
         }
-
         #endregion
     }
 }

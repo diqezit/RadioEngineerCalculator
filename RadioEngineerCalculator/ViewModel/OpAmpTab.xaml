@@ -1,12 +1,200 @@
-﻿<Window x:Class="RadioEngineerCalculator.ViewModel.OpAmpTab"
-        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:RadioEngineerCalculator.ViewModel"
-        mc:Ignorable="d"
-        Title="OpAmpTab" Height="450" Width="800">
-    <Grid>
-        
-    </Grid>
-</Window>
+﻿<UserControl x:Class="RadioEngineerCalculator.ViewModel.OpAmpTab"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:infos="clr-namespace:RadioEngineerCalculator.Infos"
+             xmlns:local="clr-namespace:RadioEngineerCalculator.ViewModel"
+             mc:Ignorable="d"
+             d:DesignHeight="800" d:DesignWidth="1000">
+    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+        <Grid Margin="10">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <!-- Заголовок -->
+            <TextBlock Grid.Row="0" Text="Расчет операционных усилителей" 
+                       HorizontalAlignment="Center" 
+                       FontSize="22" 
+                       FontWeight="Bold" 
+                       Margin="0,10,0,20"/>
+
+            <!-- Группа входных параметров -->
+            <GroupBox Grid.Row="1" Header="Входные параметры" 
+                      BorderBrush="{StaticResource DividerBrush}" 
+                      BorderThickness="1" 
+                      Padding="10">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- Левая колонка -->
+                    <StackPanel Grid.Column="0" Margin="0,0,5,0">
+                        <!-- Тип ОУ -->
+                        <Label Content="Тип операционного усилителя" Style="{StaticResource ModernLabel}"/>
+                        <ComboBox ItemsSource="{Binding AvailableOpAmpTypes}"
+                                 SelectedItem="{Binding SelectedOpAmpType}"
+                                 Style="{StaticResource ModernComboBox}"/>
+
+                        <!-- Режим работы -->
+                        <Label Content="Режим работы" Style="{StaticResource ModernLabel}" Margin="0,10,0,0"/>
+                        <ComboBox ItemsSource="{Binding AvailableOperatingModes}"
+                                 SelectedItem="{Binding SelectedOperatingMode}"
+                                 Style="{StaticResource ModernComboBox}"/>
+
+                        <!-- Входное напряжение -->
+                        <Label Content="Входное напряжение (Vin)" Style="{StaticResource ModernLabel}" Margin="0,10,0,0"/>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBox Text="{Binding InputVoltage, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
+                                     Style="{StaticResource ModernTextBox}"/>
+                            <ComboBox Grid.Column="1" 
+                                      Width="60" 
+                                      ItemsSource="{Binding VoltageUnits}"
+                                      SelectedItem="{Binding SelectedVoltageUnit, Mode=TwoWay}"/>
+                        </Grid>
+
+                        <!-- Входной резистор -->
+                        <Label Content="Входной резистор (R1)" Style="{StaticResource ModernLabel}" Margin="0,10,0,0"/>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBox Text="{Binding InputResistor, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
+                                     Style="{StaticResource ModernTextBox}"/>
+                            <ComboBox Grid.Column="1" 
+                                      Width="60"
+                                      ItemsSource="{Binding ResistorUnits}"
+                                      SelectedItem="{Binding SelectedResistorUnit, Mode=TwoWay}"/>
+                        </Grid>
+
+                        <!-- Температура -->
+                        <Label Content="Температура (°C)" Style="{StaticResource ModernLabel}" Margin="0,10,0,0"/>
+                        <TextBox Text="{Binding Temperature, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                 Style="{StaticResource ModernTextBox}"/>
+                    </StackPanel>
+
+                    <!-- Правая колонка -->
+                    <StackPanel Grid.Column="1" Margin="5,0,0,0">
+                        <!-- Частота -->
+                        <Label Content="Частота входного сигнала" Style="{StaticResource ModernLabel}"/>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBox Text="{Binding Frequency, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
+                                     Style="{StaticResource ModernTextBox}"/>
+                            <ComboBox Grid.Column="1" 
+                                      Width="60"
+                                      ItemsSource="{Binding FrequencyUnits}"
+                                      SelectedItem="{Binding SelectedFrequencyUnit, Mode=TwoWay}"/>
+                        </Grid>
+
+                        <!-- Коэффициент усиления -->
+                        <Label Content="Коэффициент усиления" Style="{StaticResource ModernLabel}" Margin="0,10,0,0"/>
+                        <TextBox Text="{Binding Gain, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
+                                 Style="{StaticResource ModernTextBox}"/>
+
+                        <!-- Напряжение питания -->
+                        <Label Content="Напряжение питания (Vcc)" Style="{StaticResource ModernLabel}" Margin="0,10,0,0"/>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBox Text="{Binding SupplyVoltage, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
+                                     Style="{StaticResource ModernTextBox}"/>
+                            <ComboBox Grid.Column="1" 
+                                      Width="60"
+                                      ItemsSource="{Binding VoltageUnits}"
+                                      SelectedItem="{Binding SelectedSupplyVoltageUnit, Mode=TwoWay}"/>
+                        </Grid>
+
+                        <!-- Резистор нагрузки -->
+                        <Label Content="Резистор нагрузки (RL)" Style="{StaticResource ModernLabel}" Margin="0,10,0,0"/>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBox Text="{Binding LoadResistor, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
+                                     Style="{StaticResource ModernTextBox}"/>
+                            <ComboBox Grid.Column="1" 
+                                      Width="60"
+                                      ItemsSource="{Binding ResistorUnits}"
+                                      SelectedItem="{Binding SelectedResistorUnit, Mode=TwoWay}"/>
+                        </Grid>
+
+                        <!-- Кнопка рассчитать -->
+                        <Button Content="Рассчитать"
+                                Command="{Binding CalculateCommand}"
+                                Style="{StaticResource ModernButton}"
+                                Margin="0,20,0,0"/>
+                    </StackPanel>
+                </Grid>
+            </GroupBox>
+
+            <!-- Группа результатов -->
+            <GroupBox Grid.Row="2" Header="Результаты расчета" 
+                      BorderBrush="{StaticResource DividerBrush}" 
+                      BorderThickness="1" 
+                      Padding="10"
+                      Margin="0,10,0,0">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- Основные результаты -->
+                    <StackPanel Grid.Column="0" Margin="0,0,5,0">
+                        <TextBlock Text="{Binding OutputVoltageResult}" 
+                                  Style="{StaticResource ModernTextBlock}" 
+                                  Margin="0,0,0,10"/>
+                        <TextBlock Text="{Binding PowerDissipationResult}" 
+                                  Style="{StaticResource ModernTextBlock}" 
+                                  Margin="0,0,0,10"/>
+                        <TextBlock Text="{Binding SlewRateResult}" 
+                                  Style="{StaticResource ModernTextBlock}" 
+                                  Margin="0,0,0,10"/>
+                        <TextBlock Text="{Binding BandwidthResult}" 
+                                  Style="{StaticResource ModernTextBlock}" 
+                                  Margin="0,0,0,10"/>
+                        <TextBlock Text="{Binding InputImpedanceResult}" 
+                                  Style="{StaticResource ModernTextBlock}" 
+                                  Margin="0,0,0,10"/>
+                    </StackPanel>
+
+                    <!-- Дополнительные результаты -->
+                    <StackPanel Grid.Column="1" Margin="5,0,0,0">
+                        <TextBlock Text="{Binding OutputImpedanceResult}" 
+                                  Style="{StaticResource ModernTextBlock}" 
+                                  Margin="0,0,0,10"/>
+                        <TextBlock Text="{Binding CMRRResult}" 
+                                  Style="{StaticResource ModernTextBlock}" 
+                                  Margin="0,0,0,10"/>
+                        <TextBlock Text="{Binding NoiseResult}" 
+                                  Style="{StaticResource ModernTextBlock}" 
+                                  Margin="0,0,0,10"/>
+                        <TextBlock Text="{Binding THDResult}" 
+                                  Style="{StaticResource ModernTextBlock}" 
+                                  Margin="0,0,0,10"/>
+                        <TextBlock Text="{Binding TemperatureEffectsResult}" 
+                                  Style="{StaticResource ModernTextBlock}" 
+                                  Margin="0,0,0,10"/>
+                    </StackPanel>
+                </Grid>
+            </GroupBox>
+        </Grid>
+    </ScrollViewer>
+</UserControl>

@@ -113,7 +113,7 @@ namespace RadioEngineerCalculator.ViewModel
                 double powerInW = Convert(PowerIn, SelectedPowerInUnit, "W", PhysicalQuantity.Power);
                 double powerOutW = Convert(PowerOut, SelectedPowerOutUnit, "W", PhysicalQuantity.Power);
                 double gain = _calculationService.CalculateGain(powerInW, powerOutW);
-                GainResult = $"Усиление: {Formatter.Power(gain)} dB";
+                GainResult = $"Усиление: {Formatter.Decibels(gain)} dB";
             }
             catch (Exception ex)
             {
@@ -126,7 +126,7 @@ namespace RadioEngineerCalculator.ViewModel
             try
             {
                 double noiseFigure = _calculationService.CalculateNoiseFigure(NoiseFactor);
-                NoiseFigureResult = $"Коэффициент шума: {Formatter.Power(noiseFigure)} dB";
+                NoiseFigureResult = $"Коэффициент шума: {Formatter.Decibels(noiseFigure)} dB";
             }
             catch (Exception ex)
             {
@@ -152,7 +152,7 @@ namespace RadioEngineerCalculator.ViewModel
             try
             {
                 double compressionPoint = _calculationService.Calculate1dBCompressionPoint(InputPower, OutputPowerDBm, SmallSignalGain);
-                CompressionPointResult = $"Точка компрессии 1 dB: {Formatter.Power(compressionPoint)} dBm";
+                CompressionPointResult = $"Точка компрессии 1 dB: {Formatter.Format(compressionPoint, PhysicalQuantity.Power)} dBm";
             }
             catch (Exception ex)
             {
@@ -165,7 +165,7 @@ namespace RadioEngineerCalculator.ViewModel
             try
             {
                 double ip3 = _calculationService.CalculateIP3(FundamentalPower, ThirdOrderPower);
-                IP3Result = $"Точка пересечения третьего порядка (IP3): {Formatter.Power(ip3)} dBm";
+                IP3Result = $"Точка пересечения третьего порядка (IP3): {Formatter.Format(ip3, PhysicalQuantity.Power)} dBm";
             }
             catch (Exception ex)
             {

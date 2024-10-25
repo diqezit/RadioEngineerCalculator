@@ -11,20 +11,15 @@ namespace RadioEngineerCalculator.Services
 {
     public class Graph
     {
-        #region Fields
         private readonly PlotModel _plotModel;
         private readonly FiltersCalculationService _filtersCalculationService;
-        #endregion
 
-        #region Constructor
         public Graph(PlotModel plotModel, FiltersCalculationService filtersCalculationService)
         {
             _plotModel = plotModel ?? throw new ArgumentNullException(nameof(plotModel));
             _filtersCalculationService = filtersCalculationService ?? throw new ArgumentNullException(nameof(filtersCalculationService));
         }
-        #endregion
 
-        #region Public Methods
         public void UpdateFilterResponsePlot(FilterResults results, string stopbandResult, string rollOffResult)
         {
             if (results is null) throw new ArgumentNullException(nameof(results));
@@ -39,9 +34,7 @@ namespace RadioEngineerCalculator.Services
 
             _plotModel.InvalidatePlot(true);
         }
-        #endregion
 
-        #region Private Methods
         private void AddStopbandSeries(FilterResults results, string stopbandResult)
         {
             if (string.IsNullOrEmpty(stopbandResult)) return;
@@ -152,23 +145,9 @@ namespace RadioEngineerCalculator.Services
             var magnitudeAxis = CreateMagnitudeAxis();
             var phaseAxis = CreatePhaseAxis();
 
-            // Установка ограничений для осей
-            SetAxisLimits(frequencyAxis, magnitudeAxis, phaseAxis);
-
             _plotModel.Axes.Add(frequencyAxis);
             _plotModel.Axes.Add(magnitudeAxis);
             _plotModel.Axes.Add(phaseAxis);
-        }
-
-        private void SetAxisLimits(Axis frequencyAxis, Axis magnitudeAxis, Axis phaseAxis)
-        {
-            // Mинимальные и максимальные значения для осей
-            frequencyAxis.Minimum = 0; 
-            frequencyAxis.Maximum = 1e4;
-            magnitudeAxis.Minimum = -60;
-            magnitudeAxis.Maximum = 20;
-            phaseAxis.Minimum = -180;
-            phaseAxis.Maximum = 180;
         }
 
         private Axis CreateFrequencyAxis()
@@ -190,8 +169,6 @@ namespace RadioEngineerCalculator.Services
             {
                 Position = AxisPosition.Left,
                 Title = "Амплитуда (дБ)",
-                Minimum = -60,
-                Maximum = 20,
                 MajorGridlineStyle = LineStyle.Solid,
                 MinorGridlineStyle = LineStyle.Dot,
                 MajorStep = 20,
@@ -206,14 +183,11 @@ namespace RadioEngineerCalculator.Services
                 Key = "PhaseAxis",
                 Position = AxisPosition.Right,
                 Title = "Фаза (градусы)",
-                Minimum = -180,
-                Maximum = 180,
                 MajorGridlineStyle = LineStyle.Solid,
                 MinorGridlineStyle = LineStyle.Dot,
                 MajorStep = 90,
                 MinorStep = 30
             };
         }
-        #endregion
     }
 }

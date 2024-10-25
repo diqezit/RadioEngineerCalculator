@@ -2,6 +2,12 @@
 {
     public static class Tooltips
     {
+        // OpAmpTab Tooltips
+        public const string OpAmpTab_LoadResistorTooltip = "Введите сопротивление нагрузки в омах (Ω).";
+        public const string OpAmpTab_SupplyVoltageTooltip = "Введите напряжение питания в вольтах (V).";
+        public const string OpAmpTab_GainTooltip = "Введите коэффициент усиления (безразмерный).";
+        public const string OpAmpTab_FrequencyTooltip = "Введите частоту в герцах (Hz).";
+
         // AmplifierTab Tooltips
         public const string AmplifierTab_PowerInTooltip = "Введите мощность на входе в ваттах (W) или других единицах.";
         public const string AmplifierTab_PowerInUnitTooltip = "Выберите единицу измерения для мощности на входе.";

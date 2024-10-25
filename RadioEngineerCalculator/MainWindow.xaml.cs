@@ -24,6 +24,7 @@ namespace RadioEngineerCalculator
             MainTabControl.Items.Add(new TabItem { Header = "AM, FM, PM", Content = new ModulationTab() });
             MainTabControl.Items.Add(new TabItem { Header = "Закон Ома", Content = new OhmTab() });
             MainTabControl.Items.Add(new TabItem { Header = "Колебательный контур", Content = new ResonantCircuitTab() });
+            MainTabControl.Items.Add(new TabItem { Header = "ОУ", Content = new OpAmpTab() });
         }
     }
 }

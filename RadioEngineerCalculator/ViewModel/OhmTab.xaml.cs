@@ -1,17 +1,16 @@
-﻿using RadioEngineerCalculator.Infos;
-using RadioEngineerCalculator.Services;
+﻿using RadioEngineerCalculator.Services;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Globalization;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Windows.Controls;
 using System.Windows.Input;
+using static RadioEngineerCalculator.Infos.ErrorMessages;
+using static RadioEngineerCalculator.Services.ComboBoxService;
 using static RadioEngineerCalculator.Services.UnitConverter;
 using static RadioEngineerCalculator.Services.Validate;
-using static RadioEngineerCalculator.Services.ComboBoxService;
-using static RadioEngineerCalculator.Infos.ErrorMessages;
 
 namespace RadioEngineerCalculator.ViewModel
 {
@@ -41,20 +40,14 @@ namespace RadioEngineerCalculator.ViewModel
             InitializeDefaultUnits();
         }
 
-        private Dictionary<string, ObservableCollection<string>> InitializeUnitCollections()
+        private Dictionary<string, ObservableCollection<string>> InitializeUnitCollections() => new()
         {
-            return new Dictionary<string, ObservableCollection<string>>
-            {
-                ["Resistance"] = new ObservableCollection<string>(GetUnits("Resistance")),
-                ["Current"] = new ObservableCollection<string>(GetUnits("Current")),
-                ["Voltage"] = new ObservableCollection<string>(GetUnits("Voltage"))
-            };
-        }
+            ["Resistance"] = new ObservableCollection<string>(GetUnits("Resistance")),
+            ["Current"] = new ObservableCollection<string>(GetUnits("Current")),
+            ["Voltage"] = new ObservableCollection<string>(GetUnits("Voltage"))
+        };
 
-        private void InitializeCommands()
-        {
-            CalculateCommand = new RelayCommand(Calculate, () => CanCalculate);
-        }
+        private void InitializeCommands() => CalculateCommand = new RelayCommand(Calculate, () => CanCalculate);
 
         private void InitializeDefaultUnits()
         {
@@ -74,91 +67,37 @@ namespace RadioEngineerCalculator.ViewModel
         public double Resistance
         {
             get => _resistance;
-            set
-            {
-                if (double.TryParse(ToString(), out double parsedValue))
-                {
-                    SetProperty(ref _resistance, parsedValue);
-                }
-                else
-                {
-                    SetProperty(ref _resistance, 0.0);
-                }
-                OnPropertyChanged(nameof(CanCalculate));
-            }
+            set => SetAndNotify(ref _resistance, value);
         }
 
         public double Current
         {
             get => _current;
-            set
-            {
-                if (double.TryParse(ToString(), out double parsedValue))
-                {
-                    SetProperty(ref _current, parsedValue);
-                }
-                else
-                {
-                    SetProperty(ref _current, 0.0);
-                }
-                OnPropertyChanged(nameof(CanCalculate));
-            }
+            set => SetAndNotify(ref _current, value);
         }
 
         public double Voltage
         {
             get => _voltage;
-            set
-            {
-                if (double.TryParse(ToString(), out double parsedValue))
-                {
-                    SetProperty(ref _voltage, parsedValue);
-                }
-                else
-                {
-                    SetProperty(ref _voltage, 0.0);
-                }
-                OnPropertyChanged(nameof(CanCalculate));
-            }
+            set => SetAndNotify(ref _voltage, value);
         }
 
         public string SelectedResistanceUnit
         {
             get => _selectedResistanceUnit;
-            set
-            {
-                if (SetProperty(ref _selectedResistanceUnit, value))
-                {
-                    OnPropertyChanged(nameof(CanCalculate));
-                    ConvertResistance();
-                }
-            }
+            set => SetUnit(ref _selectedResistanceUnit, value, ConvertResistance);
         }
 
         public string SelectedCurrentUnit
         {
             get => _selectedCurrentUnit;
-            set
-            {
-                if (SetProperty(ref _selectedCurrentUnit, value))
-                {
-                    OnPropertyChanged(nameof(CanCalculate));
-                    ConvertCurrent();
-                }
-            }
+            set => SetUnit(ref _selectedCurrentUnit, value, ConvertCurrent);
         }
 
         public string SelectedVoltageUnit
         {
             get => _selectedVoltageUnit;
-            set
-            {
-                if (SetProperty(ref _selectedVoltageUnit, value))
-                {
-                    OnPropertyChanged(nameof(CanCalculate));
-                    ConvertVoltage();
-                }
-            }
+            set => SetUnit(ref _selectedVoltageUnit, value, ConvertVoltage);
         }
 
         public string ResultText
@@ -167,22 +106,17 @@ namespace RadioEngineerCalculator.ViewModel
             set => SetProperty(ref _resultText, value);
         }
 
-        public bool CanCalculate => InputsOhmTab(Resistance, Current, Voltage) &&
+        private bool HasTwoFilledInputs() => new[] { Resistance, Current, Voltage }.Count(v => v != 0) >= 2;
+
+        public bool CanCalculate => HasTwoFilledInputs() &&
                                     !string.IsNullOrWhiteSpace(SelectedResistanceUnit) &&
                                     !string.IsNullOrWhiteSpace(SelectedCurrentUnit) &&
                                     !string.IsNullOrWhiteSpace(SelectedVoltageUnit);
         #endregion
 
         #region Методы Валидации
-        private bool InputsOhmTab(double resistance, double current, double voltage)
-        {
-            int filledFieldsCount = 0;
-            if (resistance != 0) filledFieldsCount++;
-            if (current != 0) filledFieldsCount++;
-            if (voltage != 0) filledFieldsCount++;
-
-            return filledFieldsCount >= 2;
-        }
+        private bool InputsOhmTab(double resistance, double current, double voltage) =>
+            new[] { resistance, current, voltage }.Count(v => v != 0) >= 2;
         #endregion
 
         #region Методы Расчета
@@ -190,18 +124,22 @@ namespace RadioEngineerCalculator.ViewModel
         {
             try
             {
-                double resistanceOhm = Convert(Resistance, SelectedResistanceUnit, "Ω", PhysicalQuantity.Resistance);
-                double currentAmp = Convert(Current, SelectedCurrentUnit, "A", PhysicalQuantity.Current);
-                double voltageVolt = Convert(Voltage, SelectedVoltageUnit, "V", PhysicalQuantity.Voltage);
+                var resistanceOhm = UnitConverter.Convert(Resistance, SelectedResistanceUnit, "Ω", PhysicalQuantity.Resistance);
+                var currentAmp = UnitConverter.Convert(Current, SelectedCurrentUnit, "A", PhysicalQuantity.Current);
+                var voltageVolt = UnitConverter.Convert(Voltage, SelectedVoltageUnit, "V", PhysicalQuantity.Voltage);
 
-                string emptyField = GetEmptyField();
-                if (string.IsNullOrEmpty(emptyField))
+                var emptyField = GetEmptyField();
+                if (emptyField is null)
                 {
                     ResultText = FieldsAreEmpty;
                     return;
                 }
 
-                PerformCalculation(emptyField, voltageVolt, currentAmp, resistanceOhm);
+                CalculateValues[emptyField](voltageVolt, currentAmp, resistanceOhm);
+            }
+            catch (FormatException ex)
+            {
+                ResultText = $"Ошибка ввода данных: {ex.Message}";
             }
             catch (Exception ex)
             {
@@ -209,27 +147,18 @@ namespace RadioEngineerCalculator.ViewModel
             }
         }
 
-        private void PerformCalculation(string emptyField, double voltage, double current, double resistance)
+        private Dictionary<string, Action<double, double, double>> CalculateValues => new()
         {
-            switch (emptyField)
-            {
-                case "Resistance":
-                    CalculateResistance(voltage, current);
-                    break;
-                case "Current":
-                    CalculateCurrent(voltage, resistance);
-                    break;
-                case "Voltage":
-                    CalculateVoltage(resistance, current);
-                    break;
-            }
-        }
+            ["Resistance"] = (voltage, current, _) => CalculateResistance(voltage, current),
+            ["Current"] = (voltage, _, resistance) => CalculateCurrent(voltage, resistance),
+            ["Voltage"] = (_, current, resistance) => CalculateVoltage(resistance, current)
+        };
 
         private void CalculateResistance(double voltage, double current)
         {
             var resistance = _calculationService.CalculateResistance(voltage, current);
             Resistance = resistance;
-            UpdateSelectedResistanceUnit(resistance);
+            UpdateSelectedUnit(resistance, ResistanceUnits, UpdateSelectedResistanceUnit);
             ResultText = $"Сопротивление: {AutoFormat(resistance, PhysicalQuantity.Resistance)}";
         }
 
@@ -237,7 +166,7 @@ namespace RadioEngineerCalculator.ViewModel
         {
             var current = _calculationService.CalculateCurrent(voltage, resistance);
             Current = current;
-            UpdateSelectedCurrentUnit(current);
+            UpdateSelectedUnit(current, CurrentUnits, UpdateSelectedCurrentUnit);
             ResultText = $"Ток: {AutoFormat(current, PhysicalQuantity.Current)}";
         }
 
@@ -245,19 +174,20 @@ namespace RadioEngineerCalculator.ViewModel
         {
             var voltage = _calculationService.CalculateVoltage(resistance, current);
             Voltage = voltage;
-            UpdateSelectedVoltageUnit(voltage);
+            UpdateSelectedUnit(voltage, VoltageUnits, UpdateSelectedVoltageUnit);
             ResultText = $"Напряжение: {AutoFormat(voltage, PhysicalQuantity.Voltage)}";
         }
         #endregion
 
         #region Методы Обновления Единиц Измерения
-        private void UpdateSelectedResistanceUnit(double resistance)
+        private void UpdateSelectedUnit(double value, ObservableCollection<string> units, Action<double> updateUnit)
         {
-            var formattedValue = AutoFormat(resistance, PhysicalQuantity.Resistance);
+            var formattedValue = Formatter.Format(value, PhysicalQuantity.Resistance);
             var unit = formattedValue.Split(' ')[1];
-            if (ResistanceUnits.Contains(unit))
+
+            if (units.Contains(unit))
             {
-                SelectedResistanceUnit = unit;
+                updateUnit(value);
             }
             else
             {
@@ -265,43 +195,15 @@ namespace RadioEngineerCalculator.ViewModel
             }
         }
 
-        private void UpdateSelectedCurrentUnit(double current)
-        {
-            var formattedValue = AutoFormat(current, PhysicalQuantity.Current);
-            var unit = formattedValue.Split(' ')[1];
-            if (CurrentUnits.Contains(unit))
-            {
-                SelectedCurrentUnit = unit;
-            }
-            else
-            {
-                ResultText = $"Недопустимая единица измерения: {unit}";
-            }
-        }
+        private void UpdateSelectedResistanceUnit(double resistance) => SelectedResistanceUnit = AutoFormat(resistance, PhysicalQuantity.Resistance).Split(' ')[1];
 
-        private void UpdateSelectedVoltageUnit(double voltage)
-        {
-            var formattedValue = AutoFormat(voltage, PhysicalQuantity.Voltage);
-            var unit = formattedValue.Split(' ')[1];
-            if (VoltageUnits.Contains(unit))
-            {
-                SelectedVoltageUnit = unit;
-            }
-            else
-            {
-                ResultText = $"Недопустимая единица измерения: {unit}";
-            }
-        }
+        private void UpdateSelectedCurrentUnit(double current) => SelectedCurrentUnit = AutoFormat(current, PhysicalQuantity.Current).Split(' ')[1];
+
+        private void UpdateSelectedVoltageUnit(double voltage) => SelectedVoltageUnit = AutoFormat(voltage, PhysicalQuantity.Voltage).Split(' ')[1];
         #endregion
 
         #region Вспомогательные Методы
-        private string GetEmptyField()
-        {
-            if (Resistance == 0) return "Resistance";
-            if (Current == 0) return "Current";
-            if (Voltage == 0) return "Voltage";
-            return null;
-        }
+        private string GetEmptyField() => Resistance == 0 ? "Resistance" : Current == 0 ? "Current" : Voltage == 0 ? "Voltage" : null;
 
         private void ConvertResistance() => ConvertUnit(ref _resistance, "Ω", SelectedResistanceUnit, PhysicalQuantity.Resistance);
         private void ConvertCurrent() => ConvertUnit(ref _current, "A", SelectedCurrentUnit, PhysicalQuantity.Current);
@@ -316,13 +218,21 @@ namespace RadioEngineerCalculator.ViewModel
         }
         #endregion
 
+        #region Методы Уведомления
+        protected bool SetAndNotify<T>(ref T field, T value, [CallerMemberName] string propertyName = null)
+        {
+            if (EqualityComparer<T>.Default.Equals(field, value)) return false;
+            field = value;
+            OnPropertyChanged(propertyName);
+            return true;
+        }
+        #endregion
+
         #region Реализация INotifyPropertyChanged
         public event PropertyChangedEventHandler PropertyChanged;
 
-        protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
-        {
+        protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null) =>
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
 
         protected bool SetProperty<T>(ref T field, T value, [CallerMemberName] string propertyName = null)
         {
@@ -330,6 +240,15 @@ namespace RadioEngineerCalculator.ViewModel
             field = value;
             OnPropertyChanged(propertyName);
             return true;
+        }
+
+        private void SetUnit(ref string field, string value, Action convertMethod)
+        {
+            if (SetProperty(ref field, value))
+            {
+                OnPropertyChanged(nameof(CanCalculate));
+                convertMethod();
+            }
         }
         #endregion
     }

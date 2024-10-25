@@ -3,10 +3,17 @@ using System.Collections.ObjectModel;
 
 namespace RadioEngineerCalculator.Services
 {
+    /// <summary>
+    /// Статический класс, предоставляющий методы для работы с различными единицами измерения, сгруппированными по категориям.
+    /// </summary>
     public static class ComboBoxService
     {
         #region Приватные поля
 
+        /// <summary>
+        /// Статическое приватное поле, представляющее собой словарь, где ключом является строка, обозначающая категорию физической величины,
+        /// а значением — коллекция строк, содержащая единицы измерения для этой категории.
+        /// </summary>
         private static readonly Dictionary<string, ObservableCollection<string>> units = new()
         {
             { "Current", new() { "pA", "nA", "μA", "mA", "A" } },
@@ -47,6 +54,12 @@ namespace RadioEngineerCalculator.Services
 
         #region Публичные методы
 
+        /// <summary>
+        /// Возвращает коллекцию единиц измерения для указанной физической величины.
+        /// Если указанная величина не найдена, возвращается пустая коллекция.
+        /// </summary>
+        /// <param name="quantity">Строка, представляющая категорию физической величины (например, "Current", "Resistance", "Voltage" и т.д.).</param>
+        /// <returns>Коллекция строк, содержащая единицы измерения для указанной физической величины. Если категория не найдена, возвращается пустая коллекция.</returns>
         public static ObservableCollection<string> GetUnits(string quantity) =>
             units.TryGetValue(quantity, out var unitCollection) ? unitCollection : new ObservableCollection<string>();
 

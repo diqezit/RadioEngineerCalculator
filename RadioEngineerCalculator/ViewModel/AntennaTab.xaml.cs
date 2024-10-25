@@ -91,7 +91,7 @@ namespace RadioEngineerCalculator.ViewModel
             {
                 double frequencyHz = Convert(Frequency, SelectedFrequencyUnit, "Hz", PhysicalQuantity.Frequency);
                 double wavelength = _calculationService.CalculateWavelength(frequencyHz);
-                WavelengthResult = $"Длина волны: {Formatter.Length(wavelength)}";
+                WavelengthResult = $"Длина волны: {Formatter.Format(wavelength, PhysicalQuantity.Length)}";
             }
             catch (Exception ex)
             {
@@ -129,7 +129,7 @@ namespace RadioEngineerCalculator.ViewModel
             if (valueParts.Length != 2 || !double.TryParse(valueParts[0], out double value)) return;
 
             double convertedWavelength = Convert(value, valueParts[1], SelectedWavelengthUnit, PhysicalQuantity.Length);
-            WavelengthResult = $"Длина волны: {Formatter.Length(convertedWavelength)}";
+            WavelengthResult = $"Длина волны: {Formatter.Format(convertedWavelength, PhysicalQuantity.Length)}";
         }
 
         public event PropertyChangedEventHandler PropertyChanged;

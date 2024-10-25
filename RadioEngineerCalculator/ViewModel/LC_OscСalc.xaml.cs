@@ -50,7 +50,7 @@ namespace RadioEngineerCalculator.ViewModel
             {
                 if (SetProperty(ref _selectedCapacitanceUnit, value))
                 {
-                    ConvertCapacitance();
+                    ConvertAndUpdate(ref _capacitance, value, PhysicalQuantity.Capacitance);
                 }
             }
         }
@@ -61,7 +61,7 @@ namespace RadioEngineerCalculator.ViewModel
             {
                 if (SetProperty(ref _selectedFrequencyUnit, value))
                 {
-                    ConvertFrequency();
+                    ConvertAndUpdate(ref _frequency, value, PhysicalQuantity.Frequency);
                 }
             }
         }
@@ -72,7 +72,7 @@ namespace RadioEngineerCalculator.ViewModel
             {
                 if (SetProperty(ref _selectedInductanceUnit, value))
                 {
-                    ConvertInductance();
+                    ConvertAndUpdate(ref _inductance, value, PhysicalQuantity.Inductance);
                 }
             }
         }
@@ -83,7 +83,7 @@ namespace RadioEngineerCalculator.ViewModel
             {
                 if (SetProperty(ref _selectedResistanceUnit, value))
                 {
-                    ConvertResistance();
+                    ConvertAndUpdate(ref _resistance, value, PhysicalQuantity.Resistance);
                 }
             }
         }
@@ -152,9 +152,16 @@ namespace RadioEngineerCalculator.ViewModel
 
         private void CalculateAll()
         {
-            CalculateResonanceFrequency();
-            CalculateImpedance();
-            CalculateQFactor();
+            try
+            {
+                CalculateResonanceFrequency();
+                CalculateImpedance();
+                CalculateQFactor();
+            }
+            catch (Exception ex)
+            {
+                HandleError(ex);
+            }
         }
 
         private void CalculateResonanceFrequency()
@@ -164,11 +171,11 @@ namespace RadioEngineerCalculator.ViewModel
                 double inductanceH = Convert(Inductance, SelectedInductanceUnit, "H", PhysicalQuantity.Inductance);
                 double capacitanceF = Convert(Capacitance, SelectedCapacitanceUnit, "F", PhysicalQuantity.Capacitance);
                 double result = _calculationService.CalculateResonanceFrequency(inductanceH, capacitanceF);
-                ResonanceFrequencyResult = $"Резонансная частота: {Formatter.Frequency(result)}";
+                ResonanceFrequencyResult = $"Резонансная частота: {Formatter.Format(result, PhysicalQuantity.Frequency)}";
             }
             catch (Exception ex)
             {
-                ResonanceFrequencyResult = $"Ошибка: {ex.Message}";
+                HandleError(ex);
             }
         }
 
@@ -189,8 +196,7 @@ namespace RadioEngineerCalculator.ViewModel
             }
             catch (Exception ex)
             {
-                SeriesImpedanceResult = $"Ошибка: {ex.Message}";
-                ParallelImpedanceResult = $"Ошибка: {ex.Message}";
+                HandleError(ex);
             }
         }
 
@@ -210,19 +216,13 @@ namespace RadioEngineerCalculator.ViewModel
             }
             catch (Exception ex)
             {
-                SeriesQFactorResult = $"Ошибка: {ex.Message}";
-                ParallelQFactorResult = $"Ошибка: {ex.Message}";
+                HandleError(ex);
             }
         }
 
         #endregion
 
         #region Вспомогательные методы
-
-        private void ConvertInductance() => ConvertUnit(ref _inductance, "H", SelectedInductanceUnit, PhysicalQuantity.Inductance);
-        private void ConvertCapacitance() => ConvertUnit(ref _capacitance, "F", SelectedCapacitanceUnit, PhysicalQuantity.Capacitance);
-        private void ConvertResistance() => ConvertUnit(ref _resistance, "Ω", SelectedResistanceUnit, PhysicalQuantity.Resistance);
-        private void ConvertFrequency() => ConvertUnit(ref _frequency, "Hz", SelectedFrequencyUnit, PhysicalQuantity.Frequency);
 
         private void ConvertUnit(ref double value, string baseUnit, string toUnit, PhysicalQuantity quantity)
         {
@@ -233,7 +233,25 @@ namespace RadioEngineerCalculator.ViewModel
             }
         }
 
-        private string FormatComplex(Complex complex) => $"{Formatter.Resistance(complex.Real)} + {Formatter.Resistance(complex.Imaginary)}j";
+        private void ConvertAndUpdate(ref double value, string unit, PhysicalQuantity quantity)
+        {
+            ConvertUnit(ref value, GetBaseUnit(quantity), unit, quantity);
+        }
+
+        private string GetBaseUnit(PhysicalQuantity quantity)
+        {
+            return quantity switch
+            {
+                PhysicalQuantity.Inductance => "H",
+                PhysicalQuantity.Capacitance => "F",
+                PhysicalQuantity.Resistance => "Ω",
+                PhysicalQuantity.Frequency => "Hz",
+                _ => throw new ArgumentOutOfRangeException()
+            };
+        }
+
+        private string FormatComplex(Complex complex)
+            => $"{Formatter.Format(complex.Real, PhysicalQuantity.Resistance)} + {Formatter.Format(complex.Imaginary, PhysicalQuantity.Resistance)}j";
 
         #endregion
 
@@ -255,6 +273,17 @@ namespace RadioEngineerCalculator.ViewModel
             return true;
         }
 
+        #endregion
+
+        #region Ошибки
+        private void HandleError(Exception ex)
+        {
+            ResonanceFrequencyResult = $"Ошибка: {ex.Message}";
+            SeriesImpedanceResult = $"Ошибка: {ex.Message}";
+            ParallelImpedanceResult = $"Ошибка: {ex.Message}";
+            SeriesQFactorResult = $"Ошибка: {ex.Message}";
+            ParallelQFactorResult = $"Ошибка: {ex.Message}";
+        }
         #endregion
     }
 }
